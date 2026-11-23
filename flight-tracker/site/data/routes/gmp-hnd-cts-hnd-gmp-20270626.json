@@ -1,0 +1,107 @@
+{
+  "history": [
+    {
+      "date": "2026-11-23",
+      "checked_at": "2026-11-23T16:52:55+09:00",
+      "price": 599900,
+      "error": null,
+      "airline": "전일본공수",
+      "flight_number": "NH 868",
+      "depart_time": "19:55",
+      "arrive_time": "22:15",
+      "stops": 0,
+      "duration_min": 140,
+      "legs": [
+        {
+          "from": "GMP",
+          "to": "HND",
+          "date": "2027-06-26",
+          "airline": "전일본공수",
+          "flight_number": "NH 868",
+          "depart_time": "19:55",
+          "arrive_time": "22:15",
+          "stops": 0
+        },
+        {
+          "from": "HND",
+          "to": "CTS",
+          "date": "2027-06-29",
+          "airline": "전일본공수",
+          "flight_number": "NH 61",
+          "depart_time": "11:00",
+          "arrive_time": "12:35",
+          "stops": 0
+        },
+        {
+          "from": "AKJ",
+          "to": "HND",
+          "date": "2027-07-03",
+          "airline": "AIR DO",
+          "flight_number": "HD 82",
+          "depart_time": "09:25",
+          "arrive_time": "11:10",
+          "stops": 0
+        },
+        {
+          "from": "HND",
+          "to": "GMP",
+          "date": "2027-07-03",
+          "airline": "전일본공수",
+          "flight_number": "NH 867",
+          "depart_time": "20:05",
+          "arrive_time": "22:20",
+          "stops": 0
+        }
+      ]
+    }
+  ],
+  "alert_state": {},
+  "google_flights_url": "https://www.google.com/travel/flights?hl=ko&gl=kr&curr=KRW&tfs=CBwQAhpBEgoyMDI3LTA2LTI2Ih8KA0dNUBIKMjAyNy0wNi0yNhoDSE5EKgJOSDIDODY4KABqBwgBEgNHTVByBwgBEgNITkQaQBIKMjAyNy0wNi0yOSIeCgNITkQSCjIwMjctMDYtMjkaA0NUUyoCTkgyAjYxKABqBwgBEgNITkRyBwgBEgNDVFMaQBIKMjAyNy0wNy0wMyIeCgNBS0oSCjIwMjctMDctMDMaA0hORCoCSEQyAjgyKABqBwgBEgNBS0pyBwgBEgNITkQaIBIKMjAyNy0wNy0wMygAagcIARIDSE5EcgcIARIDR01QQAFIAXABmAED&tfu=EgIIAQ",
+  "route": {
+    "id": "gmp-hnd-cts-hnd-gmp-20270626",
+    "name": "김포 → 도쿄 · 삿포로 · 아사히카와",
+    "legs": [
+      {
+        "from": "GMP",
+        "to": "HND",
+        "date": "2027-06-26"
+      },
+      {
+        "from": "HND",
+        "to": "CTS",
+        "date": "2027-06-29"
+      },
+      {
+        "from": "AKJ",
+        "to": "HND",
+        "date": "2027-07-03"
+      },
+      {
+        "from": "HND",
+        "to": "GMP",
+        "date": "2027-07-03"
+      }
+    ],
+    "adults": 1,
+    "travel_class": "economy",
+    "max_stops": 0,
+    "alert_below": null,
+    "active": true,
+    "from": "GMP",
+    "to": "GMP",
+    "date": "2027-06-26",
+    "return_date": null,
+    "trip_type": "multi_city"
+  },
+  "status": "active",
+  "summary": {
+    "current": 599900,
+    "current_date": "2026-11-23",
+    "prev": null,
+    "min": 599900,
+    "max": 599900,
+    "avg": 599900,
+    "days": 1
+  },
+  "updated_at": "2026-11-23T16:52:55+09:00"
+}

@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-11-23T15:42:22+09:00",
+  "updated_at": "2026-11-23T16:52:55+09:00",
   "routes": [
     {
       "id": "icn-cts-20270629",
@@ -12,29 +12,73 @@
       "alert_below": null,
       "status": "active",
       "summary": {
-        "current": 626267,
+        "current": 624681,
         "current_date": "2026-11-23",
         "prev": null,
-        "min": 626267,
-        "max": 626267,
-        "avg": 626267,
+        "min": 624681,
+        "max": 624681,
+        "avg": 624681,
         "days": 1
       },
       "spark": [
-        626267
+        624681
+      ]
+    },
+    {
+      "id": "gmp-hnd-cts-hnd-gmp-20270626",
+      "name": "김포 → 도쿄 · 삿포로 · 아사히카와",
+      "from": "GMP",
+      "to": "GMP",
+      "date": "2027-06-26",
+      "return_date": null,
+      "legs": [
+        {
+          "from": "GMP",
+          "to": "HND",
+          "date": "2027-06-26"
+        },
+        {
+          "from": "HND",
+          "to": "CTS",
+          "date": "2027-06-29"
+        },
+        {
+          "from": "AKJ",
+          "to": "HND",
+          "date": "2027-07-03"
+        },
+        {
+          "from": "HND",
+          "to": "GMP",
+          "date": "2027-07-03"
+        }
+      ],
+      "alert_below": null,
+      "status": "active",
+      "summary": {
+        "current": 599900,
+        "current_date": "2026-11-23",
+        "prev": null,
+        "min": 599900,
+        "max": 599900,
+        "avg": 599900,
+        "days": 1
+      },
+      "spark": [
+        599900
       ]
     }
   ],
   "quota": {
     "plan_name": "Free Plan",
     "searches_per_month": 250,
-    "plan_searches_left": 240,
+    "plan_searches_left": 235,
     "extra_credits": 0,
-    "total_searches_left": 240,
-    "this_month_usage": 10,
+    "total_searches_left": 235,
+    "this_month_usage": 15,
     "plan_renewal_date": "2026-12-23",
     "account_rate_limit_per_hour": 250,
     "daily_usage": 6,
-    "checked_at": "2026-11-23T15:42:22+09:00"
+    "checked_at": "2026-11-23T16:52:55+09:00"
   }
 }

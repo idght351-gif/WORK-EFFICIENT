@@ -2,8 +2,8 @@
   "history": [
     {
       "date": "2026-11-23",
-      "checked_at": "2026-11-23T15:42:22+09:00",
-      "price": 626267,
+      "checked_at": "2026-11-23T16:52:55+09:00",
+      "price": 624681,
       "error": null,
       "airline": "Trinity Airways",
       "flight_number": "TW 263",
@@ -38,14 +38,14 @@
   },
   "status": "active",
   "summary": {
-    "current": 626267,
+    "current": 624681,
     "current_date": "2026-11-23",
     "prev": null,
-    "min": 626267,
-    "max": 626267,
-    "avg": 626267,
+    "min": 624681,
+    "max": 624681,
+    "avg": 624681,
     "days": 1
   },
-  "updated_at": "2026-11-23T15:42:22+09:00",
+  "updated_at": "2026-11-23T16:52:55+09:00",
   "google_flights_url": "https://www.google.com/travel/flights?hl=ko&gl=kr&curr=KRW&tfs=CBwQAhpFEgoyMDI3LTA2LTI5Ih8KA0lDThIKMjAyNy0wNi0yORoDQ1RTKgJUVzIDMjYzKABACkgXagcIARIDSUNOcgcIARIDQ1RTGiQSCjIwMjctMDctMDUoAEAMSBdqBwgBEgNDVFNyBwgBEgNJQ05AAUgBcAGYAQE&tfu=EgIIAQ"
 }
