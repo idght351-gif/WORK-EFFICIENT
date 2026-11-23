@@ -1,20 +1,7 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://ai.google.dev/static/site-assets/images/share-ais-513315318.png" />
-</div>
+# ✈︎ 항공권 가격 추적기
 
-# Run and deploy your AI Studio app
+Google 항공권 가격을 매일 자동으로 기록하고, 가격 추이 그래프를 보여주고, 목표가 이하로 떨어지면 메일을 보냅니다.
 
-This contains everything you need to run your app locally.
-
-View your app in AI Studio: https://ai.studio/apps/5bb3a973-7f48-4adb-bb5f-ebc9a6fd07d7
-
-## Run Locally
-
-**Prerequisites:**  Node.js
-
-
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+- 그래프 페이지: GitHub Pages (`https://<아이디>.github.io/<저장소이름>/`)
+- 노선 설정: [`flight-tracker/routes.json`](flight-tracker/routes.json)
+- 설정 방법과 동작 규칙: [`flight-tracker/README.md`](flight-tracker/README.md)
