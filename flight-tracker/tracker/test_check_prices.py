@@ -1,6 +1,6 @@
 import unittest
 
-from check_prices import build_quota, searches_per_check, decide_alert, outbound_times_param, pick_cheapest, record_result, summarize
+from check_prices import compare_links, build_quota, searches_per_check, decide_alert, outbound_times_param, pick_cheapest, record_result, summarize
 
 ROUTE = {"depart_after": "09:00", "depart_before": "12:00"}
 
@@ -142,6 +142,27 @@ class TestQuota(unittest.TestCase):
         self.assertEqual(q["daily_usage"], 4)
         self.assertEqual(q["error"], "timeout")
         self.assertNotIn("api_key", q)
+
+
+class TestCompareLinks(unittest.TestCase):
+    def test_round_trip(self):
+        r = {"from": "ICN", "to": "CTS", "date": "2027-06-29", "return_date": "2027-07-05",
+             "adults": 2, "travel_class": "economy", "max_stops": None}
+        links = compare_links(r)
+        self.assertEqual(links["kayak"],
+                         "https://www.kayak.co.kr/flights/ICN-CTS/2027-06-29/2027-07-05/2adults?sort=price_a")
+        self.assertEqual(links["skyscanner"],
+                         "https://www.skyscanner.co.kr/transport/flights/icn/cts/270629/270705/"
+                         "?adultsv2=2&cabinclass=economy&rtn=1&preferdirects=false")
+
+    def test_one_way_business_direct(self):
+        r = {"from": "icn", "to": "nrt", "date": "2026-12-20", "adults": 1,
+             "travel_class": "business", "max_stops": 0}
+        links = compare_links(r)
+        self.assertEqual(links["kayak"],
+                         "https://www.kayak.co.kr/flights/ICN-NRT/2026-12-20/business?sort=price_a&fs=stops%3D0")
+        self.assertIn("/icn/nrt/261220/?", links["skyscanner"])
+        self.assertIn("cabinclass=business&rtn=0&preferdirects=true", links["skyscanner"])
 
 
 if __name__ == "__main__":

@@ -137,6 +137,30 @@ function sparkline(svg, data, target) {
     <circle cx="${x(last)}" cy="${y(data[last])}" r="4" fill="var(--accent)" stroke="var(--card)" stroke-width="2"/>`;
 }
 
+// ------------------------------------------------------------ 비교 사이트 링크
+// tracker/check_prices.py 의 compare_links 와 같은 규칙입니다.
+function compareLinks(r) {
+  const org = r.from.toUpperCase(), dst = r.to.toUpperCase();
+  const adults = +(r.adults || 1), ret = r.return_date, direct = r.max_stops === 0;
+  const kc = { economy: "", premium_economy: "/premium", business: "/business", first: "/first" }[r.travel_class || "economy"] || "";
+  const sc = { economy: "economy", premium_economy: "premiumeconomy", business: "business", first: "first" }[r.travel_class || "economy"] || "economy";
+  let kayak = `https://www.kayak.co.kr/flights/${org}-${dst}/${r.date}` + (ret ? `/${ret}` : "") + kc + (adults > 1 ? `/${adults}adults` : "");
+  kayak += "?sort=price_a" + (direct ? "&fs=stops%3D0" : "");
+  const ymd = (iso) => iso.slice(2, 4) + iso.slice(5, 7) + iso.slice(8, 10);
+  let sky = `https://www.skyscanner.co.kr/transport/flights/${org.toLowerCase()}/${dst.toLowerCase()}/${ymd(r.date)}/` + (ret ? `${ymd(ret)}/` : "");
+  sky += "?" + new URLSearchParams({ adultsv2: adults, cabinclass: sc, rtn: ret ? 1 : 0, preferdirects: direct ? "true" : "false" });
+  return { kayak, skyscanner: sky };
+}
+
+function compareHTML(r) {
+  const l = compareLinks(r);
+  return `<div class="compare">
+      <a class="btn secondary" href="${esc(l.kayak)}" target="_blank" rel="noopener">Kayak 비교</a>
+      <a class="btn secondary" href="${esc(l.skyscanner)}" target="_blank" rel="noopener">Skyscanner 비교</a>
+    </div>
+    <p class="muted small compare-note">같은 날짜·인원·좌석으로 열려요. 출발 시간대 조건은 각 사이트에서 직접 설정해 주세요.</p>`;
+}
+
 // ------------------------------------------------------------ 상세
 async function renderDetail(id) {
   let doc;
@@ -199,7 +223,8 @@ async function renderDetail(id) {
       <div class="legend"><span><i></i>그날의 최저가</span>${r.alert_below ? `<span><i class="target"></i>목표가 ${won(r.alert_below)}</span>` : ""}</div>
     </section>
 
-    ${doc.google_flights_url ? `<a class="btn" href="${esc(doc.google_flights_url)}" target="_blank" rel="noopener">Google 항공권에서 예약하기</a><div style="height:12px"></div>` : ""}
+    ${doc.google_flights_url ? `<a class="btn" href="${esc(doc.google_flights_url)}" target="_blank" rel="noopener">Google 항공권에서 예약하기</a>` : ""}
+    ${compareHTML(r)}
 
     <section class="card">
       <h3 class="section-title">추적 조건</h3>

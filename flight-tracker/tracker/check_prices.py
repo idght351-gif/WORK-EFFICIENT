@@ -252,8 +252,11 @@ def send_alert(route: dict, entry: dict, summary: dict, flights_url: str | None)
         "",
         f"추적 기간 최저 {won(summary['min'])} · 평균 {won(summary['avg'])} · 최고 {won(summary['max'])}",
     ]
+    links = compare_links(route)
+    lines += [""]
     if flights_url:
-        lines += ["", f"Google 항공권에서 보기: {flights_url}"]
+        lines += [f"Google 항공권에서 보기: {flights_url}"]
+    lines += [f"Kayak에서 비교: {links['kayak']}", f"Skyscanner에서 비교: {links['skyscanner']}"]
     if os.environ.get("SITE_URL"):
         lines += [f"가격 추이 그래프: {os.environ['SITE_URL'].rstrip('/')}/#{route['id']}"]
     msg.set_content("\n".join(lines))
@@ -261,6 +264,39 @@ def send_alert(route: dict, entry: dict, summary: dict, flights_url: str | None)
         s.login(user, pw)
         s.send_message(msg)
     print(f"  ✉ 알림 메일 발송 → {to}")
+
+
+# ---------------------------------------------------------------- 비교 사이트 링크
+
+KAYAK_CABIN = {"economy": "", "premium_economy": "/premium", "business": "/business", "first": "/first"}
+SKYSCANNER_CABIN = {"economy": "economy", "premium_economy": "premiumeconomy",
+                    "business": "business", "first": "first"}
+
+
+def compare_links(route: dict) -> dict:
+    """같은 노선·날짜·인원·좌석으로 Kayak / Skyscanner 검색 결과를 여는 주소.
+    출발 시간대 조건은 두 사이트 주소로 지정할 수 없어서 각 사이트에서 직접 거릅니다."""
+    org, dst = route["from"].upper(), route["to"].upper()
+    adults = int(route.get("adults", 1))
+    cabin = route.get("travel_class", "economy")
+    ret = route.get("return_date")
+    direct = route.get("max_stops") == 0
+
+    kayak = f"https://www.kayak.co.kr/flights/{org}-{dst}/{route['date']}"
+    if ret:
+        kayak += f"/{ret}"
+    kayak += KAYAK_CABIN.get(cabin, "") + (f"/{adults}adults" if adults > 1 else "")
+    kayak += "?sort=price_a" + ("&fs=stops%3D0" if direct else "")
+
+    yymmdd = lambda iso: iso[2:4] + iso[5:7] + iso[8:10]  # noqa: E731
+    sky = f"https://www.skyscanner.co.kr/transport/flights/{org.lower()}/{dst.lower()}/{yymmdd(route['date'])}/"
+    if ret:
+        sky += f"{yymmdd(ret)}/"
+    sky += "?" + urllib.parse.urlencode({
+        "adultsv2": adults, "cabinclass": SKYSCANNER_CABIN.get(cabin, "economy"),
+        "rtn": 1 if ret else 0, "preferdirects": "true" if direct else "false",
+    })
+    return {"kayak": kayak, "skyscanner": sky}
 
 
 # ---------------------------------------------------------------- SerpApi 잔여 검색 수
