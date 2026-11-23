@@ -236,6 +236,7 @@ async function renderDetail(id) {
       <div class="info-row"><span>경유</span><span>${r.max_stops == null ? "상관없음" : r.max_stops === 0 ? "직항만" : `${r.max_stops}회 이하`}</span></div>
       <div class="info-row"><span>최근 최저가 가는 편</span><span>${lastEntry ? esc(`${lastEntry.airline} ${lastEntry.flight_number}`) : "-"}</span></div>
       ${lastEntry && lastEntry.return_airline ? `<div class="info-row"><span>최근 최저가 오는 편</span><span>${esc(`${lastEntry.return_airline} ${lastEntry.return_flight_number}`)}</span></div>` : ""}
+      <a class="btn secondary" href="#edit/${esc(encodeURIComponent(r.id))}" style="margin-top:14px">조건 바꾸기 (직항 · 시간 · 인원 등)</a>
     </section>
 
     <section class="card">
@@ -350,14 +351,21 @@ function repoInfo() {
   return repo ? { owner: m[1], repo } : null;
 }
 
-function renderAdd() {
+async function renderEdit(id) {
+  let doc;
+  try { doc = await getJSON(`data/routes/${encodeURIComponent(id)}.json`); }
+  catch { $app.innerHTML = `<a class="back" href="#">‹ 목록</a><div class="card empty">노선을 찾을 수 없어요.</div>`; return; }
+  renderAdd(doc.route);
+}
+
+function renderAdd(edit) {
   const info = repoInfo();
   const editUrl = info ? `https://github.com/${info.owner}/${info.repo}/edit/main/flight-tracker/routes.json` : null;
   $app.innerHTML = `
-    <a class="back" href="#">‹ 목록</a>
+    <a class="back" href="${edit ? `#${esc(encodeURIComponent(edit.id))}` : "#"}">‹ ${edit ? "노선" : "목록"}</a>
     <section class="card">
-      <h3 class="section-title">노선 추가하기</h3>
-      <p class="muted small" style="margin-top:-6px">입력하면 아래에 routes.json 에 붙여 넣을 내용이 만들어져요.</p>
+      <h3 class="section-title">${edit ? "추적 조건 바꾸기" : "노선 추가하기"}</h3>
+      <p class="muted small" style="margin-top:-6px">${edit ? "바꾸면 아래에 routes.json 에서 이 노선 항목을 대신할 내용이 만들어져요." : "입력하면 아래에 routes.json 에 붙여 넣을 내용이 만들어져요."}</p>
       <form class="form" id="f" onsubmit="return false">
         <label class="full">이름<input name="name" value="서울 → 오사카"></label>
         <label>출발 공항 코드<input name="from" value="ICN" maxlength="3"></label>
@@ -377,23 +385,36 @@ function renderAdd() {
       </form>
     </section>
     <section class="card">
-      <h3 class="section-title">routes.json 에 추가할 내용</h3>
+      <h3 class="section-title">${edit ? "routes.json 에서 바꿀 내용" : "routes.json 에 추가할 내용"}</h3>
       <pre class="snippet" id="out"></pre>
       <button class="btn secondary" id="copy" style="margin:12px 0 8px">복사하기</button>
       ${editUrl ? `<a class="btn" href="${editUrl}" target="_blank" rel="noopener">GitHub에서 routes.json 열기</a>` : ""}
-      <p class="muted small">"routes" 목록 안의 마지막 항목 뒤에 쉼표(,)를 찍고 붙여 넣은 뒤 Commit 하세요. 다음 자동 실행(매일 오전 9시경)부터 기록돼요.</p>
+      <p class="muted small">${edit
+        ? `routes.json 에서 "id": "${esc(edit.id)}" 인 항목의 { } 전체를 위 내용으로 바꾼 뒤 Commit 하세요. 바로 한 번 조회되고, 이후 06:30 · 12:30 · 18:30 에 조회돼요.`
+        : `"routes" 목록 안의 마지막 항목 뒤에 쉼표(,)를 찍고 붙여 넣은 뒤 Commit 하세요. 바로 한 번 조회되고, 이후 06:30 · 12:30 · 18:30 에 조회돼요.`}</p>
     </section>`;
   const f = document.getElementById("f"), out = document.getElementById("out");
-  const d = new Date(Date.now() + 30 * 86400000); f.date.value = d.toISOString().slice(0, 10);
+  if (edit) {
+    const t = (x) => (x === "24:00" ? "" : x || "");
+    f.elements["name"].value = edit.name; f.from.value = edit.from; f.to.value = edit.to;
+    f.date.value = edit.date; f.return_date.value = edit.return_date || "";
+    f.depart_after.value = t(edit.depart_after); f.depart_before.value = t(edit.depart_before);
+    f.return_after.value = t(edit.return_after); f.return_before.value = t(edit.return_before);
+    f.adults.value = edit.adults || 1; f.travel_class.value = edit.travel_class || "economy";
+    f.max_stops.value = edit.max_stops == null ? "" : String(edit.max_stops);
+    f.alert_below.value = edit.alert_below || "";
+  } else {
+    const d = new Date(Date.now() + 30 * 86400000); f.date.value = d.toISOString().slice(0, 10);
+  }
   const update = () => {
     const v = Object.fromEntries(new FormData(f));
-    const id = `${v.from}-${v.to}-${(v.date || "").replaceAll("-", "")}`.toLowerCase();
+    const id = edit ? edit.id : `${v.from}-${v.to}-${(v.date || "").replaceAll("-", "")}`.toLowerCase();
     out.textContent = JSON.stringify({
       id, name: v.name, from: v.from.toUpperCase(), to: v.to.toUpperCase(), date: v.date,
       return_date: v.return_date || null, depart_after: v.depart_after || "00:00", depart_before: v.depart_before || "24:00",
       ...(v.return_date ? { return_after: v.return_after || "00:00", return_before: v.return_before || "24:00" } : {}),
       adults: +v.adults || 1, travel_class: v.travel_class, max_stops: v.max_stops === "" ? null : +v.max_stops,
-      alert_below: +v.alert_below || null, active: true,
+      alert_below: +v.alert_below || null, active: edit ? edit.active !== false : true,
     }, null, 2);
   };
   f.addEventListener("input", update); update();
@@ -407,7 +428,10 @@ function route() {
   window.onresize = null;
   window.scrollTo(0, 0);
   const id = decodeURIComponent(location.hash.slice(1));
-  if (!id) renderList(); else if (id === "add") renderAdd(); else renderDetail(id);
+  if (!id) renderList();
+  else if (id === "add") renderAdd();
+  else if (id.startsWith("edit/")) renderEdit(id.slice(5));
+  else renderDetail(id);
 }
 window.addEventListener("hashchange", route);
 route();

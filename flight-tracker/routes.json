@@ -13,7 +13,7 @@
       "return_before": "24:00",
       "adults": 1,
       "travel_class": "economy",
-      "max_stops": null,
+      "max_stops": 0,
       "alert_below": null,
       "active": true
     }
