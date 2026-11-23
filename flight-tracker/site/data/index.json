@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-11-23T12:26:05+09:00",
+  "updated_at": "2026-11-23T12:53:30+09:00",
   "routes": [
     {
       "id": "icn-cts-20270629",
@@ -23,5 +23,17 @@
         1251754
       ]
     }
-  ]
+  ],
+  "quota": {
+    "plan_name": "Free Plan",
+    "searches_per_month": 250,
+    "plan_searches_left": 246,
+    "extra_credits": 0,
+    "total_searches_left": 246,
+    "this_month_usage": 4,
+    "plan_renewal_date": "2026-12-23",
+    "account_rate_limit_per_hour": 250,
+    "daily_usage": 2,
+    "checked_at": "2026-11-23T12:53:30+09:00"
+  }
 }
