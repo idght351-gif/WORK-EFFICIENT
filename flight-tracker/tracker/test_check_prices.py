@@ -1,0 +1,80 @@
+import unittest
+
+from check_prices import decide_alert, outbound_times_param, pick_cheapest, record_result, summarize
+
+ROUTE = {"depart_after": "09:00", "depart_before": "12:00"}
+
+
+def flight(price, dep, arr="2026-12-20 13:00", fn="KE 703"):
+    return {"price": price, "total_duration": 140, "flights": [{
+        "airline": "대한항공", "flight_number": fn,
+        "departure_airport": {"time": f"2026-12-20 {dep}"},
+        "arrival_airport": {"time": arr},
+    }]}
+
+
+class TestPick(unittest.TestCase):
+    def test_picks_cheapest_within_window(self):
+        data = {
+            "best_flights": [flight(300000, "09:10")],
+            "other_flights": [flight(200000, "08:30"), flight(250000, "11:50", fn="OZ 102"),
+                              flight(150000, "12:30")],
+        }
+        best = pick_cheapest(data, ROUTE)
+        self.assertEqual(best["price"], 250000)
+        self.assertEqual(best["flight_number"], "OZ 102")
+        self.assertEqual(best["stops"], 0)
+
+    def test_none_when_nothing_matches(self):
+        self.assertIsNone(pick_cheapest({"other_flights": [flight(1, "20:00")]}, ROUTE))
+        self.assertIsNone(pick_cheapest({}, ROUTE))
+
+
+class TestTimes(unittest.TestCase):
+    def test_hour_range(self):
+        self.assertEqual(outbound_times_param("09:00", "12:00"), "9,11")
+        self.assertEqual(outbound_times_param("09:30", "12:30"), "9,12")
+        self.assertEqual(outbound_times_param("00:00", "24:00"), "0,23")
+
+
+class TestAlert(unittest.TestCase):
+    def test_sequence(self):
+        state = {}
+        sent, state = decide_alert(260000, 250000, state)
+        self.assertFalse(sent)
+        sent, state = decide_alert(240000, 250000, state)
+        self.assertTrue(sent)
+        sent, state = decide_alert(240000, 250000, state)   # 같은 가격 → 중복 발송 안 함
+        self.assertFalse(sent)
+        sent, state = decide_alert(230000, 250000, state)   # 더 내려감 → 발송
+        self.assertTrue(sent)
+        sent, state = decide_alert(270000, 250000, state)   # 다시 오름 → 초기화
+        self.assertFalse(sent)
+        sent, state = decide_alert(245000, 250000, state)   # 다시 내려감 → 발송
+        self.assertTrue(sent)
+
+    def test_no_price_or_threshold(self):
+        self.assertFalse(decide_alert(None, 250000, {})[0])
+        self.assertFalse(decide_alert(100, None, {})[0])
+
+
+class TestRecord(unittest.TestCase):
+    def test_failure_does_not_overwrite_success(self):
+        h = record_result([], "2026-11-23", {"price": 100}, None, "t1", {})
+        h = record_result(h, "2026-11-23", None, "timeout", "t2", {})
+        self.assertEqual(len(h), 1)
+        self.assertEqual(h[0]["price"], 100)
+
+    def test_rerun_replaces_today(self):
+        h = record_result([], "2026-11-23", {"price": 100}, None, "t1", {"price_level": "low"})
+        h = record_result(h, "2026-11-23", {"price": 90}, None, "t2", {})
+        self.assertEqual([x["price"] for x in h], [90])
+
+    def test_summary(self):
+        h = [{"date": "a", "price": 300}, {"date": "b", "price": None}, {"date": "c", "price": 100}]
+        s = summarize(h)
+        self.assertEqual((s["current"], s["prev"], s["min"], s["max"], s["avg"]), (100, 300, 100, 300, 200))
+
+
+if __name__ == "__main__":
+    unittest.main()

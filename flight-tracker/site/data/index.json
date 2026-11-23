@@ -1,0 +1,23 @@
+{
+  "updated_at": "2026-11-23T10:44:53+09:00",
+  "routes": [
+    {
+      "id": "icn-nrt-20261220",
+      "name": "서울 → 도쿄",
+      "from": "ICN",
+      "to": "NRT",
+      "date": "2026-12-20",
+      "return_date": null,
+      "alert_below": 250000,
+      "status": "active",
+      "summary": {
+        "current": null,
+        "min": null,
+        "max": null,
+        "avg": null,
+        "prev": null
+      },
+      "spark": []
+    }
+  ]
+}
