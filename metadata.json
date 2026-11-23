@@ -1,6 +1,0 @@
-{
-  "name": "본부간 업무효율화 해커톤",
-  "description": "5개 조의 효율화 논의를 구조화하고 실행 가능성, 비용/시간 효율성, 조직문화 정합성에 준하는 순환 피드백을 통해 고도화 안건을 도출하는 워크숍 통제 센터",
-  "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
-}
