@@ -44,7 +44,7 @@ jobs:
           SERPAPI_KEY: ${{ secrets.SERPAPI_KEY }}
           GMAIL_USER: ${{ secrets.GMAIL_USER }}
           GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
-          ALERT_EMAIL: ${{ secrets.ALERT_EMAIL }}
+          ALERT_EMAIL: sangsoo421@gmail.com   # 알림 받을 주소 (이 주소로만 보냄)
           SITE_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}
           # 예약 실행·수동 실행 때만 목표가와 상관없이 최저가 메일을 보냅니다 (코드 push 때는 안 보냄)
           SEND_REPORT: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
