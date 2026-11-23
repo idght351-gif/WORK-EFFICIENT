@@ -1,0 +1,76 @@
+name: 항공권 가격 체크
+
+on:
+  schedule:
+    - cron: "17 0 * * *"   # 매일 00:17 UTC = 한국시간 오전 9시 17분 (기본 브랜치에서만 동작)
+  workflow_dispatch:        # Actions 탭에서 "Run workflow" 로 바로 실행
+  push:
+    branches: [main]
+    paths:
+      - "flight-tracker/routes.json"
+      - "flight-tracker/site/**"
+      - "flight-tracker/tracker/**"
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: flight-prices
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: 테스트
+        working-directory: flight-tracker/tracker
+        run: python -m unittest -q
+
+      - name: 가격 조회 및 알림
+        working-directory: flight-tracker/tracker
+        env:
+          SERPAPI_KEY: ${{ secrets.SERPAPI_KEY }}
+          GMAIL_USER: ${{ secrets.GMAIL_USER }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+          ALERT_EMAIL: ${{ secrets.ALERT_EMAIL }}
+          SITE_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}
+        run: python check_prices.py
+
+      - name: 기록 저장 (commit)
+        if: always()
+        run: |
+          git config user.name "flight-price-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add flight-tracker/site/data
+          if git diff --cached --quiet; then
+            echo "변경 없음"
+          else
+            git commit -m "가격 기록 $(TZ=Asia/Seoul date +%Y-%m-%d)"
+            for i in 1 2 3; do git pull --rebase && git push && break; sleep 5; done
+          fi
+
+      - uses: actions/configure-pages@v5
+        if: always()
+      - uses: actions/upload-pages-artifact@v3
+        if: always()
+        with:
+          path: flight-tracker/site
+
+  deploy:
+    needs: check
+    if: always()
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

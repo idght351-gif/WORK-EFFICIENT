@@ -1,0 +1,23 @@
+{
+  "updated_at": "2026-11-23T11:03:07+09:00",
+  "routes": [
+    {
+      "id": "icn-cts-20270629",
+      "name": "인천 → 삿포로",
+      "from": "ICN",
+      "to": "CTS",
+      "date": "2027-06-29",
+      "return_date": "2027-07-05",
+      "alert_below": null,
+      "status": "active",
+      "summary": {
+        "current": null,
+        "min": null,
+        "max": null,
+        "avg": null,
+        "prev": null
+      },
+      "spark": []
+    }
+  ]
+}
