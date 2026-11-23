@@ -30,6 +30,46 @@ class TestPick(unittest.TestCase):
         self.assertIsNone(pick_cheapest({}, ROUTE))
 
 
+class TestRoundTrip(unittest.TestCase):
+    def test_return_window_and_params(self):
+        from check_prices import build_params
+        r = {"from": "ICN", "to": "CTS", "date": "2027-06-29", "return_date": "2027-07-05",
+             "depart_after": "10:00", "depart_before": "24:00", "return_after": "12:00",
+             "return_before": "24:00", "adults": 2}
+        p = build_params(r, "k")
+        self.assertEqual((p["type"], p["outbound_times"], p["return_times"], p["adults"]), (1, "10,23", "12,23", 2))
+        data = {"other_flights": [flight(900000, "11:00"), flight(800000, "13:30", fn="7C 1101")]}
+        self.assertEqual(pick_cheapest(data, r, "return")["flight_number"], "7C 1101")
+        data = {"other_flights": [flight(700000, "09:00")]}
+        self.assertIsNone(pick_cheapest(data, r, "return"))
+
+
+    def test_check_route_two_step(self):
+        import check_prices
+        r = {"from": "ICN", "to": "CTS", "date": "2027-06-29", "return_date": "2027-07-05",
+             "depart_after": "10:00", "return_after": "12:00", "adults": 2}
+        out = flight(500000, "10:30", fn="KE 765"); out["departure_token"] = "tok"
+        ret = flight(1200000, "14:00", fn="KE 766")
+        calls = []
+        def fake(params):
+            calls.append(params)
+            if "departure_token" in params:
+                return {"other_flights": [ret, flight(900000, "08:00")]}
+            return {"best_flights": [out], "price_insights": {"price_level": "typical"}}
+        orig = check_prices.fetch_serpapi
+        check_prices.fetch_serpapi = fake
+        try:
+            res, ins, _ = check_prices.check_route(r, "k")
+        finally:
+            check_prices.fetch_serpapi = orig
+        self.assertEqual(len(calls), 2)
+        self.assertEqual(calls[1]["departure_token"], "tok")
+        self.assertEqual(res["price"], 1200000)
+        self.assertEqual((res["flight_number"], res["return_flight_number"]), ("KE 765", "KE 766"))
+        self.assertNotIn("departure_token", res)
+        self.assertEqual(ins["price_level"], "typical")
+
+
 class TestTimes(unittest.TestCase):
     def test_hour_range(self):
         self.assertEqual(outbound_times_param("09:00", "12:00"), "9,11")

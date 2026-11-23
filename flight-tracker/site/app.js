@@ -121,7 +121,7 @@ async function renderDetail(id) {
     <a class="back" href="#">‹ 목록</a>
     <section class="card">
       <div class="hero-route">${esc(r.name)} · ${esc(r.from)} → ${esc(r.to)}</div>
-      <div class="hero-sub">${tripLabel(r)} · 출발 ${esc(r.depart_after)}~${esc(r.depart_before)} · 성인 ${r.adults || 1}명 · ${dday(r.date)}</div>
+      <div class="hero-sub">${tripLabel(r)} · 성인 ${r.adults || 1}명 총액 · ${dday(r.date)}</div>
       <div class="hero-price num">${won(s.current)}</div>
       <div class="hero-delta num">${deltaHTML(s.current, s.prev)}${s.prev != null && s.current !== s.prev ? ` <span class="muted small">어제 대비</span>` : ""}</div>
       <div class="badges" style="margin-top:10px">${badges.join("")}</div>
@@ -156,10 +156,14 @@ async function renderDetail(id) {
 
     <section class="card">
       <h3 class="section-title">추적 조건</h3>
+      <div class="info-row"><span>가는 편 출발</span><span>${timeRange(r.depart_after, r.depart_before)}</span></div>
+      ${r.return_date ? `<div class="info-row"><span>오는 편 출발</span><span>${timeRange(r.return_after, r.return_before)}</span></div>` : ""}
+      <div class="info-row"><span>인원</span><span>성인 ${r.adults || 1}명</span></div>
       <div class="info-row"><span>알림 목표가</span><span class="num">${r.alert_below ? won(r.alert_below) + " 이하" : "설정 안 함"}</span></div>
       <div class="info-row"><span>좌석</span><span>${{ economy: "일반석", premium_economy: "프리미엄 일반석", business: "비즈니스", first: "일등석" }[r.travel_class] || "일반석"}</span></div>
       <div class="info-row"><span>경유</span><span>${r.max_stops == null ? "상관없음" : r.max_stops === 0 ? "직항만" : `${r.max_stops}회 이하`}</span></div>
-      <div class="info-row"><span>최근 최저가 항공편</span><span>${lastEntry ? esc(`${lastEntry.airline} ${lastEntry.flight_number}`) : "-"}</span></div>
+      <div class="info-row"><span>최근 최저가 가는 편</span><span>${lastEntry ? esc(`${lastEntry.airline} ${lastEntry.flight_number}`) : "-"}</span></div>
+      ${lastEntry && lastEntry.return_airline ? `<div class="info-row"><span>최근 최저가 오는 편</span><span>${esc(`${lastEntry.return_airline} ${lastEntry.return_flight_number}`)}</span></div>` : ""}
     </section>
 
     <section class="card">
@@ -170,7 +174,7 @@ async function renderDetail(id) {
           const prev = arr.slice(i + 1).find((x) => x.price != null);
           return `<tr>
             <td>${md(h.date)}</td>
-            <td>${h.price != null ? `${esc(h.airline)}<div class="sub">${esc(h.flight_number)} · ${esc(h.depart_time)}→${esc(h.arrive_time)}${h.stops === 0 ? " · 직항" : h.stops ? ` · 경유 ${h.stops}회` : ""}</div>` : `<span class="muted">${esc(h.error || "기록 없음")}</span>`}</td>
+            <td>${h.price != null ? legHTML(h, "", h.return_airline ? "가는 편 " : "") + (h.return_airline ? legHTML(h, "return_", "오는 편 ") : "") : `<span class="muted">${esc(h.error || "기록 없음")}</span>`}</td>
             <td class="r">${won(h.price)}${h.price != null && prev ? `<div class="sub">${deltaHTML(h.price, prev.price).replace(/ \(.*?\)/, "")}</div>` : ""}</td>
           </tr>`; }).join("")}</tbody>
       </table>
@@ -183,6 +187,18 @@ async function renderDetail(id) {
   }));
   draw(0);
   window.onresize = () => draw(+document.querySelector('.chip[aria-pressed="true"]').dataset.range);
+}
+
+function timeRange(a, b) {
+  if (!a && !b) return "상관없음";
+  if (!b || b === "24:00") return `${esc(a)} 이후`;
+  if (!a || a === "00:00") return `${esc(b)} 이전`;
+  return `${esc(a)} ~ ${esc(b)}`;
+}
+
+function legHTML(h, k, label) {
+  const stops = h[k + "stops"];
+  return `<div>${label}${esc(h[k + "airline"])}</div><div class="sub">${esc(h[k + "flight_number"])} · ${esc(h[k + "depart_time"])}→${esc(h[k + "arrive_time"])}${stops === 0 ? " · 직항" : stops ? ` · 경유 ${stops}회` : ""}</div>`;
 }
 
 function niceTicks(lo, hi, n = 4) {
@@ -245,7 +261,7 @@ function drawChart(hist, target) {
     const px = x(p.i), py = y(p.price);
     hover.style.display = ""; hx.setAttribute("x1", px); hx.setAttribute("x2", px);
     hc.setAttribute("cx", px); hc.setAttribute("cy", py);
-    tip.innerHTML = `${md(p.date)} · ${esc(p.airline)}<br><b>${won(p.price)}</b>`;
+    tip.innerHTML = `${md(p.date)} 조회<br><b>${won(p.price)}</b>`;
     tip.style.left = Math.min(Math.max(px, 60), W - 60) + "px";
     tip.style.top = py - 10 + "px";
     tip.style.opacity = 1;
@@ -276,14 +292,16 @@ function renderAdd() {
         <label>도착 공항 코드<input name="to" value="KIX" maxlength="3"></label>
         <label>가는 날<input name="date" type="date"></label>
         <label>오는 날 (편도면 비움)<input name="return_date" type="date"></label>
-        <label>출발 시각 (부터)<input name="depart_after" type="time" value="08:00"></label>
-        <label>출발 시각 (까지)<input name="depart_before" type="time" value="12:00"></label>
+        <label>가는 편 출발 (부터)<input name="depart_after" type="time" value="08:00"></label>
+        <label>가는 편 출발 (까지)<input name="depart_before" type="time" value=""></label>
+        <label>오는 편 출발 (부터)<input name="return_after" type="time" value="12:00"></label>
+        <label>오는 편 출발 (까지)<input name="return_before" type="time" value=""></label>
         <label>인원 (성인)<input name="adults" type="number" min="1" max="9" value="1"></label>
         <label>좌석
           <select name="travel_class"><option value="economy">일반석</option><option value="premium_economy">프리미엄 일반석</option><option value="business">비즈니스</option><option value="first">일등석</option></select></label>
         <label>경유
           <select name="max_stops"><option value="">상관없음</option><option value="0">직항만</option><option value="1">1회 이하</option></select></label>
-        <label>알림 목표가 (원)<input name="alert_below" type="number" step="1000" value="200000"></label>
+        <label>알림 목표가 (원, 비우면 알림 없음)<input name="alert_below" type="number" step="1000"></label>
       </form>
     </section>
     <section class="card">
@@ -300,7 +318,8 @@ function renderAdd() {
     const id = `${v.from}-${v.to}-${(v.date || "").replaceAll("-", "")}`.toLowerCase();
     out.textContent = JSON.stringify({
       id, name: v.name, from: v.from.toUpperCase(), to: v.to.toUpperCase(), date: v.date,
-      return_date: v.return_date || null, depart_after: v.depart_after, depart_before: v.depart_before,
+      return_date: v.return_date || null, depart_after: v.depart_after || "00:00", depart_before: v.depart_before || "24:00",
+      ...(v.return_date ? { return_after: v.return_after || "00:00", return_before: v.return_before || "24:00" } : {}),
       adults: +v.adults || 1, travel_class: v.travel_class, max_stops: v.max_stops === "" ? null : +v.max_stops,
       alert_below: +v.alert_below || null, active: true,
     }, null, 2);

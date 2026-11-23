@@ -1,14 +1,14 @@
 {
-  "updated_at": "2026-11-23T10:44:53+09:00",
+  "updated_at": "2026-11-23T11:03:07+09:00",
   "routes": [
     {
-      "id": "icn-nrt-20261220",
-      "name": "서울 → 도쿄",
+      "id": "icn-cts-20270629",
+      "name": "인천 → 삿포로",
       "from": "ICN",
-      "to": "NRT",
-      "date": "2026-12-20",
-      "return_date": null,
-      "alert_below": 250000,
+      "to": "CTS",
+      "date": "2027-06-29",
+      "return_date": "2027-07-05",
+      "alert_below": null,
       "status": "active",
       "summary": {
         "current": null,

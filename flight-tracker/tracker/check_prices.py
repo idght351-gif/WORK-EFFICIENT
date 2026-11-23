@@ -77,6 +77,10 @@ def build_params(route: dict, api_key: str) -> dict:
     }
     if route.get("return_date"):
         params["return_date"] = route["return_date"]
+        if route.get("return_after") or route.get("return_before"):
+            params["return_times"] = outbound_times_param(
+                route.get("return_after", "00:00"), route.get("return_before", "24:00")
+            )
     return params
 
 
@@ -98,10 +102,10 @@ def fetch_serpapi(params: dict, retries: int = 3) -> dict:
     raise RuntimeError(f"SerpApi 조회 실패: {last_err}")
 
 
-def pick_cheapest(data: dict, route: dict) -> dict | None:
-    """응답에서 출발 시간대 안의 최저가 항공편 하나를 고릅니다."""
-    after = parse_hm(route.get("depart_after", "00:00"))
-    before = parse_hm(route.get("depart_before", "24:00"))
+def pick_cheapest(data: dict, route: dict, leg: str = "depart") -> dict | None:
+    """응답에서 출발 시간대 안의 최저가 항공편 하나를 고릅니다. leg="return" 이면 오는 편 시간대를 씁니다."""
+    after = parse_hm(route.get(f"{leg}_after") or "00:00")
+    before = parse_hm(route.get(f"{leg}_before") or "24:00")
     best = None
     for item in (data.get("best_flights") or []) + (data.get("other_flights") or []):
         price = item.get("price")
@@ -125,8 +129,34 @@ def pick_cheapest(data: dict, route: dict) -> dict | None:
                 "arrive_time": arr.split(" ")[1] if " " in arr else arr,
                 "stops": len(legs) - 1,
                 "duration_min": item.get("total_duration"),
+                "departure_token": item.get("departure_token"),
             }
     return best
+
+
+def check_route(route: dict, api_key: str) -> tuple[dict | None, dict, str | None]:
+    """가는 편 검색 → (왕복이면) 그 가는 편으로 오는 편 검색. 가격은 항상 전체 인원 왕복/편도 총액."""
+    params = build_params(route, api_key)
+    data = fetch_serpapi(params)
+    insights = data.get("price_insights") or {}
+    url = (data.get("search_metadata") or {}).get("google_flights_url")
+    out = pick_cheapest(data, route, "depart")
+    if out and route.get("return_date") and out.get("departure_token"):
+        try:
+            data2 = fetch_serpapi({**params, "departure_token": out["departure_token"]})
+            ret = pick_cheapest(data2, route, "return")
+            if ret:
+                out["price"] = ret["price"]  # 오는 편 검색 결과의 가격 = 왕복 총액
+                for k in ("airline", "flight_number", "depart_time", "arrive_time", "stops"):
+                    out[f"return_{k}"] = ret[k]
+                url = (data2.get("search_metadata") or {}).get("google_flights_url") or url
+            else:
+                out = None  # 오는 편 시간대에 맞는 편이 없음
+        except RuntimeError as e:
+            print(f"  ! 오는 편 조회 실패, 가는 편 기준 가격만 기록: {e}")
+    if out:
+        out.pop("departure_token", None)
+    return out, insights, url
 
 
 # ---------------------------------------------------------------- 기록 / 알림 판단
@@ -206,13 +236,19 @@ def send_alert(route: dict, entry: dict, summary: dict, flights_url: str | None)
     msg["To"] = to
     lines = [
         f"{route['name']} ({route['from']} → {route['to']})",
-        f"일정: {trip}, 출발 {route.get('depart_after')}~{route.get('depart_before')}",
+        f"일정: {trip}",
         "",
         f"오늘 최저가: {won(entry['price'])}" + ("  ← 추적 시작 후 최저가!" if is_low else ""),
         f"목표가: {won(route['alert_below'])}",
-        f"항공편: {entry.get('airline')} {entry.get('flight_number')}  "
+        f"가는 편: {entry.get('airline')} {entry.get('flight_number')}  "
         f"{entry.get('depart_time')} → {entry.get('arrive_time')}"
         + (" 직항" if entry.get("stops") == 0 else f" 경유 {entry.get('stops')}회"),
+    ]
+    if entry.get("return_airline"):
+        lines.append(f"오는 편: {entry['return_airline']} {entry['return_flight_number']}  "
+                     f"{entry['return_depart_time']} → {entry['return_arrive_time']}")
+    lines += [
+        f"(성인 {route.get('adults', 1)}명 총액)",
         "",
         f"추적 기간 최저 {won(summary['min'])} · 평균 {won(summary['avg'])} · 최고 {won(summary['max'])}",
     ]
@@ -267,10 +303,7 @@ def run(dry_run: bool = False) -> int:
         if status == "active" and not dry_run:
             result, error, insights, url = None, None, {}, None
             try:
-                data = fetch_serpapi(build_params(route, api_key))
-                result = pick_cheapest(data, route)
-                insights = data.get("price_insights") or {}
-                url = (data.get("search_metadata") or {}).get("google_flights_url")
+                result, insights, url = check_route(route, api_key)
             except Exception as e:  # noqa: BLE001 - 한 노선 실패가 전체를 멈추지 않게
                 error = str(e).replace(api_key, "***")
                 failures += 1
