@@ -1,23 +1,5 @@
 {
-  "history": [
-    {
-      "date": "2026-11-23",
-      "checked_at": "2026-11-23T14:05:33+09:00",
-      "price": 1253042,
-      "error": null,
-      "airline": "Trinity Airways",
-      "flight_number": "TW 263",
-      "depart_time": "10:10",
-      "arrive_time": "13:00",
-      "stops": 0,
-      "duration_min": 170,
-      "return_airline": "Trinity Airways",
-      "return_flight_number": "TW 264",
-      "return_depart_time": "14:30",
-      "return_arrive_time": "17:40",
-      "return_stops": 0
-    }
-  ],
+  "history": [],
   "alert_state": {},
   "route": {
     "id": "icn-cts-20270629",
@@ -30,7 +12,7 @@
     "depart_before": "24:00",
     "return_after": "12:00",
     "return_before": "24:00",
-    "adults": 2,
+    "adults": 1,
     "travel_class": "economy",
     "max_stops": null,
     "alert_below": null,
@@ -38,13 +20,11 @@
   },
   "status": "active",
   "summary": {
-    "current": 1253042,
-    "current_date": "2026-11-23",
-    "prev": null,
-    "min": 1253042,
-    "max": 1253042,
-    "avg": 1253042,
-    "days": 1
+    "current": null,
+    "min": null,
+    "max": null,
+    "avg": null,
+    "prev": null
   },
   "updated_at": "2026-11-23T14:05:33+09:00",
   "google_flights_url": "https://www.google.com/travel/flights?hl=ko&gl=kr&curr=KRW&tfs=CBwQAhpDEgoyMDI3LTA2LTI5Ih8KA0lDThIKMjAyNy0wNi0yORoDQ1RTKgJUVzIDMjYzQApIF2oHCAESA0lDTnIHCAESA0NUUxoiEgoyMDI3LTA3LTA1QAxIF2oHCAESA0NUU3IHCAESA0lDTkABQAFIAXABmAEB&tfu=EgIIAQ"

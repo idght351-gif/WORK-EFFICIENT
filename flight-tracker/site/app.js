@@ -192,7 +192,7 @@ async function renderDetail(id) {
     <a class="back" href="#">‹ 목록</a>
     <section class="card">
       <div class="hero-route">${esc(r.name)} · ${esc(r.from)} → ${esc(r.to)}</div>
-      <div class="hero-sub">${tripLabel(r)} · 성인 ${r.adults || 1}명 총액 · ${dday(r.date)}</div>
+      <div class="hero-sub">${tripLabel(r)} · ${(r.adults || 1) > 1 ? `성인 ${r.adults}명 총액` : "1인 가격"} · ${dday(r.date)}</div>
       <div class="hero-price num">${won(s.current)}</div>
       <div class="hero-delta num">${deltaHTML(s.current, s.prev)}${s.prev != null && s.current !== s.prev ? ` <span class="muted small">어제 대비</span>` : ""}</div>
       <div class="badges" style="margin-top:10px">${badges.join("")}</div>

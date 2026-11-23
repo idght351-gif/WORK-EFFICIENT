@@ -11,7 +11,7 @@
       "depart_before": "24:00",
       "return_after": "12:00",
       "return_before": "24:00",
-      "adults": 2,
+      "adults": 1,
       "travel_class": "economy",
       "max_stops": null,
       "alert_below": null,
