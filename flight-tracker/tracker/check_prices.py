@@ -58,6 +58,64 @@ def outbound_times_param(after: str, before: str) -> str:
 
 # ---------------------------------------------------------------- 가격 조회
 
+def is_multi(route: dict) -> bool:
+    return bool(route.get("legs"))
+
+
+def normalize_route(route: dict) -> dict:
+    """다구간 노선은 첫 구간 출발지·날짜와 마지막 도착지를 from/to/date 로 채워 다른 코드와 맞춥니다."""
+    if is_multi(route):
+        legs = route["legs"]
+        route = {**route, "from": legs[0]["from"], "to": legs[-1]["to"], "date": legs[0]["date"],
+                 "return_date": None, "trip_type": "multi_city"}
+    return route
+
+
+def build_multi_params(route: dict, api_key: str) -> dict:
+    return {
+        "engine": "google_flights",
+        "type": 3,
+        "multi_city_json": json.dumps([
+            {"departure_id": l["from"].upper(), "arrival_id": l["to"].upper(), "date": l["date"]}
+            for l in route["legs"]
+        ], separators=(",", ":")),
+        "currency": "KRW",
+        "hl": "ko",
+        "gl": "kr",
+        "adults": route.get("adults", 1),
+        "travel_class": TRAVEL_CLASS[route.get("travel_class", "economy")],
+        "stops": STOPS[route.get("max_stops")],
+        "api_key": api_key,
+    }
+
+
+def check_multi(route: dict, api_key: str) -> tuple[dict | None, dict, str | None]:
+    """다구간: 1구간 검색 → 고른 편의 departure_token 으로 다음 구간 검색 … 마지막 구간 가격 = 전체 여정 총액.
+    구간마다 검색 1회를 씁니다."""
+    params = build_multi_params(route, api_key)
+    data = fetch_serpapi(params)
+    insights = data.get("price_insights") or {}
+    url = (data.get("search_metadata") or {}).get("google_flights_url")
+    picked = []
+    for i, leg in enumerate(route["legs"]):
+        if i:
+            data = fetch_serpapi({**params, "departure_token": picked[-1]["departure_token"]})
+            url = (data.get("search_metadata") or {}).get("google_flights_url") or url
+        best = pick_cheapest(data, route, window=(leg.get("depart_after"), leg.get("depart_before")))
+        if not best:
+            return None, insights, url  # 이 구간 조건에 맞는 편이 없음
+        best.update({"from": leg["from"].upper(), "to": leg["to"].upper(), "date": leg["date"]})
+        picked.append(best)
+        if i < len(route["legs"]) - 1 and not best.get("departure_token"):
+            raise RuntimeError(f"{i + 1}구간 다음 조회용 토큰이 없습니다")
+    first = picked[0]
+    out = {k: first[k] for k in ("airline", "flight_number", "depart_time", "arrive_time", "stops", "duration_min")}
+    out["price"] = picked[-1]["price"]
+    out["legs"] = [{k: p[k] for k in ("from", "to", "date", "airline", "flight_number",
+                                      "depart_time", "arrive_time", "stops")} for p in picked]
+    return out, insights, url
+
+
 def build_params(route: dict, api_key: str) -> dict:
     params = {
         "engine": "google_flights",
@@ -103,10 +161,14 @@ def fetch_serpapi(params: dict, retries: int = 3) -> dict:
     raise RuntimeError(f"SerpApi 조회 실패: {last_err}")
 
 
-def pick_cheapest(data: dict, route: dict, leg: str = "depart") -> dict | None:
-    """응답에서 출발 시간대 안의 최저가 항공편 하나를 고릅니다. leg="return" 이면 오는 편 시간대를 씁니다."""
-    after = parse_hm(route.get(f"{leg}_after") or "00:00")
-    before = parse_hm(route.get(f"{leg}_before") or "24:00")
+def pick_cheapest(data: dict, route: dict, leg: str = "depart",
+                  window: tuple[str | None, str | None] | None = None) -> dict | None:
+    """응답에서 출발 시간대·경유 조건 안의 최저가 항공편 하나를 고릅니다.
+    leg="return" 이면 오는 편 시간대를, window 를 주면 그 시간대를 씁니다.
+    SerpApi 는 departure_token 으로 이어서 조회할 때 경유·시간 필터를 적용하지 않으므로 여기서 직접 거릅니다."""
+    a, b = window if window else (route.get(f"{leg}_after"), route.get(f"{leg}_before"))
+    after, before = parse_hm(a or "00:00"), parse_hm(b or "24:00")
+    max_stops = route.get("max_stops")
     best = None
     for item in (data.get("best_flights") or []) + (data.get("other_flights") or []):
         price = item.get("price")
@@ -120,6 +182,8 @@ def pick_cheapest(data: dict, route: dict, leg: str = "depart") -> dict | None:
         except (IndexError, ValueError):
             continue
         if not (after <= dep_min <= before):
+            continue
+        if max_stops is not None and len(legs) - 1 > max_stops:
             continue
         if best is None or price < best["price"]:
             best = {
@@ -137,6 +201,8 @@ def pick_cheapest(data: dict, route: dict, leg: str = "depart") -> dict | None:
 
 def check_route(route: dict, api_key: str) -> tuple[dict | None, dict, str | None]:
     """가는 편 검색 → (왕복이면) 그 가는 편으로 오는 편 검색. 가격은 항상 전체 인원 왕복/편도 총액."""
+    if is_multi(route):
+        return check_multi(route, api_key)
     params = build_params(route, api_key)
     data = fetch_serpapi(params)
     insights = data.get("price_insights") or {}
@@ -221,6 +287,30 @@ def won(v: int) -> str:
     return f"{v:,}원"
 
 
+def stops_text(stops) -> str:
+    return " 직항" if stops == 0 else (f" 경유 {stops}회" if stops else "")
+
+
+def trip_text(route: dict) -> str:
+    if is_multi(route):
+        return " · ".join(f"{l['date']} {l['from'].upper()}→{l['to'].upper()}" for l in route["legs"]) + " (다구간)"
+    return f"{route['date']}" + (f" ~ {route['return_date']}" if route.get("return_date") else " 편도")
+
+
+def flight_lines(e: dict) -> list[tuple[str, str]]:
+    """(구분, 항공편 설명) 목록. 다구간은 구간별, 왕복은 가는 편/오는 편."""
+    if e.get("legs"):
+        return [(f"{i}구간 {l['date'][5:].replace('-', '/')} {l['from']}→{l['to']}",
+                 f"{l['airline']} {l['flight_number']} {l['depart_time']} → {l['arrive_time']}{stops_text(l.get('stops'))}")
+                for i, l in enumerate(e["legs"], 1)]
+    rows = [("가는 편", f"{e.get('airline')} {e.get('flight_number')} {e.get('depart_time')} → "
+                       f"{e.get('arrive_time')}{stops_text(e.get('stops'))}")]
+    if e.get("return_airline"):
+        rows.append(("오는 편", f"{e['return_airline']} {e['return_flight_number']} {e['return_depart_time']} → "
+                               f"{e['return_arrive_time']}{stops_text(e.get('return_stops'))}"))
+    return rows
+
+
 def send_alert(route: dict, entry: dict, summary: dict, flights_url: str | None) -> None:
     user = os.environ.get("GMAIL_USER")
     pw = os.environ.get("GMAIL_APP_PASSWORD")
@@ -229,7 +319,7 @@ def send_alert(route: dict, entry: dict, summary: dict, flights_url: str | None)
         print("  ! 메일 설정(GMAIL_USER / GMAIL_APP_PASSWORD)이 없어 알림을 건너뜁니다.")
         return
     is_low = summary["min"] == entry["price"]
-    trip = f"{route['date']}" + (f" ~ {route['return_date']}" if route.get("return_date") else " 편도")
+    trip = trip_text(route)
     msg = EmailMessage()
     msg["Subject"] = (f"[항공권 알림] {route['name']} {won(entry['price'])}"
                       f" — 목표가 {won(route['alert_below'])} 이하" + (" · 역대 최저" if is_low else ""))
@@ -241,13 +331,7 @@ def send_alert(route: dict, entry: dict, summary: dict, flights_url: str | None)
         "",
         f"오늘 최저가: {won(entry['price'])}" + ("  ← 추적 시작 후 최저가!" if is_low else ""),
         f"목표가: {won(route['alert_below'])}",
-        f"가는 편: {entry.get('airline')} {entry.get('flight_number')}  "
-        f"{entry.get('depart_time')} → {entry.get('arrive_time')}"
-        + (" 직항" if entry.get("stops") == 0 else f" 경유 {entry.get('stops')}회"),
-    ]
-    if entry.get("return_airline"):
-        lines.append(f"오는 편: {entry['return_airline']} {entry['return_flight_number']}  "
-                     f"{entry['return_depart_time']} → {entry['return_arrive_time']}")
+    ] + [f"{k}: {v}" for k, v in flight_lines(entry)]
     lines += [
         "(1인 가격)" if route.get("adults", 1) == 1 else f"(성인 {route.get('adults', 1)}명 총액)",
         "",
@@ -297,7 +381,7 @@ def build_report(items: list[dict], quota: dict | None, now: datetime, site_url:
     text, html = [], []
     for it in items:
         r, e, sm = it["route"], it["entry"], it["summary"]
-        trip = f"{r['date']}" + (f" ~ {r['return_date']}" if r.get("return_date") else " 편도")
+        trip = trip_text(r)
         pax = "1인 기준" if r.get("adults", 1) == 1 else f"성인 {r.get('adults', 1)}명 총액"
         links = compare_links(r)
         if e.get("price") is None:
@@ -305,14 +389,11 @@ def build_report(items: list[dict], quota: dict | None, now: datetime, site_url:
             html.append(f"<h3 style='margin:18px 0 4px'>{escape(r['name'])}</h3>"
                         f"<p style='color:#a12828'>조회 실패: {escape(str(e.get('error')))}</p>")
             continue
-        out = (f"{e.get('airline')} {e.get('flight_number')} {e.get('depart_time')} → {e.get('arrive_time')}"
-               + (" 직항" if e.get("stops") == 0 else f" 경유 {e.get('stops')}회"))
-        back = (f"{e.get('return_airline')} {e.get('return_flight_number')} "
-                f"{e.get('return_depart_time')} → {e.get('return_arrive_time')}") if e.get("return_airline") else None
+        rows = flight_lines(e)
         delta = _delta_text(e["price"], it["prev_price"])
         text += [f"■ {r['name']} ({r['from']} → {r['to']}, {trip}, {pax})",
                  f"  최저가: {won(e['price'])}  ({delta})",
-                 f"  가는 편: {out}"] + ([f"  오는 편: {back}"] if back else []) + [
+                 ] + [f"  {k}: {v}" for k, v in rows] + [
                  f"  추적 기간 최저 {won(sm['min'])} · 최고 {won(sm['max'])}"]
         if r.get("alert_below"):
             text.append(f"  목표가 {won(r['alert_below'])} " + ("도달" if e["price"] <= r["alert_below"] else "미도달"))
@@ -331,8 +412,8 @@ def build_report(items: list[dict], quota: dict | None, now: datetime, site_url:
             f"<div style='color:#8b909a;font-size:13px'>{escape(r['from'])} → {escape(r['to'])} · {escape(trip)} · {pax}</div>"
             f"<div style='font-size:26px;font-weight:800;margin:10px 0 0'>{won(e['price'])}</div>"
             f"<div style='color:{color};font-size:13px;margin-bottom:10px'>{escape(delta)}</div>"
-            f"<table style='font-size:14px;border-collapse:collapse'>{row('가는 편', escape(out))}"
-            + (row('오는 편', escape(back)) if back else "")
+            f"<table style='font-size:14px;border-collapse:collapse'>"
+            + "".join(row(escape(k), escape(v)) for k, v in rows)
             + row('추적 기간', f"최저 {won(sm['min'])} · 최고 {won(sm['max'])}")
             + (row('목표가', f"{won(r['alert_below'])} " + ('도달' if e['price'] <= r['alert_below'] else '미도달'))
                if r.get('alert_below') else "")
@@ -380,26 +461,35 @@ SKYSCANNER_CABIN = {"economy": "economy", "premium_economy": "premiumeconomy",
 def compare_links(route: dict) -> dict:
     """같은 노선·날짜·인원·좌석으로 Kayak / Skyscanner 검색 결과를 여는 주소.
     출발 시간대 조건은 두 사이트 주소로 지정할 수 없어서 각 사이트에서 직접 거릅니다."""
-    org, dst = route["from"].upper(), route["to"].upper()
     adults = int(route.get("adults", 1))
     cabin = route.get("travel_class", "economy")
-    ret = route.get("return_date")
     direct = route.get("max_stops") == 0
+    query = "?" + urllib.parse.urlencode({
+        "adultsv2": adults, "cabinclass": SKYSCANNER_CABIN.get(cabin, "economy"),
+        "rtn": 1 if route.get("return_date") else 0, "preferdirects": "true" if direct else "false",
+    })
+    k_tail = KAYAK_CABIN.get(cabin, "") + (f"/{adults}adults" if adults > 1 else "") + \
+        "?sort=price_a" + ("&fs=stops%3D0" if direct else "")
+    if is_multi(route):
+        legs = route["legs"]
+        kayak = "https://www.kayak.co.kr/flights/" + "/".join(
+            f"{l['from'].upper()}-{l['to'].upper()}/{l['date']}" for l in legs) + k_tail
+        sky = "https://www.skyscanner.co.kr/transport/d/" + "/".join(
+            f"{l['from'].lower()}/{l['date']}/{l['to'].lower()}" for l in legs) + "/" + query.replace("rtn=0", "rtn=2")
+        return {"kayak": kayak, "skyscanner": sky}
+    org, dst = route["from"].upper(), route["to"].upper()
+    ret = route.get("return_date")
 
     kayak = f"https://www.kayak.co.kr/flights/{org}-{dst}/{route['date']}"
     if ret:
         kayak += f"/{ret}"
-    kayak += KAYAK_CABIN.get(cabin, "") + (f"/{adults}adults" if adults > 1 else "")
-    kayak += "?sort=price_a" + ("&fs=stops%3D0" if direct else "")
+    kayak += k_tail
 
     yymmdd = lambda iso: iso[2:4] + iso[5:7] + iso[8:10]  # noqa: E731
     sky = f"https://www.skyscanner.co.kr/transport/flights/{org.lower()}/{dst.lower()}/{yymmdd(route['date'])}/"
     if ret:
         sky += f"{yymmdd(ret)}/"
-    sky += "?" + urllib.parse.urlencode({
-        "adultsv2": adults, "cabinclass": SKYSCANNER_CABIN.get(cabin, "economy"),
-        "rtn": 1 if ret else 0, "preferdirects": "true" if direct else "false",
-    })
+    sky += query
     return {"kayak": kayak, "skyscanner": sky}
 
 
@@ -413,6 +503,8 @@ QUOTA_FIELDS = ("plan_name", "searches_per_month", "plan_searches_left", "extra_
 
 def searches_per_check(route: dict) -> int:
     """노선 1회 조회에 드는 검색 수. 왕복은 가는 편 + 오는 편 = 2회."""
+    if is_multi(route):
+        return len(route["legs"])
     return 2 if route.get("return_date") else 1
 
 
@@ -457,7 +549,7 @@ def run(dry_run: bool = False) -> int:
     if not api_key and not dry_run:
         print("SERPAPI_KEY 환경 변수가 없습니다.", file=sys.stderr)
         return 1
-    routes = load_json(ROUTES_FILE, {"routes": []})["routes"]
+    routes = [normalize_route(r) for r in load_json(ROUTES_FILE, {"routes": []})["routes"]]
     now = now_kst()
     today = now.date().isoformat()
     index = []
@@ -515,7 +607,7 @@ def run(dry_run: bool = False) -> int:
         save_json(path, doc)
         index.append({
             "id": rid, "name": route["name"], "from": route["from"], "to": route["to"],
-            "date": route["date"], "return_date": route.get("return_date"),
+            "date": route["date"], "return_date": route.get("return_date"), "legs": route.get("legs"),
             "alert_below": route.get("alert_below"), "status": status,
             "summary": doc["summary"],
             "spark": [h["price"] for h in history if h.get("price") is not None][-30:],

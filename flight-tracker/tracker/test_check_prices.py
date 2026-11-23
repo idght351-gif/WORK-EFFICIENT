@@ -195,5 +195,75 @@ class TestReport(unittest.TestCase):
         self.assertIn("timeout", body)
 
 
+def mflight(price, date, dep, frm, to, fn, token=None, stops=0):
+    legs = [{"airline": "Air", "flight_number": f"{fn}-{n}" if stops else fn,
+             "departure_airport": {"time": f"{date} {dep}"},
+             "arrival_airport": {"time": f"{date} 23:00"}} for n in range(stops + 1)]
+    return {"price": price, "total_duration": 100, "flights": legs, "departure_token": token}
+
+
+class TestStopsFilter(unittest.TestCase):
+    def test_direct_only_skips_connections(self):
+        data = {"other_flights": [flight(100000, "10:00"), flight(200000, "11:00", fn="OZ 1")]}
+        data["other_flights"][0]["flights"].append(dict(data["other_flights"][0]["flights"][0]))
+        best = pick_cheapest(data, {**ROUTE, "max_stops": 0})
+        self.assertEqual(best["flight_number"], "OZ 1")
+        self.assertEqual(pick_cheapest(data, ROUTE)["price"], 100000)
+
+
+class TestMultiCity(unittest.TestCase):
+    ROUTE = {"id": "m", "name": "다구간", "adults": 1, "travel_class": "economy", "max_stops": 0,
+             "legs": [{"from": "ICN", "to": "CTS", "date": "2027-06-29", "depart_after": "10:00"},
+                      {"from": "CTS", "to": "NRT", "date": "2027-07-02"},
+                      {"from": "NRT", "to": "ICN", "date": "2027-07-05", "depart_after": "12:00"}]}
+
+    def setUp(self):
+        import check_prices
+        self.cp = check_prices
+        self.calls = []
+        pages = {
+            None: {"other_flights": [mflight(300000, "2027-06-29", "08:00", "ICN", "CTS", "A1", "t-early"),
+                                     mflight(400000, "2027-06-29", "10:30", "ICN", "CTS", "A2", "t1")]},
+            "t1": {"other_flights": [mflight(450000, "2027-07-02", "09:00", "CTS", "NRT", "B1", "t2"),
+                                     mflight(420000, "2027-07-02", "15:00", "CTS", "NRT", "B2", "t2x", stops=1)]},
+            "t2": {"other_flights": [mflight(500000, "2027-07-05", "13:00", "NRT", "ICN", "C1")]},
+        }
+
+        def fake_fetch(params, retries=3):
+            self.calls.append(params)
+            return pages[params.get("departure_token")]
+        self._orig = check_prices.fetch_serpapi
+        check_prices.fetch_serpapi = fake_fetch
+
+    def tearDown(self):
+        self.cp.fetch_serpapi = self._orig
+
+    def test_follows_tokens_and_filters(self):
+        route = self.cp.normalize_route(self.ROUTE)
+        self.assertEqual((route["from"], route["to"], route["date"]), ("ICN", "ICN", "2027-06-29"))
+        out, _, _ = self.cp.check_route(route, "k")
+        self.assertEqual(out["price"], 500000)
+        self.assertEqual([l["flight_number"] for l in out["legs"]], ["A2", "B1", "C1"])
+        self.assertEqual(len(self.calls), 3)
+        self.assertEqual(self.calls[0]["type"], 3)
+        self.assertIn('"arrival_id":"NRT"', self.calls[0]["multi_city_json"])
+        self.assertEqual(searches_per_check(route), 3)
+
+    def test_links_and_report(self):
+        from datetime import datetime
+        route = self.cp.normalize_route(self.ROUTE)
+        links = compare_links(route)
+        self.assertEqual(links["kayak"], "https://www.kayak.co.kr/flights/ICN-CTS/2027-06-29/"
+                                         "CTS-NRT/2027-07-02/NRT-ICN/2027-07-05?sort=price_a&fs=stops%3D0")
+        self.assertTrue(links["skyscanner"].startswith(
+            "https://www.skyscanner.co.kr/transport/d/icn/2027-06-29/cts/cts/2027-07-02/nrt/nrt/2027-07-05/icn/?"))
+        out, _, _ = self.cp.check_route(route, "k")
+        _, body, html = build_report([{"route": route, "entry": out, "prev_price": None,
+                                       "summary": {"min": 500000, "max": 500000}, "flights_url": None}],
+                                     None, datetime(2026, 11, 24, 6, 30), None)
+        self.assertIn("2구간 07/02 CTS→NRT: Air B1 09:00 → 23:00 직항", body)
+        self.assertIn("(다구간)", body)
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -7,7 +7,14 @@ const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "
 const LEVEL = { low: ["good", "Google 기준 싼 편"], typical: ["", "Google 기준 보통"], high: ["bad", "Google 기준 비싼 편"] };
 const DOW = ["일", "월", "화", "수", "목", "금", "토"];
 
+function routePath(r) {
+  return r.legs && r.legs.length
+    ? r.legs.map((l) => l.from).concat(r.legs[r.legs.length - 1].to).map((c) => esc(c.toUpperCase())).join(" → ")
+    : `${esc(r.from)} → ${esc(r.to)}`;
+}
+
 function tripLabel(r) {
+  if (r.legs && r.legs.length) return `${r.legs.map((l) => md(l.date)).join(" · ")} 다구간`;
   const d = new Date(r.date + "T00:00:00");
   let s = `${md(r.date)}(${DOW[d.getDay()]})`;
   s += r.return_date ? ` ~ ${md(r.return_date)} 왕복` : " 편도";
@@ -114,7 +121,7 @@ function cardHTML(r) {
   <a class="card route-card" href="#${esc(r.id)}">
     <div>
       <div class="route-name">${esc(r.name)}</div>
-      <div class="route-meta">${esc(r.from)} → ${esc(r.to)} · ${tripLabel(r)} · ${dday(r.date)}</div>
+      <div class="route-meta">${routePath(r)} · ${tripLabel(r)} · ${dday(r.date)}</div>
       <div class="badges">${badges.join("")}</div>
     </div>
     <div>
@@ -140,12 +147,19 @@ function sparkline(svg, data, target) {
 // ------------------------------------------------------------ 비교 사이트 링크
 // tracker/check_prices.py 의 compare_links 와 같은 규칙입니다.
 function compareLinks(r) {
-  const org = r.from.toUpperCase(), dst = r.to.toUpperCase();
+  const org = (r.from || "").toUpperCase(), dst = (r.to || "").toUpperCase();
   const adults = +(r.adults || 1), ret = r.return_date, direct = r.max_stops === 0;
   const kc = { economy: "", premium_economy: "/premium", business: "/business", first: "/first" }[r.travel_class || "economy"] || "";
   const sc = { economy: "economy", premium_economy: "premiumeconomy", business: "business", first: "first" }[r.travel_class || "economy"] || "economy";
-  let kayak = `https://www.kayak.co.kr/flights/${org}-${dst}/${r.date}` + (ret ? `/${ret}` : "") + kc + (adults > 1 ? `/${adults}adults` : "");
-  kayak += "?sort=price_a" + (direct ? "&fs=stops%3D0" : "");
+  const kTail = kc + (adults > 1 ? `/${adults}adults` : "") + "?sort=price_a" + (direct ? "&fs=stops%3D0" : "");
+  if (r.legs && r.legs.length) {
+    const q = new URLSearchParams({ adultsv2: adults, cabinclass: sc, rtn: 2, preferdirects: direct ? "true" : "false" });
+    return {
+      kayak: "https://www.kayak.co.kr/flights/" + r.legs.map((l) => `${l.from.toUpperCase()}-${l.to.toUpperCase()}/${l.date}`).join("/") + kTail,
+      skyscanner: "https://www.skyscanner.co.kr/transport/d/" + r.legs.map((l) => `${l.from.toLowerCase()}/${l.date}/${l.to.toLowerCase()}`).join("/") + "/?" + q,
+    };
+  }
+  let kayak = `https://www.kayak.co.kr/flights/${org}-${dst}/${r.date}` + (ret ? `/${ret}` : "") + kTail;
   const ymd = (iso) => iso.slice(2, 4) + iso.slice(5, 7) + iso.slice(8, 10);
   let sky = `https://www.skyscanner.co.kr/transport/flights/${org.toLowerCase()}/${dst.toLowerCase()}/${ymd(r.date)}/` + (ret ? `${ymd(ret)}/` : "");
   sky += "?" + new URLSearchParams({ adultsv2: adults, cabinclass: sc, rtn: ret ? 1 : 0, preferdirects: direct ? "true" : "false" });
@@ -191,7 +205,7 @@ async function renderDetail(id) {
   $app.innerHTML = `
     <a class="back" href="#">‹ 목록</a>
     <section class="card">
-      <div class="hero-route">${esc(r.name)} · ${esc(r.from)} → ${esc(r.to)}</div>
+      <div class="hero-route">${esc(r.name)} · ${routePath(r)}</div>
       <div class="hero-sub">${tripLabel(r)} · ${(r.adults || 1) > 1 ? `성인 ${r.adults}명 총액` : "1인 가격"} · ${dday(r.date)}</div>
       <div class="hero-price num">${won(s.current)}</div>
       <div class="hero-delta num">${deltaHTML(s.current, s.prev)}${s.prev != null && s.current !== s.prev ? ` <span class="muted small">어제 대비</span>` : ""}</div>
@@ -228,13 +242,17 @@ async function renderDetail(id) {
 
     <section class="card">
       <h3 class="section-title">추적 조건</h3>
-      <div class="info-row"><span>가는 편 출발</span><span>${timeRange(r.depart_after, r.depart_before)}</span></div>
+      ${r.legs && r.legs.length
+        ? r.legs.map((l, i) => `<div class="info-row"><span>${i + 1}구간 ${md(l.date)} ${esc(l.from)}→${esc(l.to)}</span><span>${timeRange(l.depart_after, l.depart_before)}</span></div>`).join("")
+        : `<div class="info-row"><span>가는 편 출발</span><span>${timeRange(r.depart_after, r.depart_before)}</span></div>`}
       ${r.return_date ? `<div class="info-row"><span>오는 편 출발</span><span>${timeRange(r.return_after, r.return_before)}</span></div>` : ""}
       <div class="info-row"><span>인원</span><span>성인 ${r.adults || 1}명</span></div>
       <div class="info-row"><span>알림 목표가</span><span class="num">${r.alert_below ? won(r.alert_below) + " 이하" : "설정 안 함"}</span></div>
       <div class="info-row"><span>좌석</span><span>${{ economy: "일반석", premium_economy: "프리미엄 일반석", business: "비즈니스", first: "일등석" }[r.travel_class] || "일반석"}</span></div>
       <div class="info-row"><span>경유</span><span>${r.max_stops == null ? "상관없음" : r.max_stops === 0 ? "직항만" : `${r.max_stops}회 이하`}</span></div>
-      <div class="info-row"><span>최근 최저가 가는 편</span><span>${lastEntry ? esc(`${lastEntry.airline} ${lastEntry.flight_number}`) : "-"}</span></div>
+      ${lastEntry && lastEntry.legs
+        ? lastEntry.legs.map((l, i) => `<div class="info-row"><span>최근 최저가 ${i + 1}구간</span><span>${esc(`${l.airline} ${l.flight_number}`)}</span></div>`).join("")
+        : `<div class="info-row"><span>최근 최저가 가는 편</span><span>${lastEntry ? esc(`${lastEntry.airline} ${lastEntry.flight_number}`) : "-"}</span></div>`}
       ${lastEntry && lastEntry.return_airline ? `<div class="info-row"><span>최근 최저가 오는 편</span><span>${esc(`${lastEntry.return_airline} ${lastEntry.return_flight_number}`)}</span></div>` : ""}
       <a class="btn secondary" href="#edit/${esc(encodeURIComponent(r.id))}" style="margin-top:14px">조건 바꾸기 (직항 · 시간 · 인원 등)</a>
     </section>
@@ -247,7 +265,9 @@ async function renderDetail(id) {
           const prev = arr.slice(i + 1).find((x) => x.price != null);
           return `<tr>
             <td>${md(h.date)}</td>
-            <td>${h.price != null ? legHTML(h, "", h.return_airline ? "가는 편 " : "") + (h.return_airline ? legHTML(h, "return_", "오는 편 ") : "") : `<span class="muted">${esc(h.error || "기록 없음")}</span>`}</td>
+            <td>${h.price == null ? `<span class="muted">${esc(h.error || "기록 없음")}</span>`
+              : h.legs ? h.legs.map((l, j) => legHTML(l, "", `${j + 1}구간 `)).join("")
+              : legHTML(h, "", h.return_airline ? "가는 편 " : "") + (h.return_airline ? legHTML(h, "return_", "오는 편 ") : "")}</td>
             <td class="r">${won(h.price)}${h.price != null && prev ? `<div class="sub">${deltaHTML(h.price, prev.price).replace(/ \(.*?\)/, "")}</div>` : ""}</td>
           </tr>`; }).join("")}</tbody>
       </table>
@@ -361,27 +381,54 @@ async function renderEdit(id) {
 function renderAdd(edit) {
   const info = repoInfo();
   const editUrl = info ? `https://github.com/${info.owner}/${info.repo}/edit/main/flight-tracker/routes.json` : null;
+  const legRow = (l = {}) => `
+    <div class="leg">
+      <div class="leg-head"><b class="leg-no"></b><button type="button" class="link leg-del">삭제</button></div>
+      <div class="form">
+        <label>출발 공항<input data-k="from" value="${esc(l.from || "")}" maxlength="3"></label>
+        <label>도착 공항<input data-k="to" value="${esc(l.to || "")}" maxlength="3"></label>
+        <label class="full">날짜<input data-k="date" type="date" value="${esc(l.date || "")}"></label>
+        <label>출발 (부터)<input data-k="depart_after" type="time" value="${esc(l.depart_after || "")}"></label>
+        <label>출발 (까지)<input data-k="depart_before" type="time" value="${esc(l.depart_before === "24:00" ? "" : l.depart_before || "")}"></label>
+      </div>
+    </div>`;
   $app.innerHTML = `
     <a class="back" href="${edit ? `#${esc(encodeURIComponent(edit.id))}` : "#"}">‹ ${edit ? "노선" : "목록"}</a>
     <section class="card">
       <h3 class="section-title">${edit ? "추적 조건 바꾸기" : "노선 추가하기"}</h3>
       <p class="muted small" style="margin-top:-6px">${edit ? "바꾸면 아래에 routes.json 에서 이 노선 항목을 대신할 내용이 만들어져요." : "입력하면 아래에 routes.json 에 붙여 넣을 내용이 만들어져요."}</p>
-      <form class="form" id="f" onsubmit="return false">
-        <label class="full">이름<input name="name" value="서울 → 오사카"></label>
-        <label>출발 공항 코드<input name="from" value="ICN" maxlength="3"></label>
-        <label>도착 공항 코드<input name="to" value="KIX" maxlength="3"></label>
-        <label>가는 날<input name="date" type="date"></label>
-        <label>오는 날 (편도면 비움)<input name="return_date" type="date"></label>
-        <label>가는 편 출발 (부터)<input name="depart_after" type="time" value="08:00"></label>
-        <label>가는 편 출발 (까지)<input name="depart_before" type="time" value=""></label>
-        <label>오는 편 출발 (부터)<input name="return_after" type="time" value="12:00"></label>
-        <label>오는 편 출발 (까지)<input name="return_before" type="time" value=""></label>
-        <label>인원 (성인)<input name="adults" type="number" min="1" max="9" value="1"></label>
-        <label>좌석
-          <select name="travel_class"><option value="economy">일반석</option><option value="premium_economy">프리미엄 일반석</option><option value="business">비즈니스</option><option value="first">일등석</option></select></label>
-        <label>경유
-          <select name="max_stops"><option value="">상관없음</option><option value="0">직항만</option><option value="1">1회 이하</option></select></label>
-        <label>알림 목표가 (원, 비우면 알림 없음)<input name="alert_below" type="number" step="1000"></label>
+      <form id="f" onsubmit="return false">
+        <div class="seg" role="radiogroup" aria-label="여정 종류">
+          <label><input type="radio" name="trip" value="round" checked><span>왕복</span></label>
+          <label><input type="radio" name="trip" value="oneway"><span>편도</span></label>
+          <label><input type="radio" name="trip" value="multi"><span>다구간</span></label>
+        </div>
+        <div class="form">
+          <label class="full">이름<input name="name" value="서울 → 오사카"></label>
+        </div>
+        <div class="form" id="simple">
+          <label>출발 공항 코드<input name="from" value="ICN" maxlength="3"></label>
+          <label>도착 공항 코드<input name="to" value="KIX" maxlength="3"></label>
+          <label>가는 날<input name="date" type="date"></label>
+          <label data-round>오는 날<input name="return_date" type="date"></label>
+          <label>가는 편 출발 (부터)<input name="depart_after" type="time" value="08:00"></label>
+          <label>가는 편 출발 (까지)<input name="depart_before" type="time" value=""></label>
+          <label data-round>오는 편 출발 (부터)<input name="return_after" type="time" value="12:00"></label>
+          <label data-round>오는 편 출발 (까지)<input name="return_before" type="time" value=""></label>
+        </div>
+        <div id="multi" hidden>
+          <div id="legs"></div>
+          <button type="button" class="btn secondary" id="add-leg">+ 구간 추가</button>
+          <p class="muted small" style="margin:8px 2px 0">구간은 2~6개까지 넣을 수 있어요. 조회할 때 구간마다 검색 1회를 써요.</p>
+        </div>
+        <div class="form" style="margin-top:10px">
+          <label>인원 (성인)<input name="adults" type="number" min="1" max="9" value="1"></label>
+          <label>좌석
+            <select name="travel_class"><option value="economy">일반석</option><option value="premium_economy">프리미엄 일반석</option><option value="business">비즈니스</option><option value="first">일등석</option></select></label>
+          <label>경유
+            <select name="max_stops"><option value="">상관없음</option><option value="0">직항만</option><option value="1">1회 이하</option></select></label>
+          <label>알림 목표가 (원, 비우면 알림 없음)<input name="alert_below" type="number" step="1000"></label>
+        </div>
       </form>
     </section>
     <section class="card">
@@ -393,31 +440,93 @@ function renderAdd(edit) {
         ? `routes.json 에서 "id": "${esc(edit.id)}" 인 항목의 { } 전체를 위 내용으로 바꾼 뒤 Commit 하세요. 바로 한 번 조회되고, 이후 06:30 · 12:30 · 18:30 에 조회돼요.`
         : `"routes" 목록 안의 마지막 항목 뒤에 쉼표(,)를 찍고 붙여 넣은 뒤 Commit 하세요. 바로 한 번 조회되고, 이후 06:30 · 12:30 · 18:30 에 조회돼요.`}</p>
     </section>`;
+
   const f = document.getElementById("f"), out = document.getElementById("out");
+  const $legs = document.getElementById("legs"), $add = document.getElementById("add-leg");
+  const t = (x) => (x === "24:00" ? "" : x || "");
+  const addLeg = (l) => { $legs.insertAdjacentHTML("beforeend", legRow(l)); renumber(); };
+  const renumber = () => {
+    const rows = [...$legs.querySelectorAll(".leg")];
+    rows.forEach((el, i) => { el.querySelector(".leg-no").textContent = `${i + 1}구간`; el.querySelector(".leg-del").hidden = rows.length <= 2; });
+    $add.hidden = rows.length >= 6;
+  };
+  const setTrip = (trip) => {
+    f.querySelector(`input[name=trip][value=${trip}]`).checked = true;
+    document.getElementById("simple").hidden = trip === "multi";
+    document.getElementById("multi").hidden = trip !== "multi";
+    f.querySelectorAll("[data-round]").forEach((el) => { el.hidden = trip !== "round"; });
+    if (trip === "multi" && !$legs.children.length) {
+      const v = Object.fromEntries(new FormData(f));
+      addLeg({ from: v.from, to: v.to, date: v.date, depart_after: v.depart_after, depart_before: v.depart_before });
+      addLeg({ from: v.to, to: "", date: v.return_date || "" });
+    }
+  };
+
   if (edit) {
-    const t = (x) => (x === "24:00" ? "" : x || "");
-    f.elements["name"].value = edit.name; f.from.value = edit.from; f.to.value = edit.to;
-    f.date.value = edit.date; f.return_date.value = edit.return_date || "";
-    f.depart_after.value = t(edit.depart_after); f.depart_before.value = t(edit.depart_before);
-    f.return_after.value = t(edit.return_after); f.return_before.value = t(edit.return_before);
+    f.elements["name"].value = edit.name;
     f.adults.value = edit.adults || 1; f.travel_class.value = edit.travel_class || "economy";
     f.max_stops.value = edit.max_stops == null ? "" : String(edit.max_stops);
     f.alert_below.value = edit.alert_below || "";
+    if (edit.legs && edit.legs.length) {
+      edit.legs.forEach(addLeg);
+      setTrip("multi");
+    } else {
+      f.from.value = edit.from; f.to.value = edit.to;
+      f.date.value = edit.date; f.return_date.value = edit.return_date || "";
+      f.depart_after.value = t(edit.depart_after); f.depart_before.value = t(edit.depart_before);
+      f.return_after.value = t(edit.return_after); f.return_before.value = t(edit.return_before);
+      setTrip(edit.return_date ? "round" : "oneway");
+    }
   } else {
-    const d = new Date(Date.now() + 30 * 86400000); f.date.value = d.toISOString().slice(0, 10);
+    f.date.value = new Date(Date.now() + 30 * 86400000).toISOString().slice(0, 10);
+    f.return_date.value = new Date(Date.now() + 34 * 86400000).toISOString().slice(0, 10);
+    setTrip("round");
   }
+
   const update = () => {
     const v = Object.fromEntries(new FormData(f));
-    const id = edit ? edit.id : `${v.from}-${v.to}-${(v.date || "").replaceAll("-", "")}`.toLowerCase();
-    out.textContent = JSON.stringify({
-      id, name: v.name, from: v.from.toUpperCase(), to: v.to.toUpperCase(), date: v.date,
-      return_date: v.return_date || null, depart_after: v.depart_after || "00:00", depart_before: v.depart_before || "24:00",
-      ...(v.return_date ? { return_after: v.return_after || "00:00", return_before: v.return_before || "24:00" } : {}),
+    const common = {
       adults: +v.adults || 1, travel_class: v.travel_class, max_stops: v.max_stops === "" ? null : +v.max_stops,
       alert_below: +v.alert_below || null, active: edit ? edit.active !== false : true,
-    }, null, 2);
+    };
+    let body;
+    if (v.trip === "multi") {
+      const legs = [...$legs.querySelectorAll(".leg")].map((el) => {
+        const g = (k) => el.querySelector(`[data-k=${k}]`).value;
+        const leg = { from: g("from").toUpperCase(), to: g("to").toUpperCase(), date: g("date") };
+        if (g("depart_after")) leg.depart_after = g("depart_after");
+        if (g("depart_before")) leg.depart_before = g("depart_before");
+        return leg;
+      });
+      const first = legs[0] || {};
+      const id = edit ? edit.id : `${first.from}-${legs.map((l) => l.to).join("-")}-${(first.date || "").replaceAll("-", "")}`.toLowerCase();
+      body = { id, name: v.name, legs, ...common };
+    } else {
+      const round = v.trip === "round";
+      const id = edit ? edit.id : `${v.from}-${v.to}-${(v.date || "").replaceAll("-", "")}`.toLowerCase();
+      body = {
+        id, name: v.name, from: v.from.toUpperCase(), to: v.to.toUpperCase(), date: v.date,
+        return_date: round ? v.return_date || null : null,
+        depart_after: v.depart_after || "00:00", depart_before: v.depart_before || "24:00",
+        ...(round && v.return_date ? { return_after: v.return_after || "00:00", return_before: v.return_before || "24:00" } : {}),
+        ...common,
+      };
+    }
+    out.textContent = JSON.stringify(body, null, 2);
   };
-  f.addEventListener("input", update); update();
+
+  f.addEventListener("change", (e) => { if (e.target.name === "trip") setTrip(e.target.value); update(); });
+  f.addEventListener("input", update);
+  $add.onclick = () => {
+    const rows = $legs.querySelectorAll(".leg");
+    const prevTo = rows.length ? rows[rows.length - 1].querySelector("[data-k=to]").value : "";
+    addLeg({ from: prevTo }); update();
+  };
+  $legs.addEventListener("click", (e) => {
+    if (!e.target.classList.contains("leg-del")) return;
+    e.target.closest(".leg").remove(); renumber(); update();
+  });
+  update();
   document.getElementById("copy").onclick = async (e) => {
     try { await navigator.clipboard.writeText(out.textContent); e.target.textContent = "복사됨 ✓"; } catch { e.target.textContent = "직접 선택해서 복사해 주세요"; }
   };
