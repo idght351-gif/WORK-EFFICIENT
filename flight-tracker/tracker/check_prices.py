@@ -23,6 +23,7 @@ import urllib.parse
 import urllib.request
 from datetime import date, datetime, timedelta, timezone
 from email.message import EmailMessage
+from html import escape
 from pathlib import Path
 
 KST = timezone(timedelta(hours=9))
@@ -260,10 +261,113 @@ def send_alert(route: dict, entry: dict, summary: dict, flights_url: str | None)
     if os.environ.get("SITE_URL"):
         lines += [f"가격 추이 그래프: {os.environ['SITE_URL'].rstrip('/')}/#{route['id']}"]
     msg.set_content("\n".join(lines))
+    _smtp_send(msg, user, pw)
+    print(f"  ✉ 알림 메일 발송 → {to}")
+
+
+def _smtp_send(msg: EmailMessage, user: str, pw: str) -> None:
     with smtplib.SMTP_SSL("smtp.gmail.com", 465, context=ssl.create_default_context()) as s:
         s.login(user, pw)
         s.send_message(msg)
-    print(f"  ✉ 알림 메일 발송 → {to}")
+
+
+# ---------------------------------------------------------------- 정기 리포트 (하루 3번)
+
+def _delta_text(cur: int | None, prev: int | None) -> str:
+    if cur is None or prev is None:
+        return "직전 기록 없음"
+    d = cur - prev
+    if d == 0:
+        return "직전과 같음"
+    return f"{'▼' if d < 0 else '▲'} {won(abs(d))} ({abs(d) / prev * 100:.1f}%)"
+
+
+def build_report(items: list[dict], quota: dict | None, now: datetime, site_url: str | None) -> tuple[str, str, str]:
+    """items: [{"route", "entry", "prev_price", "summary", "flights_url"}] → (제목, 본문, HTML)."""
+    stamp = now.strftime("%m/%d %H:%M")
+    ok = [i for i in items if i["entry"].get("price") is not None]
+    if len(items) == 1 and ok:
+        it = ok[0]
+        subject = f"[항공권 {stamp}] {it['route']['name']} {won(it['entry']['price'])} · {_delta_text(it['entry']['price'], it['prev_price'])}"
+    elif ok:
+        subject = f"[항공권 {stamp}] 추적 노선 {len(items)}개 최저가"
+    else:
+        subject = f"[항공권 {stamp}] 조회 실패"
+
+    text, html = [], []
+    for it in items:
+        r, e, sm = it["route"], it["entry"], it["summary"]
+        trip = f"{r['date']}" + (f" ~ {r['return_date']}" if r.get("return_date") else " 편도")
+        pax = f"성인 {r.get('adults', 1)}명"
+        links = compare_links(r)
+        if e.get("price") is None:
+            text += [f"■ {r['name']} ({r['from']} → {r['to']}, {trip})", f"  조회 실패: {e.get('error')}", ""]
+            html.append(f"<h3 style='margin:18px 0 4px'>{escape(r['name'])}</h3>"
+                        f"<p style='color:#a12828'>조회 실패: {escape(str(e.get('error')))}</p>")
+            continue
+        out = (f"{e.get('airline')} {e.get('flight_number')} {e.get('depart_time')} → {e.get('arrive_time')}"
+               + (" 직항" if e.get("stops") == 0 else f" 경유 {e.get('stops')}회"))
+        back = (f"{e.get('return_airline')} {e.get('return_flight_number')} "
+                f"{e.get('return_depart_time')} → {e.get('return_arrive_time')}") if e.get("return_airline") else None
+        delta = _delta_text(e["price"], it["prev_price"])
+        text += [f"■ {r['name']} ({r['from']} → {r['to']}, {trip}, {pax})",
+                 f"  최저가: {won(e['price'])}  ({delta})",
+                 f"  가는 편: {out}"] + ([f"  오는 편: {back}"] if back else []) + [
+                 f"  추적 기간 최저 {won(sm['min'])} · 최고 {won(sm['max'])}"]
+        if r.get("alert_below"):
+            text.append(f"  목표가 {won(r['alert_below'])} " + ("도달" if e["price"] <= r["alert_below"] else "미도달"))
+        if it.get("flights_url"):
+            text.append(f"  Google 항공권: {it['flights_url']}")
+        text += [f"  Kayak: {links['kayak']}", f"  Skyscanner: {links['skyscanner']}", ""]
+
+        color = "#2a78d6" if (it["prev_price"] is not None and e["price"] < it["prev_price"]) else \
+                "#e34948" if (it["prev_price"] is not None and e["price"] > it["prev_price"]) else "#8b909a"
+        row = lambda k, v: f"<tr><td style='padding:3px 14px 3px 0;color:#666'>{k}</td><td>{v}</td></tr>"  # noqa: E731
+        btn = lambda u, t: (f"<a href='{escape(u)}' style='display:inline-block;margin:0 6px 6px 0;padding:8px 12px;"  # noqa: E731
+                            f"border-radius:10px;background:#f0f1f4;color:#111;text-decoration:none;font-size:13px'>{t}</a>")
+        html.append(
+            f"<div style='background:#fff;border:1px solid #e7e8ec;border-radius:14px;padding:16px;margin:12px 0'>"
+            f"<div style='font-weight:700;font-size:16px'>{escape(r['name'])}</div>"
+            f"<div style='color:#8b909a;font-size:13px'>{escape(r['from'])} → {escape(r['to'])} · {escape(trip)} · {pax}</div>"
+            f"<div style='font-size:26px;font-weight:800;margin:10px 0 0'>{won(e['price'])}</div>"
+            f"<div style='color:{color};font-size:13px;margin-bottom:10px'>{escape(delta)}</div>"
+            f"<table style='font-size:14px;border-collapse:collapse'>{row('가는 편', escape(out))}"
+            + (row('오는 편', escape(back)) if back else "")
+            + row('추적 기간', f"최저 {won(sm['min'])} · 최고 {won(sm['max'])}")
+            + (row('목표가', f"{won(r['alert_below'])} " + ('도달' if e['price'] <= r['alert_below'] else '미도달'))
+               if r.get('alert_below') else "")
+            + "</table><div style='margin-top:12px'>"
+            + (btn(it["flights_url"], "Google 항공권") if it.get("flights_url") else "")
+            + btn(links["kayak"], "Kayak 비교") + btn(links["skyscanner"], "Skyscanner 비교") + "</div></div>")
+
+    if quota and quota.get("total_searches_left") is not None:
+        q = f"SerpApi 남은 검색 {quota['total_searches_left']}회 · 갱신일 {quota.get('plan_renewal_date') or '-'}"
+        text.append(q)
+        html.append(f"<p style='color:#8b909a;font-size:12px'>{escape(q)}</p>")
+    if site_url:
+        text.append(f"가격 추이: {site_url.rstrip('/')}/")
+        html.append(f"<p style='font-size:13px'><a href='{escape(site_url.rstrip('/'))}/'>가격 추이 보기</a></p>")
+    header = f"{now.strftime('%Y-%m-%d %H:%M')} (한국시간) 조회 결과"
+    body = header + "\n\n" + "\n".join(text)
+    html_doc = (f"<div style='font-family:sans-serif;max-width:560px;color:#111'>"
+                f"<p style='color:#4d525c'>{header}</p>{''.join(html)}</div>")
+    return subject, body, html_doc
+
+
+def send_report(items: list[dict], quota: dict | None, now: datetime) -> None:
+    user = os.environ.get("GMAIL_USER")
+    pw = os.environ.get("GMAIL_APP_PASSWORD")
+    to = os.environ.get("ALERT_EMAIL") or user
+    if not (user and pw and to):
+        print("  ! 메일 설정(GMAIL_USER / GMAIL_APP_PASSWORD)이 없어 정기 리포트를 건너뜁니다.")
+        return
+    subject, body, html = build_report(items, quota, now, os.environ.get("SITE_URL"))
+    msg = EmailMessage()
+    msg["Subject"], msg["From"], msg["To"] = subject, user, to
+    msg.set_content(body)
+    msg.add_alternative(html, subtype="html")
+    _smtp_send(msg, user, pw)
+    print(f"✉ 정기 리포트 발송 → {to}")
 
 
 # ---------------------------------------------------------------- 비교 사이트 링크
@@ -358,6 +462,7 @@ def run(dry_run: bool = False) -> int:
     today = now.date().isoformat()
     index = []
     failures = 0
+    report_items = []
 
     for route in routes:
         rid = route["id"]
@@ -379,11 +484,19 @@ def run(dry_run: bool = False) -> int:
             except Exception as e:  # noqa: BLE001 - 한 노선 실패가 전체를 멈추지 않게
                 error = str(e).replace(api_key, "***")
                 failures += 1
+            prev_ok = [h for h in history if h.get("price") is not None]
+            prev_price = prev_ok[-1]["price"] if prev_ok else None  # 직전 조회(오늘 이른 시각 포함)
             history = record_result(history, today, result, error, now.isoformat(timespec="seconds"), insights)
             doc["google_flights_url"] = url or doc.get("google_flights_url")
             print(f"  가격: {won(result['price']) if result else '없음'}" + (f" (오류: {error})" if error else ""))
 
             summary = summarize(history)
+            report_items.append({
+                "route": route, "summary": summary, "prev_price": prev_price,
+                "entry": {**(result or {}), "price": result["price"] if result else None,
+                          "error": error or (None if result else "조건에 맞는 항공편 없음")},
+                "flights_url": doc.get("google_flights_url"),
+            })
             should_send, doc["alert_state"] = decide_alert(
                 result["price"] if result else None, route.get("alert_below"), doc.get("alert_state")
             )
@@ -409,7 +522,8 @@ def run(dry_run: bool = False) -> int:
         })
 
     prev_index = load_json(DATA_DIR / "index.json", {})
-    daily_usage = sum(searches_per_check(r) for r, i in zip(routes, index) if i["status"] == "active")
+    runs_per_day = int(os.environ.get("RUNS_PER_DAY") or 1)
+    daily_usage = runs_per_day * sum(searches_per_check(r) for r, i in zip(routes, index) if i["status"] == "active")
     fetched, qerr = None, None
     if api_key:
         try:
@@ -424,6 +538,12 @@ def run(dry_run: bool = False) -> int:
 
     save_json(DATA_DIR / "index.json", {"updated_at": now.isoformat(timespec="seconds"), "routes": index,
                                         "quota": quota})
+
+    if report_items and os.environ.get("SEND_REPORT", "").lower() == "true":
+        try:
+            send_report(report_items, quota, now)
+        except Exception as e:  # noqa: BLE001
+            print(f"! 정기 리포트 발송 실패: {e}", file=sys.stderr)
     # 모든 노선이 실패했을 때만 실패 코드 → GitHub Actions 에서 빨간불로 보임
     active = sum(1 for r in index if r["status"] == "active")
     return 1 if active and failures == active else 0

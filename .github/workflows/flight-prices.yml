@@ -2,7 +2,11 @@ name: 항공권 가격 체크
 
 on:
   schedule:
-    - cron: "17 0 * * *"   # 매일 00:17 UTC = 한국시간 오전 9시 17분 (기본 브랜치에서만 동작)
+    # 한국시간 06:30 · 12:30 · 18:30 (UTC 21:30 · 03:30 · 09:30). 기본 브랜치에서만 동작하고,
+    # GitHub 사정으로 몇 분~수십 분 늦게 시작될 수 있어요.
+    - cron: "30 21 * * *"
+    - cron: "30 3 * * *"
+    - cron: "30 9 * * *"
   workflow_dispatch:        # Actions 탭에서 "Run workflow" 로 바로 실행
   push:
     branches: [main]
@@ -42,6 +46,9 @@ jobs:
           GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
           ALERT_EMAIL: ${{ secrets.ALERT_EMAIL }}
           SITE_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}
+          # 예약 실행·수동 실행 때만 목표가와 상관없이 최저가 메일을 보냅니다 (코드 push 때는 안 보냄)
+          SEND_REPORT: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
+          RUNS_PER_DAY: "3"
         run: python check_prices.py
 
       - name: 기록 저장 (commit)

@@ -1,6 +1,6 @@
 import unittest
 
-from check_prices import compare_links, build_quota, searches_per_check, decide_alert, outbound_times_param, pick_cheapest, record_result, summarize
+from check_prices import build_report, compare_links, build_quota, searches_per_check, decide_alert, outbound_times_param, pick_cheapest, record_result, summarize
 
 ROUTE = {"depart_after": "09:00", "depart_before": "12:00"}
 
@@ -163,6 +163,36 @@ class TestCompareLinks(unittest.TestCase):
                          "https://www.kayak.co.kr/flights/ICN-NRT/2026-12-20/business?sort=price_a&fs=stops%3D0")
         self.assertIn("/icn/nrt/261220/?", links["skyscanner"])
         self.assertIn("cabinclass=business&rtn=0&preferdirects=true", links["skyscanner"])
+
+
+class TestReport(unittest.TestCase):
+    ROUTE = {"id": "r", "name": "인천 → 삿포로", "from": "ICN", "to": "CTS", "date": "2027-06-29",
+             "return_date": "2027-07-05", "adults": 2, "travel_class": "economy", "alert_below": None}
+    ENTRY = {"price": 1200000, "airline": "Trinity Airways", "flight_number": "TW 263",
+             "depart_time": "10:10", "arrive_time": "13:00", "stops": 0,
+             "return_airline": "Trinity Airways", "return_flight_number": "TW 264",
+             "return_depart_time": "14:30", "return_arrive_time": "17:40"}
+    SUMMARY = {"min": 1200000, "max": 1251754}
+
+    def _report(self, entry, prev):
+        from datetime import datetime
+        items = [{"route": self.ROUTE, "entry": entry, "prev_price": prev,
+                  "summary": self.SUMMARY, "flights_url": "https://example.com/g"}]
+        return build_report(items, {"total_searches_left": 240, "plan_renewal_date": "2026-12-23"},
+                            datetime(2026, 11, 24, 6, 31), "https://x.github.io/t")
+
+    def test_price_drop(self):
+        subject, body, html = self._report(self.ENTRY, 1251754)
+        self.assertIn("1,200,000원", subject)
+        self.assertIn("▼ 51,754원", subject)
+        self.assertIn("오는 편: Trinity Airways TW 264", body)
+        self.assertIn("kayak.co.kr", html)
+        self.assertIn("SerpApi 남은 검색 240회", body)
+
+    def test_failure(self):
+        subject, body, _ = self._report({"price": None, "error": "timeout"}, 1251754)
+        self.assertIn("조회 실패", subject)
+        self.assertIn("timeout", body)
 
 
 if __name__ == "__main__":
