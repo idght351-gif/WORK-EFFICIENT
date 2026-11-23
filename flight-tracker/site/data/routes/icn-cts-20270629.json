@@ -2,7 +2,7 @@
   "history": [
     {
       "date": "2026-11-23",
-      "checked_at": "2026-11-23T14:25:24+09:00",
+      "checked_at": "2026-11-23T14:55:22+09:00",
       "price": 626267,
       "error": null,
       "airline": "Trinity Airways",
@@ -32,7 +32,7 @@
     "return_before": "24:00",
     "adults": 1,
     "travel_class": "economy",
-    "max_stops": null,
+    "max_stops": 0,
     "alert_below": null,
     "active": true
   },
@@ -46,6 +46,6 @@
     "avg": 626267,
     "days": 1
   },
-  "updated_at": "2026-11-23T14:25:24+09:00",
-  "google_flights_url": "https://www.google.com/travel/flights?hl=ko&gl=kr&curr=KRW&tfs=CBwQAhpDEgoyMDI3LTA2LTI5Ih8KA0lDThIKMjAyNy0wNi0yORoDQ1RTKgJUVzIDMjYzQApIF2oHCAESA0lDTnIHCAESA0NUUxoiEgoyMDI3LTA3LTA1QAxIF2oHCAESA0NUU3IHCAESA0lDTkABSAFwAZgBAQ&tfu=EgIIAQ"
+  "updated_at": "2026-11-23T14:55:22+09:00",
+  "google_flights_url": "https://www.google.com/travel/flights?hl=ko&gl=kr&curr=KRW&tfs=CBwQAhpFEgoyMDI3LTA2LTI5Ih8KA0lDThIKMjAyNy0wNi0yORoDQ1RTKgJUVzIDMjYzKABACkgXagcIARIDSUNOcgcIARIDQ1RTGiQSCjIwMjctMDctMDUoAEAMSBdqBwgBEgNDVFNyBwgBEgNJQ05AAUgBcAGYAQE&tfu=EgIIAQ"
 }
