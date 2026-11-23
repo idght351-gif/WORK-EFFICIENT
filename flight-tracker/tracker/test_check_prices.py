@@ -1,6 +1,6 @@
 import unittest
 
-from check_prices import decide_alert, outbound_times_param, pick_cheapest, record_result, summarize
+from check_prices import compare_links, build_quota, searches_per_check, decide_alert, outbound_times_param, pick_cheapest, record_result, summarize
 
 ROUTE = {"depart_after": "09:00", "depart_before": "12:00"}
 
@@ -114,6 +114,55 @@ class TestRecord(unittest.TestCase):
         h = [{"date": "a", "price": 300}, {"date": "b", "price": None}, {"date": "c", "price": 100}]
         s = summarize(h)
         self.assertEqual((s["current"], s["prev"], s["min"], s["max"], s["avg"]), (100, 300, 100, 300, 200))
+
+
+class TestQuota(unittest.TestCase):
+    FETCHED = {"plan_name": "Free Plan", "searches_per_month": 250, "plan_searches_left": 240,
+               "extra_credits": 0, "total_searches_left": 240, "this_month_usage": 10,
+               "plan_renewal_date": "2026-12-20", "account_rate_limit_per_hour": 50}
+
+    def test_searches_per_check(self):
+        self.assertEqual(searches_per_check({"return_date": "2027-07-05"}), 2)
+        self.assertEqual(searches_per_check({"return_date": None}), 1)
+        self.assertEqual(searches_per_check({}), 1)
+
+    def test_success_keeps_only_safe_fields(self):
+        q = build_quota({**self.FETCHED}, None, 2, "2026-11-23T12:00:00+09:00")
+        self.assertEqual(q["total_searches_left"], 240)
+        self.assertEqual(q["daily_usage"], 2)
+        self.assertEqual(q["checked_at"], "2026-11-23T12:00:00+09:00")
+        self.assertNotIn("error", q)
+
+    def test_failure_keeps_previous_values(self):
+        prev = build_quota({**self.FETCHED}, None, 2, "2026-11-22T09:00:00+09:00")
+        prev["api_key"] = "secret"
+        q = build_quota(None, prev, 4, "2026-11-23T09:00:00+09:00", "timeout")
+        self.assertEqual(q["total_searches_left"], 240)
+        self.assertEqual(q["checked_at"], "2026-11-22T09:00:00+09:00")
+        self.assertEqual(q["daily_usage"], 4)
+        self.assertEqual(q["error"], "timeout")
+        self.assertNotIn("api_key", q)
+
+
+class TestCompareLinks(unittest.TestCase):
+    def test_round_trip(self):
+        r = {"from": "ICN", "to": "CTS", "date": "2027-06-29", "return_date": "2027-07-05",
+             "adults": 2, "travel_class": "economy", "max_stops": None}
+        links = compare_links(r)
+        self.assertEqual(links["kayak"],
+                         "https://www.kayak.co.kr/flights/ICN-CTS/2027-06-29/2027-07-05/2adults?sort=price_a")
+        self.assertEqual(links["skyscanner"],
+                         "https://www.skyscanner.co.kr/transport/flights/icn/cts/270629/270705/"
+                         "?adultsv2=2&cabinclass=economy&rtn=1&preferdirects=false")
+
+    def test_one_way_business_direct(self):
+        r = {"from": "icn", "to": "nrt", "date": "2026-12-20", "adults": 1,
+             "travel_class": "business", "max_stops": 0}
+        links = compare_links(r)
+        self.assertEqual(links["kayak"],
+                         "https://www.kayak.co.kr/flights/ICN-NRT/2026-12-20/business?sort=price_a&fs=stops%3D0")
+        self.assertIn("/icn/nrt/261220/?", links["skyscanner"])
+        self.assertIn("cabinclass=business&rtn=0&preferdirects=true", links["skyscanner"])
 
 
 if __name__ == "__main__":

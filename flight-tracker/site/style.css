@@ -143,3 +143,18 @@ table.history { width: 100%; border-collapse: collapse; font-size: 14px; }
 .form input:focus, .form select:focus { outline: none; border-color: var(--accent); }
 pre.snippet { background: var(--bg); border-radius: 12px; padding: 12px; font-size: 12px; overflow-x: auto; white-space: pre; }
 .empty { text-align: center; padding: 36px 20px; }
+
+/* ---------- SerpApi 잔여 검색 ---------- */
+.quota-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.quota-head .section-title { margin-bottom: 8px; }
+.quota-main { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.quota-left { font-size: 26px; font-weight: 800; letter-spacing: -0.02em; }
+.quota-main .badge { align-self: center; }
+.quota-bar { height: 6px; background: var(--chip); border-radius: 99px; overflow: hidden; margin: 12px 0 10px; }
+.quota-bar span { display: block; height: 100%; background: var(--accent); border-radius: 99px; }
+.quota-row { display: flex; justify-content: space-between; gap: 12px; font-size: 14px; padding: 3px 0; }
+
+/* ---------- 비교 사이트 ---------- */
+.compare { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
+.compare .btn { padding: 12px 8px; font-size: 14px; white-space: nowrap; background: var(--card); }
+.compare-note { margin: 8px 2px 12px; }

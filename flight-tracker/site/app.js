@@ -49,11 +49,58 @@ async function renderList() {
   const routes = [...index.routes].sort((a, b) => order[a.status] - order[b.status] || a.date.localeCompare(b.date));
 
   $app.innerHTML = `
+    ${quotaHTML(index.quota)}
     <h2 class="section-title" style="margin-top:8px">추적 중인 항공권</h2>
     ${routes.length ? routes.map(cardHTML).join("") :
       `<div class="card empty"><p>아직 추적 중인 노선이 없어요.</p><p class="muted small">routes.json 에 노선을 추가하면 다음 실행부터 기록돼요.</p></div>`}
     <a href="#add" class="btn secondary" style="margin-top:16px">+ 노선 추가하기</a>`;
   routes.forEach((r) => { const el = document.getElementById("spark-" + r.id); if (el) sparkline(el, r.spark, r.alert_below); });
+}
+
+// ------------------------------------------------------------ SerpApi 잔여 검색 수
+function kstToday() {
+  const t = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Seoul" }));
+  t.setHours(0, 0, 0, 0);
+  return t;
+}
+
+function quotaHTML(q) {
+  if (!q) return "";
+  const fmt = (iso) => new Date(iso).toLocaleString("ko-KR", { month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" });
+  const checked = q.checked_at ? `${fmt(q.checked_at)} 기준` : "";
+  if (q.total_searches_left == null) {
+    return `<section class="card quota">
+      <div class="quota-head"><h2 class="section-title">SerpApi 남은 검색</h2><span class="muted small">${esc(checked)}</span></div>
+      <p class="muted small" style="margin:0">아직 조회 전이에요. 다음 가격 조회 때 함께 확인돼요.${q.error ? ` (${esc(q.error)})` : ""}</p></section>`;
+  }
+  const left = q.total_searches_left, total = q.searches_per_month || 0, daily = q.daily_usage || 0;
+  const used = total ? Math.min(100, Math.max(0, ((total - (q.plan_searches_left ?? left)) / total) * 100)) : 0;
+  const lines = [];
+  let level = "good";
+  if (q.plan_renewal_date) {
+    const renew = new Date(q.plan_renewal_date + "T00:00:00");
+    const days = Math.max(0, Math.round((renew - kstToday()) / 86400000));
+    const need = daily * days;
+    lines.push(`<div class="quota-row"><span class="muted">다음 갱신일</span><span class="num">${md(q.plan_renewal_date)} (${DOW[renew.getDay()]}) · ${days ? `${days}일 남음` : "오늘"}</span></div>`);
+    lines.push(`<div class="quota-row"><span class="muted">갱신일까지 예상 사용</span><span class="num">${need}회 (하루 ${daily}회)</span></div>`);
+    if (need > left) level = "bad";
+    else if (need > left * 0.8) level = "warn";
+  } else {
+    lines.push(`<div class="quota-row"><span class="muted">다음 갱신일</span><span class="muted">정보 없음</span></div>`);
+    lines.push(`<div class="quota-row"><span class="muted">하루 사용량</span><span class="num">${daily}회</span></div>`);
+    if (daily && left < daily * 7) level = "warn";
+  }
+  const badge = { good: ["good", "충분해요"], warn: ["warn", "빠듯해요"], bad: ["bad", "갱신 전에 부족해요"] }[level];
+  return `<section class="card quota">
+    <div class="quota-head"><h2 class="section-title">SerpApi 남은 검색</h2><span class="muted small">${esc(checked)}</span></div>
+    <div class="quota-main"><span class="quota-left num">${left.toLocaleString("ko-KR")}회</span>
+      ${total ? `<span class="muted num">/ 월 ${total.toLocaleString("ko-KR")}회</span>` : ""}
+      <span class="badge ${badge[0]}">${badge[1]}</span></div>
+    ${total ? `<div class="quota-bar" role="img" aria-label="이번 달 ${Math.round(used)}% 사용"><span style="width:${used.toFixed(1)}%"></span></div>` : ""}
+    ${lines.join("")}
+    ${q.extra_credits ? `<div class="quota-row"><span class="muted">추가 크레딧</span><span class="num">${q.extra_credits}회</span></div>` : ""}
+    ${q.error ? `<p class="muted small" style="margin:8px 0 0">최근 확인 실패: ${esc(q.error)} · 마지막 성공 값을 보여주고 있어요.</p>` : ""}
+  </section>`;
 }
 
 function cardHTML(r) {
@@ -88,6 +135,30 @@ function sparkline(svg, data, target) {
   svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
   svg.innerHTML = `<path d="${d}" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
     <circle cx="${x(last)}" cy="${y(data[last])}" r="4" fill="var(--accent)" stroke="var(--card)" stroke-width="2"/>`;
+}
+
+// ------------------------------------------------------------ 비교 사이트 링크
+// tracker/check_prices.py 의 compare_links 와 같은 규칙입니다.
+function compareLinks(r) {
+  const org = r.from.toUpperCase(), dst = r.to.toUpperCase();
+  const adults = +(r.adults || 1), ret = r.return_date, direct = r.max_stops === 0;
+  const kc = { economy: "", premium_economy: "/premium", business: "/business", first: "/first" }[r.travel_class || "economy"] || "";
+  const sc = { economy: "economy", premium_economy: "premiumeconomy", business: "business", first: "first" }[r.travel_class || "economy"] || "economy";
+  let kayak = `https://www.kayak.co.kr/flights/${org}-${dst}/${r.date}` + (ret ? `/${ret}` : "") + kc + (adults > 1 ? `/${adults}adults` : "");
+  kayak += "?sort=price_a" + (direct ? "&fs=stops%3D0" : "");
+  const ymd = (iso) => iso.slice(2, 4) + iso.slice(5, 7) + iso.slice(8, 10);
+  let sky = `https://www.skyscanner.co.kr/transport/flights/${org.toLowerCase()}/${dst.toLowerCase()}/${ymd(r.date)}/` + (ret ? `${ymd(ret)}/` : "");
+  sky += "?" + new URLSearchParams({ adultsv2: adults, cabinclass: sc, rtn: ret ? 1 : 0, preferdirects: direct ? "true" : "false" });
+  return { kayak, skyscanner: sky };
+}
+
+function compareHTML(r) {
+  const l = compareLinks(r);
+  return `<div class="compare">
+      <a class="btn secondary" href="${esc(l.kayak)}" target="_blank" rel="noopener">Kayak 비교</a>
+      <a class="btn secondary" href="${esc(l.skyscanner)}" target="_blank" rel="noopener">Skyscanner 비교</a>
+    </div>
+    <p class="muted small compare-note">같은 날짜·인원·좌석으로 열려요. 출발 시간대 조건은 각 사이트에서 직접 설정해 주세요.</p>`;
 }
 
 // ------------------------------------------------------------ 상세
@@ -152,7 +223,8 @@ async function renderDetail(id) {
       <div class="legend"><span><i></i>그날의 최저가</span>${r.alert_below ? `<span><i class="target"></i>목표가 ${won(r.alert_below)}</span>` : ""}</div>
     </section>
 
-    ${doc.google_flights_url ? `<a class="btn" href="${esc(doc.google_flights_url)}" target="_blank" rel="noopener">Google 항공권에서 예약하기</a><div style="height:12px"></div>` : ""}
+    ${doc.google_flights_url ? `<a class="btn" href="${esc(doc.google_flights_url)}" target="_blank" rel="noopener">Google 항공권에서 예약하기</a>` : ""}
+    ${compareHTML(r)}
 
     <section class="card">
       <h3 class="section-title">추적 조건</h3>
