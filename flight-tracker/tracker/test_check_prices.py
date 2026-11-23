@@ -265,5 +265,39 @@ class TestMultiCity(unittest.TestCase):
         self.assertIn("(다구간)", body)
 
 
+class TestConnection(unittest.TestCase):
+    def test_same_day_needs_connection_time(self):
+        from check_prices import NO_CONNECTION, connection_after
+        prev = {"date": "2027-07-03", "arrive_time": "12:40"}
+        self.assertEqual(connection_after(prev, {"date": "2027-07-03"}, None, 120), "14:40")
+        self.assertEqual(connection_after(prev, {"date": "2027-07-03"}, "16:00", 120), "16:00")
+        self.assertEqual(connection_after(prev, {"date": "2027-07-03"}, "10:00", 120), "14:40")
+        self.assertEqual(connection_after(prev, {"date": "2027-07-04"}, "08:00", 120), "08:00")
+        self.assertIs(connection_after({"date": "2027-07-03", "arrive_time": "23:00"},
+                                       {"date": "2027-07-03"}, None, 120), NO_CONNECTION)
+        self.assertIsNone(connection_after({"date": "2027-07-02", "arrive_time": "23:00"},
+                                           {"date": "2027-07-03"}, None, 120))
+
+    def test_same_day_leg_picks_connecting_flight(self):
+        import check_prices as cp
+        route = cp.normalize_route({"id": "x", "name": "x", "adults": 1, "max_stops": 0, "legs": [
+            {"from": "AKJ", "to": "HND", "date": "2027-07-03"}, {"from": "HND", "to": "GMP", "date": "2027-07-03"}]})
+        pages = {
+            None: {"other_flights": [mflight(100000, "2027-07-03", "10:00", "AKJ", "HND", "JL552", "t1")]},
+            "t1": {"other_flights": [mflight(150000, "2027-07-03", "08:00", "HND", "GMP", "EARLY"),
+                                     mflight(180000, "2027-07-03", "12:00", "HND", "GMP", "TOOSOON"),
+                                     mflight(200000, "2027-07-03", "14:30", "HND", "GMP", "OK")]},
+        }
+        pages[None]["other_flights"][0]["flights"][0]["arrival_airport"]["time"] = "2027-07-03 11:40"
+        orig = cp.fetch_serpapi
+        cp.fetch_serpapi = lambda params, retries=3: pages[params.get("departure_token")]
+        try:
+            out, _, _ = cp.check_route(route, "k")
+        finally:
+            cp.fetch_serpapi = orig
+        self.assertEqual(out["legs"][1]["flight_number"], "OK")
+        self.assertEqual(out["price"], 200000)
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -71,6 +71,25 @@ def normalize_route(route: dict) -> dict:
     return route
 
 
+MIN_CONNECTION_MIN = 120  # 같은 날 이어지는 구간의 최소 환승 시간(분). 노선에 min_connection_min 으로 바꿀 수 있음
+
+
+NO_CONNECTION = "no-connection"
+
+
+def connection_after(prev: dict, leg: dict, after: str | None, min_conn: int) -> str | None:
+    """앞 구간과 같은 날 출발하는 구간이면, 앞 편 도착 + 최소 환승 시간 이후로 출발 시각을 제한합니다.
+    자정을 넘기면 같은 날 환승이 불가능하므로 NO_CONNECTION."""
+    if prev.get("date") != leg["date"] or not prev.get("arrive_time"):
+        return after
+    earliest = parse_hm(prev["arrive_time"]) + min_conn
+    if earliest >= 24 * 60:
+        return NO_CONNECTION
+    if after and parse_hm(after) >= earliest:
+        return after
+    return f"{earliest // 60:02d}:{earliest % 60:02d}"
+
+
 def build_multi_params(route: dict, api_key: str) -> dict:
     return {
         "engine": "google_flights",
@@ -98,10 +117,14 @@ def check_multi(route: dict, api_key: str) -> tuple[dict | None, dict, str | Non
     url = (data.get("search_metadata") or {}).get("google_flights_url")
     picked = []
     for i, leg in enumerate(route["legs"]):
+        after = leg.get("depart_after")
         if i:
             data = fetch_serpapi({**params, "departure_token": picked[-1]["departure_token"]})
             url = (data.get("search_metadata") or {}).get("google_flights_url") or url
-        best = pick_cheapest(data, route, window=(leg.get("depart_after"), leg.get("depart_before")))
+            after = connection_after(picked[-1], leg, after, route.get("min_connection_min", MIN_CONNECTION_MIN))
+            if after is NO_CONNECTION:
+                return None, insights, url  # 같은 날 환승 시간이 모자람
+        best = pick_cheapest(data, route, window=(after, leg.get("depart_before")))
         if not best:
             return None, insights, url  # 이 구간 조건에 맞는 편이 없음
         best.update({"from": leg["from"].upper(), "to": leg["to"].upper(), "date": leg["date"]})

@@ -437,8 +437,8 @@ function renderAdd(edit) {
       <button class="btn secondary" id="copy" style="margin:12px 0 8px">복사하기</button>
       ${editUrl ? `<a class="btn" href="${editUrl}" target="_blank" rel="noopener">GitHub에서 routes.json 열기</a>` : ""}
       <p class="muted small">${edit
-        ? `routes.json 에서 "id": "${esc(edit.id)}" 인 항목의 { } 전체를 위 내용으로 바꾼 뒤 Commit 하세요. 바로 한 번 조회되고, 이후 06:30 · 12:30 · 18:30 에 조회돼요.`
-        : `"routes" 목록 안의 마지막 항목 뒤에 쉼표(,)를 찍고 붙여 넣은 뒤 Commit 하세요. 바로 한 번 조회되고, 이후 06:30 · 12:30 · 18:30 에 조회돼요.`}</p>
+        ? `routes.json 에서 "id": "${esc(edit.id)}" 인 항목의 { } 전체를 위 내용으로 바꾼 뒤 Commit 하세요. 바로 한 번 조회되고, 이후 매일 06:30 에 조회돼요.`
+        : `"routes" 목록 안의 마지막 항목 뒤에 쉼표(,)를 찍고 붙여 넣은 뒤 Commit 하세요. 바로 한 번 조회되고, 이후 매일 06:30 에 조회돼요.`}</p>
     </section>`;
 
   const f = document.getElementById("f"), out = document.getElementById("out");
