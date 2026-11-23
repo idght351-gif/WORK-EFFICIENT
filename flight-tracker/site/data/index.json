@@ -11,17 +11,13 @@
       "alert_below": null,
       "status": "active",
       "summary": {
-        "current": 1253042,
-        "current_date": "2026-11-23",
-        "prev": null,
-        "min": 1253042,
-        "max": 1253042,
-        "avg": 1253042,
-        "days": 1
+        "current": null,
+        "min": null,
+        "max": null,
+        "avg": null,
+        "prev": null
       },
-      "spark": [
-        1253042
-      ]
+      "spark": []
     }
   ],
   "quota": {

@@ -249,7 +249,7 @@ def send_alert(route: dict, entry: dict, summary: dict, flights_url: str | None)
         lines.append(f"오는 편: {entry['return_airline']} {entry['return_flight_number']}  "
                      f"{entry['return_depart_time']} → {entry['return_arrive_time']}")
     lines += [
-        f"(성인 {route.get('adults', 1)}명 총액)",
+        "(1인 가격)" if route.get("adults", 1) == 1 else f"(성인 {route.get('adults', 1)}명 총액)",
         "",
         f"추적 기간 최저 {won(summary['min'])} · 평균 {won(summary['avg'])} · 최고 {won(summary['max'])}",
     ]
@@ -298,7 +298,7 @@ def build_report(items: list[dict], quota: dict | None, now: datetime, site_url:
     for it in items:
         r, e, sm = it["route"], it["entry"], it["summary"]
         trip = f"{r['date']}" + (f" ~ {r['return_date']}" if r.get("return_date") else " 편도")
-        pax = f"성인 {r.get('adults', 1)}명"
+        pax = "1인 기준" if r.get("adults", 1) == 1 else f"성인 {r.get('adults', 1)}명 총액"
         links = compare_links(r)
         if e.get("price") is None:
             text += [f"■ {r['name']} ({r['from']} → {r['to']}, {trip})", f"  조회 실패: {e.get('error')}", ""]
