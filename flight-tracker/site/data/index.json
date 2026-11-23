@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-11-23T11:03:07+09:00",
+  "updated_at": "2026-11-23T11:15:52+09:00",
   "routes": [
     {
       "id": "icn-cts-20270629",
@@ -11,13 +11,17 @@
       "alert_below": null,
       "status": "active",
       "summary": {
-        "current": null,
-        "min": null,
-        "max": null,
-        "avg": null,
-        "prev": null
+        "current": 1251153,
+        "current_date": "2026-11-23",
+        "prev": null,
+        "min": 1251153,
+        "max": 1251153,
+        "avg": 1251153,
+        "days": 1
       },
-      "spark": []
+      "spark": [
+        1251153
+      ]
     }
   ]
 }
