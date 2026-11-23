@@ -263,6 +263,42 @@ def send_alert(route: dict, entry: dict, summary: dict, flights_url: str | None)
     print(f"  ✉ 알림 메일 발송 → {to}")
 
 
+# ---------------------------------------------------------------- SerpApi 잔여 검색 수
+
+# account.json 응답 중 공개 페이지에 써도 되는 항목만 남깁니다 (API 키·이메일 제외).
+QUOTA_FIELDS = ("plan_name", "searches_per_month", "plan_searches_left", "extra_credits",
+                "total_searches_left", "this_month_usage", "plan_renewal_date",
+                "account_rate_limit_per_hour")
+
+
+def searches_per_check(route: dict) -> int:
+    """노선 1회 조회에 드는 검색 수. 왕복은 가는 편 + 오는 편 = 2회."""
+    return 2 if route.get("return_date") else 1
+
+
+def fetch_quota(api_key: str) -> dict:
+    """SerpApi Account API (검색 횟수에 포함되지 않음)."""
+    url = "https://serpapi.com/account.json?" + urllib.parse.urlencode({"api_key": api_key})
+    with urllib.request.urlopen(url, timeout=30) as resp:
+        data = json.loads(resp.read().decode("utf-8"))
+    if "error" in data:
+        raise RuntimeError(data["error"])
+    return {k: data.get(k) for k in QUOTA_FIELDS}
+
+
+def build_quota(fetched: dict | None, previous: dict | None, daily_usage: int,
+                checked_at: str, error: str | None = None) -> dict:
+    """조회에 실패하면 이전 값을 유지하고 오류만 표시합니다."""
+    base = dict(fetched) if fetched else {k: v for k, v in (previous or {}).items() if k in QUOTA_FIELDS}
+    base["daily_usage"] = daily_usage
+    if fetched:
+        base["checked_at"] = checked_at
+    else:
+        base["checked_at"] = (previous or {}).get("checked_at")
+        base["error"] = error
+    return base
+
+
 # ---------------------------------------------------------------- 메인
 
 def load_json(path: Path, default):
@@ -336,7 +372,22 @@ def run(dry_run: bool = False) -> int:
             "spark": [h["price"] for h in history if h.get("price") is not None][-30:],
         })
 
-    save_json(DATA_DIR / "index.json", {"updated_at": now.isoformat(timespec="seconds"), "routes": index})
+    prev_index = load_json(DATA_DIR / "index.json", {})
+    daily_usage = sum(searches_per_check(r) for r, i in zip(routes, index) if i["status"] == "active")
+    fetched, qerr = None, None
+    if api_key:
+        try:
+            fetched = fetch_quota(api_key)
+            print(f"- SerpApi 남은 검색: {fetched.get('total_searches_left')}회, 갱신일 {fetched.get('plan_renewal_date')}")
+        except Exception as e:  # noqa: BLE001
+            qerr = str(e).replace(api_key, "***")
+            print(f"  ! 잔여 검색 수 조회 실패: {qerr}", file=sys.stderr)
+    else:
+        qerr = "SERPAPI_KEY 없음"
+    quota = build_quota(fetched, prev_index.get("quota"), daily_usage, now.isoformat(timespec="seconds"), qerr)
+
+    save_json(DATA_DIR / "index.json", {"updated_at": now.isoformat(timespec="seconds"), "routes": index,
+                                        "quota": quota})
     # 모든 노선이 실패했을 때만 실패 코드 → GitHub Actions 에서 빨간불로 보임
     active = sum(1 for r in index if r["status"] == "active")
     return 1 if active and failures == active else 0

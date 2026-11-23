@@ -49,11 +49,58 @@ async function renderList() {
   const routes = [...index.routes].sort((a, b) => order[a.status] - order[b.status] || a.date.localeCompare(b.date));
 
   $app.innerHTML = `
+    ${quotaHTML(index.quota)}
     <h2 class="section-title" style="margin-top:8px">추적 중인 항공권</h2>
     ${routes.length ? routes.map(cardHTML).join("") :
       `<div class="card empty"><p>아직 추적 중인 노선이 없어요.</p><p class="muted small">routes.json 에 노선을 추가하면 다음 실행부터 기록돼요.</p></div>`}
     <a href="#add" class="btn secondary" style="margin-top:16px">+ 노선 추가하기</a>`;
   routes.forEach((r) => { const el = document.getElementById("spark-" + r.id); if (el) sparkline(el, r.spark, r.alert_below); });
+}
+
+// ------------------------------------------------------------ SerpApi 잔여 검색 수
+function kstToday() {
+  const t = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Seoul" }));
+  t.setHours(0, 0, 0, 0);
+  return t;
+}
+
+function quotaHTML(q) {
+  if (!q) return "";
+  const fmt = (iso) => new Date(iso).toLocaleString("ko-KR", { month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" });
+  const checked = q.checked_at ? `${fmt(q.checked_at)} 기준` : "";
+  if (q.total_searches_left == null) {
+    return `<section class="card quota">
+      <div class="quota-head"><h2 class="section-title">SerpApi 남은 검색</h2><span class="muted small">${esc(checked)}</span></div>
+      <p class="muted small" style="margin:0">아직 조회 전이에요. 다음 가격 조회 때 함께 확인돼요.${q.error ? ` (${esc(q.error)})` : ""}</p></section>`;
+  }
+  const left = q.total_searches_left, total = q.searches_per_month || 0, daily = q.daily_usage || 0;
+  const used = total ? Math.min(100, Math.max(0, ((total - (q.plan_searches_left ?? left)) / total) * 100)) : 0;
+  const lines = [];
+  let level = "good";
+  if (q.plan_renewal_date) {
+    const renew = new Date(q.plan_renewal_date + "T00:00:00");
+    const days = Math.max(0, Math.round((renew - kstToday()) / 86400000));
+    const need = daily * days;
+    lines.push(`<div class="quota-row"><span class="muted">다음 갱신일</span><span class="num">${md(q.plan_renewal_date)} (${DOW[renew.getDay()]}) · ${days ? `${days}일 남음` : "오늘"}</span></div>`);
+    lines.push(`<div class="quota-row"><span class="muted">갱신일까지 예상 사용</span><span class="num">${need}회 (하루 ${daily}회)</span></div>`);
+    if (need > left) level = "bad";
+    else if (need > left * 0.8) level = "warn";
+  } else {
+    lines.push(`<div class="quota-row"><span class="muted">다음 갱신일</span><span class="muted">정보 없음</span></div>`);
+    lines.push(`<div class="quota-row"><span class="muted">하루 사용량</span><span class="num">${daily}회</span></div>`);
+    if (daily && left < daily * 7) level = "warn";
+  }
+  const badge = { good: ["good", "충분해요"], warn: ["warn", "빠듯해요"], bad: ["bad", "갱신 전에 부족해요"] }[level];
+  return `<section class="card quota">
+    <div class="quota-head"><h2 class="section-title">SerpApi 남은 검색</h2><span class="muted small">${esc(checked)}</span></div>
+    <div class="quota-main"><span class="quota-left num">${left.toLocaleString("ko-KR")}회</span>
+      ${total ? `<span class="muted num">/ 월 ${total.toLocaleString("ko-KR")}회</span>` : ""}
+      <span class="badge ${badge[0]}">${badge[1]}</span></div>
+    ${total ? `<div class="quota-bar" role="img" aria-label="이번 달 ${Math.round(used)}% 사용"><span style="width:${used.toFixed(1)}%"></span></div>` : ""}
+    ${lines.join("")}
+    ${q.extra_credits ? `<div class="quota-row"><span class="muted">추가 크레딧</span><span class="num">${q.extra_credits}회</span></div>` : ""}
+    ${q.error ? `<p class="muted small" style="margin:8px 0 0">최근 확인 실패: ${esc(q.error)} · 마지막 성공 값을 보여주고 있어요.</p>` : ""}
+  </section>`;
 }
 
 function cardHTML(r) {

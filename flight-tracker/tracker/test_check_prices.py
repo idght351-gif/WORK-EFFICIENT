@@ -1,6 +1,6 @@
 import unittest
 
-from check_prices import decide_alert, outbound_times_param, pick_cheapest, record_result, summarize
+from check_prices import build_quota, searches_per_check, decide_alert, outbound_times_param, pick_cheapest, record_result, summarize
 
 ROUTE = {"depart_after": "09:00", "depart_before": "12:00"}
 
@@ -114,6 +114,34 @@ class TestRecord(unittest.TestCase):
         h = [{"date": "a", "price": 300}, {"date": "b", "price": None}, {"date": "c", "price": 100}]
         s = summarize(h)
         self.assertEqual((s["current"], s["prev"], s["min"], s["max"], s["avg"]), (100, 300, 100, 300, 200))
+
+
+class TestQuota(unittest.TestCase):
+    FETCHED = {"plan_name": "Free Plan", "searches_per_month": 250, "plan_searches_left": 240,
+               "extra_credits": 0, "total_searches_left": 240, "this_month_usage": 10,
+               "plan_renewal_date": "2026-12-20", "account_rate_limit_per_hour": 50}
+
+    def test_searches_per_check(self):
+        self.assertEqual(searches_per_check({"return_date": "2027-07-05"}), 2)
+        self.assertEqual(searches_per_check({"return_date": None}), 1)
+        self.assertEqual(searches_per_check({}), 1)
+
+    def test_success_keeps_only_safe_fields(self):
+        q = build_quota({**self.FETCHED}, None, 2, "2026-11-23T12:00:00+09:00")
+        self.assertEqual(q["total_searches_left"], 240)
+        self.assertEqual(q["daily_usage"], 2)
+        self.assertEqual(q["checked_at"], "2026-11-23T12:00:00+09:00")
+        self.assertNotIn("error", q)
+
+    def test_failure_keeps_previous_values(self):
+        prev = build_quota({**self.FETCHED}, None, 2, "2026-11-22T09:00:00+09:00")
+        prev["api_key"] = "secret"
+        q = build_quota(None, prev, 4, "2026-11-23T09:00:00+09:00", "timeout")
+        self.assertEqual(q["total_searches_left"], 240)
+        self.assertEqual(q["checked_at"], "2026-11-22T09:00:00+09:00")
+        self.assertEqual(q["daily_usage"], 4)
+        self.assertEqual(q["error"], "timeout")
+        self.assertNotIn("api_key", q)
 
 
 if __name__ == "__main__":
