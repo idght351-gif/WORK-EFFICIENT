@@ -1,22 +1,22 @@
 {
  "sample": false,
- "updated_at": "2026-11-24T20:27:44+09:00",
+ "updated_at": "2026-11-24T20:33:01+09:00",
  "settings": {
-  "max_searches_per_run": 40,
-  "max_details_per_route": 15,
+  "max_searches_per_run": 8,
+  "max_details_per_route": 3,
   "run_at_kst": null,
   "wait_seconds": {
    "click": [
-    8,
-    15
+    10,
+    20
    ],
    "search": [
-    20,
-    35
+    30,
+    45
    ],
    "between": [
-    40,
-    80
+    90,
+    150
    ]
   }
  },
@@ -45,7 +45,7 @@
    "target_miles": null,
    "nonstop": false,
    "adults": 1,
-   "active": true,
+   "active": false,
    "summary": {
     "out": {
      "economy": {

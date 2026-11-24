@@ -15,7 +15,7 @@
   "target_miles": null,
   "nonstop": false,
   "adults": 1,
-  "active": true
+  "active": false
  },
  "updated_at": "2026-11-24T20:15:22+09:00",
  "directions": {
