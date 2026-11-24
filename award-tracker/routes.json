@@ -22,7 +22,7 @@
       "target_miles": null,
       "nonstop": false,
       "adults": 1,
-      "active": true
+      "active": false
     },
     {
       "id": "sel-osa-20270201",
