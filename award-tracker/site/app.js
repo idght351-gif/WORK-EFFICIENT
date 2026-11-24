@@ -168,6 +168,66 @@ function dayHTML(iso, cabin, e, target, from, to, ref) {
     </section>`;
 }
 
+// ------------------------------------------------------------ 추천 일정 (왕복 노선)
+// 조회된 날짜만 써요. 방향마다 기간 최저 마일 + TRIP_PCT% 이내인 날끼리 n박으로 짝지어요.
+const TRIP_PCT = 20;
+const TRIP_NIGHTS = [2, 3, 4, 5, 6, 7];
+function tripPlans(dirs, r, cabin, nights) {
+  const pick = (key, a, b) => {
+    const days = (dirs[key] && dirs[key].days) || {};
+    const got = {};
+    for (const [iso, d] of Object.entries(days)) {
+      const e = d && d[cabin];
+      if (iso >= a && iso <= b && e && e.miles != null) got[iso] = e;
+    }
+    const vals = Object.values(got).map((e) => e.miles);
+    const low = vals.length ? Math.min(...vals) : null;
+    return { got, low, limit: low == null ? null : low * (100 + TRIP_PCT) / 100 };
+  };
+  const out = pick("out", r.start, r.end);
+  const back = pick("back", r.return_start, r.return_end);
+  const plans = [];
+  if (out.low == null || back.low == null) return { plans, out, back };
+  for (const [iso, eo] of Object.entries(out.got)) {
+    if (eo.miles > out.limit) continue;
+    const ret = addDays(iso, nights);
+    const eb = back.got[ret];
+    if (!eb || eb.miles > back.limit) continue;
+    plans.push({ go: iso, ret, eo, eb, total: eo.miles + eb.miles });
+  }
+  plans.sort((x, y) => x.total - y.total || (x.go < y.go ? -1 : 1));
+  return { plans, out, back };
+}
+
+function tripHTML(dirs, r, cabin, nights) {
+  const { plans, out, back } = tripPlans(dirs, r, cabin, nights);
+  const opts = TRIP_NIGHTS.map((n) => `<option value="${n}"${n === nights ? " selected" : ""}>${n}박 ${n + 1}일</option>`).join("");
+  let body;
+  if (out.low == null || back.low == null) {
+    body = `<p class="muted small">가는 편 · 오는 편이 모두 조회돼야 추천할 수 있어요.</p>`;
+  } else if (!plans.length) {
+    body = `<p class="muted small">${nights}박으로 맞는 일정이 없어요. 다른 박수를 골라 보세요.</p>`;
+  } else {
+    const best = plans[0].total;
+    body = `<ul class="trips">${plans.map((p) => {
+      const tax = [p.eo.tax, p.eb.tax].every((t) => t && t.currency === (p.eo.tax || {}).currency)
+        ? money({ amount: p.eo.tax.amount + p.eb.tax.amount, currency: p.eo.tax.currency }) : null;
+      return `<li class="trip">
+        <div class="trip-dates"><b>${mdDow(p.go)}</b> ${esc(cityName(r.from))} 출발 <span class="muted">→</span> <b>${mdDow(p.ret)}</b> ${esc(cityName(r.to))} 출발</div>
+        <div class="trip-miles"><b class="num">${num(p.total)}</b>마일${p.total === best ? ` <span class="badge good">최저</span>` : ""}
+          <div class="sub">${num(p.eo.miles)} + ${num(p.eb.miles)}${tax ? ` · 세금 약 ${tax}` : ""}</div></div>
+      </li>`;
+    }).join("")}</ul>`;
+  }
+  return `
+    <section class="card" id="trip-card">
+      <div class="dd-head"><h3 class="section-title">추천 일정</h3>
+        <label class="trip-pick">박수 <select id="nights">${opts}</select></label></div>
+      <p class="muted small trip-note">조회된 날짜 중 방향별 최저 마일 +${TRIP_PCT}% 이내 (가는 편 ${out.limit != null ? `${num(Math.floor(out.limit))} 이하` : "-"} · 오는 편 ${back.limit != null ? `${num(Math.floor(back.limit))} 이하` : "-"})</p>
+      ${body}
+    </section>`;
+}
+
 async function renderMain(want) {
   setTopRight("");
   let index;
@@ -199,6 +259,7 @@ async function renderMain(want) {
     cabin: same && cabins.includes(saved.cabin) ? saved.cabin : cabins[0] || "economy",
     month: same ? saved.month : null,
     day: null,
+    nights: TRIP_NIGHTS.includes(saved.nights) ? saved.nights : 2,
   };
   const span = () => (st.dir === "back" ? [r.return_start, r.return_end] : [r.start, r.end]);
   const monthList = () => monthsBetween(...span()).map(([y, m]) => `${y}-${String(m + 1).padStart(2, "0")}`);
@@ -240,10 +301,11 @@ async function renderMain(want) {
       <div class="last-check">마지막 조회 <b>${stamp(doc.updated_at || runner.last_run_at)}</b>${esc(stopped)}</div>
     </section>
     <div id="daybox"></div>
+    <div id="tripbox"></div>
     <p class="foot-links"><a href="#edit/${esc(encodeURIComponent(rid))}">이 노선 조건 바꾸기</a></p>`;
 
   const draw = () => {
-    saveView({ route: rid, dir: st.dir, cabin: st.cabin, month: st.month });
+    saveView({ route: rid, dir: st.dir, cabin: st.cabin, month: st.month, nights: st.nights });
     document.querySelectorAll("#dirs [data-dir]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.dir === st.dir)));
     document.querySelectorAll("#cabins [data-cabin]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.cabin === st.cabin)));
     const back = st.dir === "back";
@@ -269,6 +331,7 @@ async function renderMain(want) {
     document.getElementById("daybox").innerHTML = st.day
       ? dayHTML(st.day, st.cabin, days[st.day] ? days[st.day][st.cabin] : undefined, t, back ? r.to : r.from, back ? r.from : r.to, doc.updated_at)
       : "";
+    document.getElementById("tripbox").innerHTML = round ? tripHTML(dirs, r, st.cabin, st.nights) : "";
   };
 
   const tabs = document.getElementById("routes");
@@ -286,6 +349,9 @@ async function renderMain(want) {
   const cabinsEl = document.getElementById("cabins");
   if (cabinsEl) cabinsEl.onclick = (ev) => { const b = ev.target.closest("[data-cabin]"); if (b) { st.cabin = b.dataset.cabin; draw(); } };
   const step = (k) => { const list = monthList(); const i = list.indexOf(st.month) + k; if (i >= 0 && i < list.length) { st.month = list[i]; st.day = null; draw(); } };
+  document.getElementById("tripbox").onchange = (ev) => {
+    if (ev.target.id === "nights") { st.nights = Number(ev.target.value); draw(); }
+  };
   document.getElementById("prev").onclick = () => step(-1);
   document.getElementById("next").onclick = () => step(1);
   document.getElementById("cal").onclick = (ev) => {

@@ -1,6 +1,6 @@
 // 항상 서버에서 최신 파일을 먼저 받아오고(브라우저 저장본도 건너뜀), 오프라인일 때만 마지막으로 본 화면을 보여줍니다.
 // 같은 주소(github.io)를 쓰는 항공권 가격 추적 앱의 저장본은 건드리지 않고, 이 앱(award-tracker-*) 것만 정리해요.
-const CACHE = "award-tracker-v2";
+const CACHE = "award-tracker-v3";
 self.addEventListener("install", () => self.skipWaiting());
 self.addEventListener("activate", (e) => e.waitUntil(
   caches.keys().then((keys) => Promise.all(keys.filter((k) => k.startsWith("award-tracker-") && k !== CACHE).map((k) => caches.delete(k))))

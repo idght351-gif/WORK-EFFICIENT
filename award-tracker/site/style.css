@@ -199,3 +199,13 @@ table.flights { width: 100%; border-collapse: collapse; font-size: 13.5px; margi
 pre.snippet { background: var(--bg); border-radius: 12px; padding: 12px; font-size: 12px; overflow-x: auto; white-space: pre; margin: 0 0 10px; }
 .empty { text-align: center; padding: 32px 20px; }
 .empty p { margin: 4px 0; }
+
+/* 추천 일정 */
+.trip-pick { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); font-weight: 600; }
+.trip-pick select { font: inherit; font-size: 14px; color: var(--text); background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 6px 10px; }
+.trip-note { margin: 8px 0 4px; }
+ul.trips { list-style: none; margin: 0; padding: 0; }
+.trip { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; padding: 10px 0; border-top: 1px solid var(--line); font-size: 14px; }
+.trip:first-child { border-top: 0; }
+.trip-miles { text-align: right; flex: none; }
+.trip-miles .sub { font-size: 12px; color: var(--muted); }
