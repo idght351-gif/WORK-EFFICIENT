@@ -183,44 +183,23 @@ function dayHTML(iso, cabin, e, target, from, to, ref) {
 // ------------------------------------------------------------ 추천 일정 (왕복 노선)
 // 조회된 날짜만 써요. 방향마다 기간 최저 마일 + TRIP_PCT% 이내인 날끼리 n박으로 짝지어요.
 // 가는 편 · 오는 편 모두 상세(편 목록)까지 확인한 날만 추천해요. 기준 최저 마일은 캘린더 값까지 포함해요.
-// 박수별 우선순위(TRIP_RULES)에 맞는 일정만 보여주고, 순위 → 마일 적은 순 → 날짜 순으로 최대 TRIP_MAX 개예요.
+// 토 · 일을 모두 포함하는 일정만 추천하고, 주말에서 얼마나 가까운지로 순서를 정해요.
+//   거리: 출발은 토 0 · 금 1 · 목 2 …, 귀국은 일 0 · 월 1 · 화 2 … (TRIP_NEAR 일 이내면 "가깝다")
+//   1) 출발 · 귀국 둘 다 가까운 일정 → 하나만 가까운 일정 (둘 다 멀면 평일 위주라 빼요)
+//   2) 더 가까운 쪽의 거리 (토 출발 · 일 귀국이 먼저)  3) 같으면 출발 쪽이 가까운 일정 먼저
+//   4) 다른 쪽도 가까운 순  5) 마일 적은 순.  최대 TRIP_MAX 개만 보여줘요.
 const TRIP_PCT = LOW_PCT;
 const TRIP_NIGHTS = [2, 3, 4, 5, 6, 7];
 const TRIP_MAX = 8;
-// 2 · 3박: 출발 요일(0 일 … 6 토) → 순위. 표에 없는 요일은 추천하지 않아요.
-const TRIP_RULES = {
-  2: { 6: 1, 5: 1 },              // 토일월 · 금토일
-  3: { 4: 1, 6: 1, 5: 2, 3: 3 },  // 1순위 목금토일 · 토일월화, 2순위 금토일월, 3순위 수목금토
-};
-// 4박 이상: 목 · 금 출발이면서 월 · 화 도착 = 1순위, 둘 중 하나만 = 2순위, 둘 다 아니면 추천하지 않아요.
-// (4박 이상은 이 조건이면 늘 주말을 걸쳐서, 월~금 평일 일정은 자연히 빠져요.)
-const LONG_GO = new Set([4, 5]), LONG_RET = new Set([1, 2]);
-function rawTier(g, nights) {
-  if (TRIP_RULES[nights]) return TRIP_RULES[nights][g] || null;
-  const n = (LONG_GO.has(g) ? 1 : 0) + (LONG_RET.has((g + nights) % 7) ? 1 : 0);
-  return n === 2 ? 1 : n === 1 ? 2 : null;
-}
-// 그 박수에서 나올 수 있는 순위만 1, 2, … 로 당겨 매겨요 (6 · 7박은 두 조건을 다 맞출 수 없어서 하나만 맞아도 1순위).
-function tierOf(g, nights) {
-  const raw = rawTier(g, nights);
-  if (!raw) return null;
-  const all = [...new Set([0, 1, 2, 3, 4, 5, 6].map((x) => rawTier(x, nights)).filter(Boolean))].sort();
-  return all.indexOf(raw) + 1;
-}
-const tripTier = (go, nights) => tierOf(parseDate(go).getDay(), nights);
-// 안내 문구: 3박까지는 "목금토일", 4박 이상은 "목~월"
-function spanText(g, nights) {
-  return nights <= 3 ? Array.from({ length: nights + 1 }, (_, i) => DOW[(g + i) % 7]).join("")
-    : `${DOW[g]}~${DOW[(g + nights) % 7]}`;
-}
-function tripRuleText(nights) {
-  const by = {};
-  for (const g of [4, 5, 6, 0, 1, 2, 3]) { const t = tierOf(g, nights); if (t) (by[t] = by[t] || []).push(spanText(g, nights)); }
-  return Object.keys(by).sort().map((t) => `${t}순위 ${by[t].join(" · ")}`).join(", ");
-}
-const tripSpan = (p) => `${DOW[parseDate(p.go).getDay()]}~${DOW[parseDate(p.ret).getDay()]}`;
-function tripTag(p) {
-  return `<span class="badge${p.tier === 1 ? " info" : ""}">${p.tier}순위</span> <span class="muted small">${tripSpan(p)}</span>`;
+const TRIP_NEAR = 2;
+function tripRank(go, nights) {
+  const g = (6 - parseDate(go).getDay()) % 7;   // 출발일 → 그 주 토요일까지 며칠 (토 0, 금 1, 목 2 …)
+  const b = g + 1;                                // 그 토요일 다음 일요일까지 며칠
+  if (b > nights) return null;                    // 귀국 전에 토 · 일을 다 못 지내면 제외
+  const r = nights - b;                           // 그 일요일 → 귀국일까지 며칠 (일 0, 월 1, 화 2 …)
+  const far = (g > TRIP_NEAR ? 1 : 0) + (r > TRIP_NEAR ? 1 : 0);
+  if (far === 2) return null;
+  return { far, gap: Math.min(g, r), side: g <= r ? 0 : 1, other: Math.max(g, r) };
 }
 function tripPlans(dirs, r, cabin, nights) {
   const pick = (key, a, b) => {
@@ -243,11 +222,12 @@ function tripPlans(dirs, r, cabin, nights) {
     const ret = addDays(iso, nights);
     const eb = back.got[ret];
     if (!eb || eb.miles > back.limit || !detailState(eb)) continue;
-    const tier = tripTier(iso, nights);
-    if (!tier) continue;
-    plans.push({ go: iso, ret, eo, eb, tier, total: eo.miles + eb.miles });
+    const rank = tripRank(iso, nights);
+    if (!rank) continue;
+    plans.push({ go: iso, ret, eo, eb, rank, total: eo.miles + eb.miles });
   }
-  plans.sort((x, y) => x.tier - y.tier || x.total - y.total || (x.go < y.go ? -1 : 1));
+  const k = (p) => [p.rank.far, p.rank.gap, p.rank.side, p.rank.other, p.total];
+  plans.sort((x, y) => k(x).map((v, i) => v - k(y)[i]).find((d) => d) || (x.go < y.go ? -1 : 1));
   return { plans, out, back };
 }
 
@@ -266,20 +246,19 @@ function tripHTML(dirs, r, cabin, nights) {
   if (out.low == null || back.low == null) {
     body = `<p class="muted small">가는 편 · 오는 편이 모두 조회돼야 추천할 수 있어요.</p>`;
   } else if (!plans.length) {
-    body = `<p class="muted small">${nights}박 우선순위에 맞는 일정이 없어요. 상세까지 확인한 날이 늘면 나타나요. 다른 박수도 골라 보세요.</p>`;
+    body = `<p class="muted small">${nights}박으로 주말을 포함하는 일정이 없어요. 상세까지 확인한 날이 늘면 나타나요. 다른 박수도 골라 보세요.</p>`;
   } else {
     const best = Math.min(...plans.map((p) => p.total));
     const shown = plans.slice(0, TRIP_MAX);
     const more = plans.length > shown.length
-      ? `<p class="muted small trip-more">우선순위 · 마일 순으로 ${shown.length}개만 보여줘요 (전체 ${plans.length}개)</p>` : "";
+      ? `<p class="muted small trip-more">주말에 가까운 ${shown.length}개만 보여줘요 (전체 ${plans.length}개)</p>` : "";
     body = `<ul class="trips">${shown.map((p) => {
       const tax = [p.eo.tax, p.eb.tax].every((t) => t && t.currency === (p.eo.tax || {}).currency)
         ? money({ amount: p.eo.tax.amount + p.eb.tax.amount, currency: p.eo.tax.currency }) : null;
       return `<li class="trip">
         <div class="trip-dates">
           <div class="leg"><span class="leg-k">가는 편</span><b>${mdDow(p.go)}</b><div class="aps">${legAirports(p.eo, r.from, r.to)}</div></div>
-          <div class="leg"><span class="leg-k">오는 편</span><b>${mdDow(p.ret)}</b><div class="aps">${legAirports(p.eb, r.to, r.from)}</div></div>
-          <div class="trip-tag">${tripTag(p)}</div></div>
+          <div class="leg"><span class="leg-k">오는 편</span><b>${mdDow(p.ret)}</b><div class="aps">${legAirports(p.eb, r.to, r.from)}</div></div></div>
         <div class="trip-miles"><b class="num">${num(p.total)}</b>마일${p.total === best ? ` <span class="badge good">최저</span>` : ""}
           ${tax ? `<div class="sub">세금 약 ${tax}</div>` : ""}</div>
       </li>`;
@@ -289,7 +268,7 @@ function tripHTML(dirs, r, cabin, nights) {
     <section class="card" id="trip-card">
       <div class="dd-head"><h3 class="section-title">추천 일정</h3>
         <label class="trip-pick">박수 <select id="nights">${opts}</select></label></div>
-      <p class="muted small trip-note"><b>${nights}박</b> ${tripRuleText(nights)}<br>상세까지 확인한 날 중 방향별 최저 마일 +${TRIP_PCT}% 이내 (가는 편 ${out.limit != null ? `${num(Math.floor(out.limit))} 이하` : "-"} · 오는 편 ${back.limit != null ? `${num(Math.floor(back.limit))} 이하` : "-"})</p>
+      <p class="muted small trip-note">토 · 일을 포함하는 일정 중 주말에 가까운 순 · 상세까지 확인한 날 중 방향별 최저 마일 +${TRIP_PCT}% 이내 (가는 편 ${out.limit != null ? `${num(Math.floor(out.limit))} 이하` : "-"} · 오는 편 ${back.limit != null ? `${num(Math.floor(back.limit))} 이하` : "-"})</p>
       ${body}
     </section>`;
 }
