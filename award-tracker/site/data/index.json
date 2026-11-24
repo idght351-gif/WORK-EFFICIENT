@@ -1,9 +1,9 @@
 {
  "sample": false,
- "updated_at": "2026-11-24T22:17:38+09:00",
+ "updated_at": "2026-11-24T22:41:30+09:00",
  "settings": {
   "max_searches_per_run": 8,
-  "max_details_per_route": 3,
+  "max_details_per_route": 8,
   "run_at_kst": null,
   "wait_seconds": {
    "click": [
@@ -22,10 +22,10 @@
  },
  "runner": {
   "status": "ok",
-  "last_run_at": "2026-11-24T22:17:38+09:00",
+  "last_run_at": "2026-11-24T22:41:30+09:00",
   "next_run_at": null,
   "message": null,
-  "searches": 5,
+  "searches": 8,
   "max_searches": 8
  },
  "routes": [
@@ -107,7 +107,7 @@
      }
     }
    },
-   "last_checked_at": "2026-11-24T22:17:33+09:00"
+   "last_checked_at": "2026-11-24T22:41:23+09:00"
   }
  ]
 }
