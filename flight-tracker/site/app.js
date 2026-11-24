@@ -207,9 +207,47 @@ function compareHTML(r) {
 }
 
 // ------------------------------------------------------------ 상세
+// 상세 화면 위쪽: 목록으로 돌아가기 + 다른 추적 항공편으로 바로 이동하는 선택 상자
+function switcherHTML(current, routes) {
+  const order = { active: 0, paused: 1, ended: 2 };
+  const list = [...routes].sort((a, b) => (order[a.status] ?? 3) - (order[b.status] ?? 3) || a.date.localeCompare(b.date));
+  const others = list.length - 1;
+  return `<div class="switch">
+    <a class="switch-back" href="#" aria-label="전체 목록">‹</a>
+    <div class="switch-box">
+      <button type="button" class="switch-btn" id="switch-btn" aria-haspopup="true" aria-expanded="false" aria-controls="switch-menu">
+        <span class="switch-text"><span class="switch-name">${esc(current.name)}</span>
+          <span class="switch-sub">${others > 0 ? `추적 중 ${list.length}개 · 눌러서 다른 항공편 보기` : "추적 중인 항공편 1개"}</span></span>
+        <span class="switch-chev" aria-hidden="true">▾</span>
+      </button>
+      <div class="switch-menu" id="switch-menu" hidden>
+        ${list.map((x) => {
+          const sm = x.summary || {}, on = x.id === current.id;
+          return `<a class="switch-item${on ? " on" : ""}" href="#${esc(encodeURIComponent(x.id))}"${on ? ' aria-current="page"' : ""}>
+            <span><span class="n">${on ? "✓ " : ""}${esc(x.name)}${x.status !== "active" ? ` <span class="badge">${x.status === "ended" ? "종료" : "중지"}</span>` : ""}</span>
+              <span class="m">${routePath(x)} · ${tripLabel(x)}</span></span>
+            <span class="r"><span class="p num">${won(sm.current)}</span><span class="d num">${sm.current != null && sm.prev != null && sm.current !== sm.prev ? deltaHTML(sm.current, sm.prev).replace(/ \(.*?\)/, "") : ""}</span></span>
+          </a>`; }).join("")}
+        <a class="switch-all" href="#">전체 목록으로 ›</a>
+        <a class="switch-all" href="#add">+ 노선 추가하기</a>
+      </div>
+    </div>
+  </div>`;
+}
+
+function bindSwitcher() {
+  const btn = document.getElementById("switch-btn"), menu = document.getElementById("switch-menu");
+  if (!btn) return;
+  const set = (open) => { menu.hidden = !open; btn.setAttribute("aria-expanded", open); btn.parentElement.classList.toggle("open", open); };
+  btn.onclick = (e) => { e.stopPropagation(); set(menu.hidden); };
+  menu.onclick = (e) => { if (e.target.closest("a")) set(false); };
+  document.onclick = (e) => { if (!menu.hidden && !e.target.closest(".switch-box")) set(false); };
+  document.onkeydown = (e) => { if (e.key === "Escape" && !menu.hidden) { set(false); btn.focus(); } };
+}
+
 async function renderDetail(id) {
-  let doc;
-  try { doc = await getJSON(`data/routes/${encodeURIComponent(id)}.json`); }
+  let doc, index;
+  try { [doc, index] = await Promise.all([getJSON(`data/routes/${encodeURIComponent(id)}.json`), getJSON("data/index.json").catch(() => ({ routes: [] }))]); }
   catch { $app.innerHTML = `<a class="back" href="#">‹ 목록</a><div class="card empty">노선을 찾을 수 없어요.</div>`; return; }
 
   const r = doc.route, s = doc.summary || {}, hist = doc.history || [];
@@ -233,8 +271,9 @@ async function renderDetail(id) {
   if (lvl) badges.push(`<span class="badge ${lvl[0]}">${lvl[1]}</span>`);
   if (todayEntry && todayEntry.price == null && todayEntry.error) badges.push(`<span class="badge warn" title="${esc(todayEntry.error)}">최근 조회 실패</span>`);
 
+  const routes = index.routes && index.routes.some((x) => x.id === r.id) ? index.routes : [{ ...r, status: doc.status, summary: s }];
   $app.innerHTML = `
-    <a class="back" href="#">‹ 목록</a>
+    ${switcherHTML(r, routes)}
     <section class="card">
       <div class="hero-route">${esc(r.name)} · ${routePath(r)}</div>
       <div class="hero-sub">${tripLabel(r)} · ${(r.adults || 1) > 1 ? `성인 ${r.adults}명 총액` : "1인 가격"} · ${dday(r.date)}</div>
@@ -314,6 +353,7 @@ async function renderDetail(id) {
     draw(+b.dataset.range);
   }));
   draw(0);
+  bindSwitcher();
   window.onresize = () => draw(+document.querySelector('.chip[aria-pressed="true"]').dataset.range);
 }
 
@@ -361,7 +401,10 @@ function drawChart(hist, target) {
   const area = pts.length > 1 ? `M${x(pts[0].i)},${y(lo)}` + pts.map((p) => `L${x(p.i).toFixed(1)},${y(p.price).toFixed(1)}`).join("") + `L${x(pts[pts.length - 1].i)},${y(lo)}Z` : "";
   const minP = pts.reduce((a, b) => (b.price < a.price ? b : a));
   const last = pts[pts.length - 1];
-  const fmtK = (v) => (v >= 10000 ? (v / 10000).toLocaleString("ko-KR", { maximumFractionDigits: 1 }) + "만" : v.toLocaleString("ko-KR"));
+  // 눈금 간격에 맞춰 소수 자리를 늘려서 "62.6만"이 두 번 나오는 일이 없게 함
+  const step = ticks.length > 1 ? Math.abs(ticks[1] - ticks[0]) : 10000;
+  const digits = Math.min(3, Math.max(1, Math.ceil(-Math.log10(step / 10000) - 1e-9)));
+  const fmtK = (v) => (v >= 10000 ? (v / 10000).toLocaleString("ko-KR", { maximumFractionDigits: digits }) + "만" : v.toLocaleString("ko-KR"));
   const xIdx = hist.length <= 1 ? [0] : [0, Math.round((hist.length - 1) / 2), hist.length - 1].filter((v, i, a) => a.indexOf(v) === i);
   const minLabelX = Math.min(Math.max(x(minP.i), L + 40), W - R - 40);
 
@@ -570,6 +613,8 @@ function renderAdd(edit) {
 // ------------------------------------------------------------ 라우팅
 function route() {
   window.onresize = null;
+  document.onclick = null;
+  document.onkeydown = null;
   window.scrollTo(0, 0);
   const id = decodeURIComponent(location.hash.slice(1));
   if (!id) renderList();
