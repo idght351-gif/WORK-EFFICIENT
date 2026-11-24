@@ -16,7 +16,7 @@
   "adults": 1,
   "active": true
  },
- "updated_at": "2026-11-25T07:37:09+09:00",
+ "updated_at": "2026-11-25T07:53:16+09:00",
  "directions": {
   "out": {
    "from": "SEL",
@@ -3224,9 +3224,57 @@
     "2027-03-17": {
      "economy": {
       "miles": 6500,
-      "checked_at": "2026-11-24T22:08:12+09:00",
-      "source": "calendar",
-      "first_seen": "2026-11-24T22:08:12+09:00"
+      "checked_at": "2026-11-25T07:53:16+09:00",
+      "source": "detail",
+      "first_seen": "2026-11-24T22:08:12+09:00",
+      "tax": {
+       "amount": 43,
+       "currency": "USD"
+      },
+      "seats": "2+",
+      "flights": [
+       {
+        "from": "KIX",
+        "to": "ICN",
+        "dep": "00:15",
+        "arr": "02:15",
+        "stops": 0,
+        "miles": 6500
+       },
+       {
+        "from": "KIX",
+        "to": "ICN",
+        "dep": "02:15",
+        "arr": "04:05",
+        "stops": 0,
+        "miles": 6500
+       },
+       {
+        "from": "KIX",
+        "to": "ICN",
+        "dep": "08:50",
+        "arr": "10:55",
+        "stops": 0,
+        "miles": 6500
+       },
+       {
+        "from": "KIX",
+        "to": "ICN",
+        "dep": "10:30",
+        "arr": "12:35",
+        "stops": 0,
+        "miles": 6500
+       },
+       {
+        "from": "KIX",
+        "to": "ICN",
+        "dep": "19:45",
+        "arr": "22:00",
+        "stops": 0,
+        "miles": 6500
+       }
+      ],
+      "detail_checked_at": "2026-11-25T07:53:16+09:00"
      }
     },
     "2027-03-18": {
