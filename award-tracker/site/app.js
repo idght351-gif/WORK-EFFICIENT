@@ -6,7 +6,7 @@ const num = (n) => Number(n).toLocaleString("ko-KR");
 const MAX_MONTHS = 8; // 노선 한 방향 기간은 최대 8개월 (tools/award.py 와 같은 값)
 const DOW = ["일", "월", "화", "수", "목", "금", "토"];
 const CABIN = { economy: "이코노미", business: "비즈니스" };
-const CABIN_ORDER = ["economy", "business"];
+const CABIN_ORDER = ["economy"]; // 비즈니스는 2026-11-24 부터 조회 · 표시하지 않음
 
 // ------------------------------------------------------------ 한일 노선 목록
 // 서울 SEL(인천·김포) · 도쿄 TYO(나리타·하네다) · 오사카 OSA(간사이·이타미·고베)는 도시 코드로 공항을 한꺼번에 검색해요.
@@ -342,7 +342,7 @@ async function renderAdd(edit) {
     else if (inCatalog(e.to, e.from)) { pair = `${e.to}-${e.from}`; dir = "jp"; }
     else pair = "custom";
   }
-  const cabins = e.cabins || ["economy", "business"];
+  const cabins = e.cabins || ["economy"];
   const t = e.target_miles || {};
 
   $app.innerHTML = `
@@ -370,8 +370,6 @@ async function renderAdd(edit) {
         <div class="form-sub">좌석 등급과 목표 마일 <span class="muted small">(목표 이하로 열리면 메일)</span></div>
         <label class="check"><input type="checkbox" name="c_economy"${cabins.includes("economy") ? " checked" : ""}> 이코노미</label>
         <label>이코노미 목표<input type="number" name="t_economy" min="0" step="500" inputmode="numeric" placeholder="예: 15000" value="${esc(t.economy || "")}"></label>
-        <label class="check"><input type="checkbox" name="c_business"${cabins.includes("business") ? " checked" : ""}> 비즈니스</label>
-        <label>비즈니스 목표<input type="number" name="t_business" min="0" step="500" inputmode="numeric" placeholder="예: 30000" value="${esc(t.business || "")}"></label>
         <label class="full check"><input type="checkbox" name="nonstop"${e.nonstop === true ? " checked" : ""}> 직항만 (끄면 직항 · 경유 모두)</label>
         <label class="full check"><input type="checkbox" name="active"${e.active === false ? "" : " checked"}> 조회하기 (끄면 일시 중지)</label>
       </form>
