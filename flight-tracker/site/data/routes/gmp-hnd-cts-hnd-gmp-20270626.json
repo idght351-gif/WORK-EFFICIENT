@@ -110,7 +110,7 @@
     }
   ],
   "alert_state": {},
-  "google_flights_url": "https://www.google.com/travel/flights?hl=ko&gl=kr&curr=KRW&tfs=CBwQAhpBEgoyMDI3LTA2LTI2Ih8KA0dNUBIKMjAyNy0wNi0yNhoDSE5EKgJOSDIDODYyKABqBwgBEgNHTVByBwgBEgNITkQaQBIKMjAyNy0wNi0yOSIeCgNITkQSCjIwMjctMDYtMjkaA0NUUyoCTkgyAjY3KABqBwgBEgNITkRyBwgBEgNDVFMaQBIKMjAyNy0wNy0wMyIeCgNBS0oSCjIwMjctMDctMDMaA0hORCoCSEQyAjg0KABqBwgBEgNBS0pyBwgBEgNITkQaIBIKMjAyNy0wNy0wMygAagcIARIDSE5EcgcIARIDR01QQAFIAXABmAED&tfu=EgIIAQ",
+  "google_flights_url": "https://www.google.com/travel/flights?hl=ko&gl=kr&curr=KRW&tfs=CBwQAhpAEgoyMDI3LTA2LTI2Ih4KA0dNUBIKMjAyNy0wNi0yNhoDSE5EKgJKTDICOTAoAGoHCAESA0dNUHIHCAESA0hORBpBEgoyMDI3LTA2LTI5Ih8KA0hORBIKMjAyNy0wNi0yORoDQ1RTKgJKTDIDNTE5KABqBwgBEgNITkRyBwgBEgNDVFMaIBIKMjAyNy0wNy0wMygAagcIARIDQUtKcgcIARIDSE5EGiASCjIwMjctMDctMDMoAGoHCAESA0hORHIHCAESA0dNUEABSAFwAZgBAw&tfu=EgIIAQ",
   "route": {
     "id": "gmp-hnd-cts-hnd-gmp-20270626",
     "name": "김포 → 도쿄 · 삿포로 · 아사히카와",
@@ -163,7 +163,7 @@
     "avg": 601350,
     "days": 2
   },
-  "updated_at": "2026-11-24T13:21:52+09:00",
+  "updated_at": "2026-11-24T14:23:51+09:00",
   "next_check": "2026-11-25T06:30+09:00",
   "last_check": "2027-06-26T06:30+09:00",
   "schedule_kst": [
