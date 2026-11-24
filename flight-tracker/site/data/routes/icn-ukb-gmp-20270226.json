@@ -2,13 +2,49 @@
   "history": [
     {
       "date": "2026-11-25",
-      "checked_at": "2026-11-25T07:30:28+09:00",
-      "price": null,
-      "error": "2구간 KIX→GMP 조건에 맞는 편 없음 (검색 결과 0개 · 경유 조건 통과 0개 · 시간대까지 통과 0개)"
+      "checked_at": "2026-11-25T07:32:46+09:00",
+      "price": 738716,
+      "error": null,
+      "airline": "진에어",
+      "flight_number": "LJ 281",
+      "depart_time": "12:45",
+      "arrive_time": "14:30",
+      "stops": 0,
+      "duration_min": 105,
+      "legs": [
+        {
+          "from": "ICN",
+          "to": "UKB",
+          "date": "2027-02-26",
+          "airline": "진에어",
+          "flight_number": "LJ 281",
+          "depart_time": "12:45",
+          "arrive_time": "14:30",
+          "stops": 0,
+          "price": 342500
+        },
+        {
+          "from": "KIX",
+          "to": "GMP",
+          "date": "2027-03-01",
+          "airline": "제주항공",
+          "flight_number": "7C 1326",
+          "depart_time": "10:45",
+          "arrive_time": "12:40",
+          "stops": 0,
+          "price": 396216
+        }
+      ],
+      "separate_tickets": true,
+      "price_level": "typical",
+      "typical_range": [
+        185000,
+        345000
+      ]
     }
   ],
   "alert_state": {},
-  "google_flights_url": "https://www.google.com/travel/flights?hl=ko&gl=kr&curr=KRW&tfs=CBwQAhpBEgoyMDI3LTAyLTI2Ih8KA0lDThIKMjAyNy0wMi0yNhoDVUtCKgJMSjIDMjgxKABqBwgBEgNJQ05yBwgBEgNVS0IaIBIKMjAyNy0wMy0wMSgAagcIARIDS0lYcgcIARIDR01QQAFIAXABmAED&tfu=EgIIAQ",
+  "google_flights_url": "https://www.google.com/travel/flights?hl=ko&gl=kr&curr=KRW&tfs=CBwQAhogEgoyMDI3LTAyLTI2KABqBwgBEgNJQ05yBwgBEgNVS0JAAUgBcAGYAQI&tfu=EgIIAQ",
   "route": {
     "id": "icn-ukb-gmp-20270226",
     "name": "인천 → 고베 / 간사이 → 김포",
@@ -29,6 +65,7 @@
     "max_stops": 0,
     "alert_below": null,
     "active": true,
+    "separate_tickets": true,
     "from": "ICN",
     "to": "GMP",
     "date": "2027-02-26",
@@ -37,13 +74,15 @@
   },
   "status": "active",
   "summary": {
-    "current": null,
-    "min": null,
-    "max": null,
-    "avg": null,
-    "prev": null
+    "current": 738716,
+    "current_date": "2026-11-25",
+    "prev": null,
+    "min": 738716,
+    "max": 738716,
+    "avg": 738716,
+    "days": 1
   },
-  "updated_at": "2026-11-25T07:30:28+09:00",
+  "updated_at": "2026-11-25T07:32:46+09:00",
   "next_check": "2026-11-26T06:30+09:00",
   "last_check": "2027-02-26T06:30+09:00",
   "schedule_kst": [
