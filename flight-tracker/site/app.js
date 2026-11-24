@@ -310,6 +310,22 @@ async function renderDetail(id) {
     ${compareHTML(r)}
 
     <section class="card">
+      <h3 class="section-title">날짜별 기록</h3>
+      <table class="history num">
+        <thead><tr><th>조회일</th><th>항공편</th><th class="r">최저가</th></tr></thead>
+        <tbody>${[...hist].reverse().map((h, i, arr) => {
+          const prev = arr.slice(i + 1).find((x) => x.price != null);
+          return `<tr>
+            <td>${md(h.date)}</td>
+            <td>${h.price == null ? `<span class="muted">${esc(h.error || "기록 없음")}</span>`
+              : h.legs ? h.legs.map((l, j) => legHTML(l, "", `${j + 1}구간 `)).join("")
+              : legHTML(h, "", h.return_airline ? "가는 편 " : "") + (h.return_airline ? legHTML(h, "return_", "오는 편 ") : "")}</td>
+            <td class="r">${won(h.price)}${h.price != null && prev ? `<div class="sub">${deltaHTML(h.price, prev.price).replace(/ \(.*?\)/, "")}</div>` : ""}</td>
+          </tr>`; }).join("")}</tbody>
+      </table>
+    </section>
+
+    <section class="card">
       <h3 class="section-title">추적 조건</h3>
       ${r.legs && r.legs.length
         ? r.legs.map((l, i) => `<div class="info-row"><span>${i + 1}구간 ${md(l.date)} ${esc(l.from)}→${esc(l.to)}</span><span>${timeRange(l.depart_after, l.depart_before)}</span></div>`).join("")
@@ -328,22 +344,6 @@ async function renderDetail(id) {
         : `<div class="info-row"><span>최근 최저가 가는 편</span><span>${lastEntry ? esc(`${lastEntry.airline} ${lastEntry.flight_number}`) : "-"}</span></div>`}
       ${lastEntry && lastEntry.return_airline ? `<div class="info-row"><span>최근 최저가 오는 편</span><span>${esc(`${lastEntry.return_airline} ${lastEntry.return_flight_number}`)}</span></div>` : ""}
       <a class="btn secondary" href="#edit/${esc(encodeURIComponent(r.id))}" style="margin-top:14px">조건 바꾸기 (직항 · 시간 · 인원 등)</a>
-    </section>
-
-    <section class="card">
-      <h3 class="section-title">날짜별 기록</h3>
-      <table class="history num">
-        <thead><tr><th>조회일</th><th>항공편</th><th class="r">최저가</th></tr></thead>
-        <tbody>${[...hist].reverse().map((h, i, arr) => {
-          const prev = arr.slice(i + 1).find((x) => x.price != null);
-          return `<tr>
-            <td>${md(h.date)}</td>
-            <td>${h.price == null ? `<span class="muted">${esc(h.error || "기록 없음")}</span>`
-              : h.legs ? h.legs.map((l, j) => legHTML(l, "", `${j + 1}구간 `)).join("")
-              : legHTML(h, "", h.return_airline ? "가는 편 " : "") + (h.return_airline ? legHTML(h, "return_", "오는 편 ") : "")}</td>
-            <td class="r">${won(h.price)}${h.price != null && prev ? `<div class="sub">${deltaHTML(h.price, prev.price).replace(/ \(.*?\)/, "")}</div>` : ""}</td>
-          </tr>`; }).join("")}</tbody>
-      </table>
     </section>`;
 
   const draw = (days) => drawChart(days ? hist.slice(-days) : hist, r.alert_below);
