@@ -147,6 +147,8 @@
 | **크롬 오류 페이지 / 접속 차단** | navigate 결과 "ended without loading a page", 스크린샷 · 글자 읽기가 "showing error page", 사용자 크롬에서도 안 열림, 로그인이 풀림 | 다시 시도하지 않음 → 탭 닫기 → `finish challenge --message "…"` → `publish` → 사용자에게 알림. 원인은 IP 보다 그 크롬의 쿠키 · 세션 쪽으로 보임 (2026-11-24 사용자 확인: 시크릿 창이나 쿠키 삭제 후에는 다시 열림). **쿠키 삭제 · 다시 로그인은 사용자가 직접** 해요 (Claude 는 브라우저 설정 · 비밀번호를 건드리지 않음). 사용자가 다시 로그인했다고 하면 그때 이어서 하되, 기다림을 줄이지 않아요. 쿠키를 지우면 쿠키 배너가 다시 뜨니 1-4 대로 모두 승인 |
 | **어린이 계정 안내** | "Search flights" 뒤 검색 칸 위 빨간 글씨 "Depending on their destination, children under 4 or 5 years old must be accompanied by an adult…", 화면이 넘어가지 않음 | 차단이 아니라 로그인한 계정이 어린이라서 생김. 승객 수를 바꾸지 말고 멈춤 → 사람이 있으면 어른 계정으로 다시 로그인을 부탁, 없으면 `finish login_required --message "어린이 계정으로 로그인됨"` |
 | **사이트 새 버전 안내창** | 화면 가운데 창 "A new version of our website is available. Refresh the page…" + 파란 버튼 "Refresh page" | "Refresh page" 를 누름(사이트 안 창이라 브라우저 알림창 아님) → `wait search`. 새로고침 뒤 검색 칸이 **직전 값으로 돌아가 있을 수 있으니** From · To · 날짜를 다시 확인하고 맞춰요 (2026-11-24 만남) |
+| **캘린더엔 마일이 있는데 편 목록에 이코노미 편이 없음** | 그 날짜 편 목록에서 이코노미 칸이 모두 "Not available for this flight" 이거나 편이 하나도 없음 (예: 사용자가 본 2/27) | **다시 검색하지 않아요.** 그 날짜를 캘린더 형식 `{"days": {"날짜": null}}` 로 save 해서 앱에 "좌석 없음(–)" 으로 고쳐 보여요. 다음 날짜로 넘어가요 (2026-11-24 사용자 지시) |
+| **날짜 띠에 마일 · 세금이 안 나옴** | 편 목록 위 날짜 띠가 날짜 이름만 보이고 "6,000 Miles / +USD …" 가 없음 (캘린더 값과 실제 최저가 다를 때 자주) | 기다리거나 다시 검색하지 않고 세금은 비운 채 save (`tax` 빼기). 다음 조회 때 다시 추천돼 세금을 채워요 |
 | 대한항공 편이 안 보임 | ❓ | ❓ |
 
 ## 가르친 기록
