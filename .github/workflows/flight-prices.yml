@@ -3,9 +3,12 @@ name: 항공권 가격 체크
 on:
   schedule:
     # 한국시간 06:30 (UTC 21:30) 하루 1번. 기본 브랜치에서만 동작하고,
-    # GitHub 사정으로 몇 분~수십 분 늦게 시작될 수 있어요.
-    # 횟수를 늘리려면 cron 줄을 추가하고 아래 RUNS_PER_DAY 도 맞춰 주세요 (예: "30 9 * * *" = 18:30).
+    # GitHub 사정으로 늦어지거나 빠질 수 있어서 07:10 · 07:50 에 다시 시도합니다.
+    # 그날 이미 조회했으면 재시도 실행은 검색 없이 바로 끝나요 (검색 횟수 그대로).
+    # 횟수를 늘리려면 cron 줄을 추가하고 아래 RUNS_PER_DAY · SCHEDULE_KST 도 맞춰 주세요 (예: "30 9 * * *" = 18:30).
     - cron: "30 21 * * *"
+    - cron: "10 22 * * *"   # 07:10 재시도
+    - cron: "50 22 * * *"   # 07:50 재시도
   workflow_dispatch:        # Actions 탭에서 "Run workflow" 로 바로 실행
   push:
     branches: [main]
@@ -47,7 +50,9 @@ jobs:
           SITE_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}
           # 예약 실행·수동 실행 때만 목표가와 상관없이 최저가 메일을 보냅니다 (코드 push 때는 안 보냄)
           SEND_REPORT: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
+          RUN_EVENT: ${{ github.event_name }}
           RUNS_PER_DAY: "1"
+          SCHEDULE_KST: "06:30"   # 위 cron 을 한국시간으로 적은 것 (페이지·메일의 '다음 조회' 표시용)
         run: python check_prices.py
 
       - name: 기록 저장 (commit)

@@ -299,5 +299,35 @@ class TestConnection(unittest.TestCase):
         self.assertEqual(out["price"], 200000)
 
 
+class TestCheckPlan(unittest.TestCase):
+    def test_next_and_last(self):
+        from datetime import datetime
+        from check_prices import KST, check_plan, kst_label
+        r = {"date": "2027-06-26"}
+        p = check_plan(r, "active", datetime(2026, 11, 24, 5, 0, tzinfo=KST), ["06:30"])
+        self.assertEqual(p["next_check"], "2026-11-24T06:30+09:00")
+        self.assertEqual(p["last_check"], "2027-06-26T06:30+09:00")
+        p = check_plan(r, "active", datetime(2026, 11, 24, 7, 0, tzinfo=KST), ["06:30", "18:30"])
+        self.assertEqual(p["next_check"], "2026-11-24T18:30+09:00")
+        p = check_plan(r, "active", datetime(2026, 11, 24, 19, 0, tzinfo=KST), ["06:30", "18:30"])
+        self.assertEqual(p["next_check"], "2026-11-25T06:30+09:00")
+        self.assertEqual(kst_label(p["next_check"]), "11/25(수) 06:30")
+
+    def test_skip_retry_runs(self):
+        from check_prices import should_skip_scheduled
+        self.assertTrue(should_skip_scheduled("2026-11-24", "2026-11-24"))
+        self.assertFalse(should_skip_scheduled("2026-11-23", "2026-11-24"))
+        self.assertFalse(should_skip_scheduled(None, "2026-11-24"))
+
+    def test_departure_day_is_last(self):
+        from datetime import datetime
+        from check_prices import KST, check_plan
+        r = {"date": "2027-06-26"}
+        self.assertIsNone(check_plan(r, "active", datetime(2027, 6, 26, 7, 0, tzinfo=KST), ["06:30"])["next_check"])
+        self.assertEqual(check_plan(r, "active", datetime(2027, 6, 25, 7, 0, tzinfo=KST), ["06:30"])["next_check"],
+                         "2027-06-26T06:30+09:00")
+        self.assertIsNone(check_plan(r, "paused", datetime(2027, 1, 1, tzinfo=KST), ["06:30"])["next_check"])
+
+
 if __name__ == "__main__":
     unittest.main()

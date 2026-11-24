@@ -173,3 +173,5 @@ pre.snippet { background: var(--bg); border-radius: 12px; padding: 12px; font-si
 .leg-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 14px; }
 .link { background: none; border: 0; color: var(--accent); font: inherit; font-size: 13px; cursor: pointer; padding: 4px; }
 .leg [data-k=from], .leg [data-k=to], .form input[name=from], .form input[name=to] { text-transform: uppercase; }
+.route-plan { margin-top: 4px; }
+.route-plan:empty { display: none; }
