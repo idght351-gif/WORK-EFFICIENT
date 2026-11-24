@@ -56,7 +56,7 @@
    - 주소: `https://wwws.airfrance.co.kr/en` (영어 화면, `settings.airfrance_url` 과 같음)
    - `wait search`
 4. 쿠키 · 알림 배너가 있으면: 쿠키 배너가 뜨면 **모두 승인 스위치를 켜고 닫아요** (사용자 지시, 6장 참고. 2026-11-24 에는 이미 승인돼 있어 안 뜸). 위쪽 "Situation in the Near and Middle East" 안내 띠는 **닫지 않아도 돼요**.
-5. 로그인 확인: 오른쪽 위에 **이름 + 등급 배지**(예: "EXPLORER")가 있고, 검색 칸 스위치 글자가 "Book with my ○○○ Miles" 이면 로그인된 상태. **어느 가족 계정이든 괜찮아요** ("SANGSOO SHIM" · "SUNWOO SHIM" 모두 가능, 보유 마일이 0이어도 조회는 돼요 — 2026-11-24 사용자). "Log in" 버튼만 보이면 0장 "로그인 화면".
+5. 로그인 확인: 오른쪽 위에 **이름 + 등급 배지**(예: "EXPLORER")가 있고, 검색 칸 스위치 글자가 "Book with my ○○○ Miles" 이면 로그인된 상태. **어른 계정이어야 해요** (예: "SANGSOO SHIM". 보유 마일이 0이어도 조회는 돼요). 마일 검색은 로그인한 회원이 승객이라, 어린이 계정("SUNWOO SHIM")은 6장 "어린이 계정 안내" 가 떠서 검색이 안 돼요 (2026-11-24). "Log in" 버튼만 보이면 0장 "로그인 화면".
 
 ## 2. 캘린더 검색 — 목록의 항목마다
 
@@ -144,6 +144,7 @@
 | **검색 중 홈 화면으로 튕기며 "Something went wrong"** | 검색 · 날짜 선택 뒤 갑자기 첫 화면으로 돌아오고 "Something went wrong" 류의 안내 | 멈추지 않고 `wait search` 후 그 항목을 **이어서 재검색** (검색 칸 값 확인 → 2-7 부터). 같은 항목에서 3번 연속이면 0장 "멈추는 때" (2026-11-24 사용자 지시) |
 | **캘린더가 비어 있음 (서버 렉)** | 달 띠의 그 달 칸에는 "from 9,500 Miles" 처럼 마일이 있는데, 달력 날짜 칸에는 마일이 없거나 날짜가 모두 회색(비활성) (날짜 버튼 이름에 "Lowest fare is" 가 없음) | **`null` 로 save 하지 않아요.** `wait search` 한 번 더 기다려도 그대로면 → `wait between` 두 번(약 3~5분) 쉬고 → 처음 주소(`https://wwws.airfrance.co.kr/en`)로 **한 번만** 가서 → `wait search` → 2-1 부터 다시. 그래도 비거나 홈이 오류 페이지면 바로 `finish challenge` (2026-11-24 TYO→SEL 2월은 재검색으로 풀림, SEL→OSA 2월은 재시도 중 접속 차단) |
 | **크롬 오류 페이지 / 접속 차단** | navigate 결과 "ended without loading a page", 스크린샷 · 글자 읽기가 "showing error page", 사용자 크롬에서도 안 열림, 로그인이 풀림 | 다시 시도하지 않음 → 탭 닫기 → `finish challenge --message "…"` → `publish` → 사용자에게 알림. 원인은 IP 보다 그 크롬의 쿠키 · 세션 쪽으로 보임 (2026-11-24 사용자 확인: 시크릿 창이나 쿠키 삭제 후에는 다시 열림). **쿠키 삭제 · 다시 로그인은 사용자가 직접** 해요 (Claude 는 브라우저 설정 · 비밀번호를 건드리지 않음). 사용자가 다시 로그인했다고 하면 그때 이어서 하되, 기다림을 줄이지 않아요. 쿠키를 지우면 쿠키 배너가 다시 뜨니 1-4 대로 모두 승인 |
+| **어린이 계정 안내** | "Search flights" 뒤 검색 칸 위 빨간 글씨 "Depending on their destination, children under 4 or 5 years old must be accompanied by an adult…", 화면이 넘어가지 않음 | 차단이 아니라 로그인한 계정이 어린이라서 생김. 승객 수를 바꾸지 말고 멈춤 → 사람이 있으면 어른 계정으로 다시 로그인을 부탁, 없으면 `finish login_required --message "어린이 계정으로 로그인됨"` |
 | 대한항공 편이 안 보임 | ❓ | ❓ |
 
 ## 가르친 기록
