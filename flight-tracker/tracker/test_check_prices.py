@@ -345,5 +345,35 @@ class TestCheckPlan(unittest.TestCase):
         self.assertIsNone(check_plan(r, "paused", datetime(2027, 1, 1, tzinfo=KST), ["06:30"])["next_check"])
 
 
+class TestSeparateTickets(unittest.TestCase):
+    def test_sums_one_way_legs(self):
+        import check_prices as cp
+        route = cp.normalize_route({"id": "x", "name": "x", "adults": 1, "max_stops": 0, "separate_tickets": True,
+                                    "legs": [{"from": "ICN", "to": "UKB", "date": "2027-02-26"},
+                                             {"from": "KIX", "to": "GMP", "date": "2027-03-01", "depart_after": "12:00"}]})
+        pages = {
+            ("ICN", "UKB"): {"other_flights": [mflight(150000, "2027-02-26", "08:00", "ICN", "UKB", "LJ 271"),
+                                               mflight(120000, "2027-02-26", "13:00", "ICN", "UKB", "TW 291")]},
+            ("KIX", "GMP"): {"other_flights": [mflight(90000, "2027-03-01", "09:00", "KIX", "GMP", "EARLY"),
+                                               mflight(110000, "2027-03-01", "15:00", "KIX", "GMP", "7C 1381")]},
+        }
+        calls = []
+
+        def fake(params, retries=3):
+            calls.append(params)
+            return pages[(params["departure_id"], params["arrival_id"])]
+        orig = cp.fetch_serpapi
+        cp.fetch_serpapi = fake
+        try:
+            out, _, _ = cp.check_route(route, "k")
+        finally:
+            cp.fetch_serpapi = orig
+        self.assertEqual(out["price"], 230000)
+        self.assertEqual([l["flight_number"] for l in out["legs"]], ["TW 291", "7C 1381"])
+        self.assertEqual([c["type"] for c in calls], [2, 2])
+        self.assertTrue(all("departure_token" not in c for c in calls))
+        self.assertIn("· 110,000원", dict(cp.flight_lines(out))["2구간 03/01 KIX→GMP"])
+
+
 if __name__ == "__main__":
     unittest.main()

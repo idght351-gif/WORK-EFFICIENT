@@ -623,7 +623,7 @@ function renderAdd(edit) {
       });
       const first = legs[0] || {};
       const id = edit ? edit.id : `${first.from}-${legs.map((l) => l.to).join("-")}-${(first.date || "").replaceAll("-", "")}`.toLowerCase();
-      body = { id, name: v.name, legs, ...common };
+      body = { id, name: v.name, legs, ...(edit && edit.separate_tickets ? { separate_tickets: true } : {}), ...common };
     } else {
       const round = v.trip === "round";
       const id = edit ? edit.id : `${v.from}-${v.to}-${(v.date || "").replaceAll("-", "")}`.toLowerCase();
