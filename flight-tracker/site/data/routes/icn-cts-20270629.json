@@ -16,6 +16,23 @@
       "return_depart_time": "14:30",
       "return_arrive_time": "17:40",
       "return_stops": 0
+    },
+    {
+      "date": "2026-11-24",
+      "checked_at": "2026-11-24T11:39:03+09:00",
+      "price": 625628,
+      "error": null,
+      "airline": "Trinity Airways",
+      "flight_number": "TW 263",
+      "depart_time": "10:10",
+      "arrive_time": "13:00",
+      "stops": 0,
+      "duration_min": 170,
+      "return_airline": "Trinity Airways",
+      "return_flight_number": "TW 264",
+      "return_depart_time": "14:30",
+      "return_arrive_time": "17:40",
+      "return_stops": 0
     }
   ],
   "alert_state": {},
@@ -38,14 +55,19 @@
   },
   "status": "active",
   "summary": {
-    "current": 624681,
-    "current_date": "2026-11-23",
-    "prev": null,
+    "current": 625628,
+    "current_date": "2026-11-24",
+    "prev": 624681,
     "min": 624681,
-    "max": 624681,
-    "avg": 624681,
-    "days": 1
+    "max": 625628,
+    "avg": 625154,
+    "days": 2
   },
-  "updated_at": "2026-11-23T17:09:01+09:00",
-  "google_flights_url": "https://www.google.com/travel/flights?hl=ko&gl=kr&curr=KRW&tfs=CBwQAhpFEgoyMDI3LTA2LTI5Ih8KA0lDThIKMjAyNy0wNi0yORoDQ1RTKgJUVzIDMjYzKABACkgXagcIARIDSUNOcgcIARIDQ1RTGiQSCjIwMjctMDctMDUoAEAMSBdqBwgBEgNDVFNyBwgBEgNJQ05AAUgBcAGYAQE&tfu=EgIIAQ"
+  "updated_at": "2026-11-24T11:39:03+09:00",
+  "google_flights_url": "https://www.google.com/travel/flights?hl=ko&gl=kr&curr=KRW&tfs=CBwQAhpFEgoyMDI3LTA2LTI5Ih8KA0lDThIKMjAyNy0wNi0yORoDQ1RTKgJUVzIDMjYzKABACkgXagcIARIDSUNOcgcIARIDQ1RTGiQSCjIwMjctMDctMDUoAEAMSBdqBwgBEgNDVFNyBwgBEgNJQ05AAUgBcAGYAQE&tfu=EgIIAQ",
+  "next_check": "2026-11-25T06:30+09:00",
+  "last_check": "2027-06-29T06:30+09:00",
+  "schedule_kst": [
+    "06:30"
+  ]
 }
