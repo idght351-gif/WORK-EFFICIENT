@@ -39,6 +39,18 @@ function deltaHTML(cur, prev) {
     : `<span class="up">▲ ${won(d)} (${pct}%)</span>`;
 }
 
+// 긴 공항 코드 경로를 한 줄로: 넘치면 글자를 조금씩 줄이고(최소 minPx), 그래도 넘치면 … 처리
+function fitOneLine(root = document, minPx = 12) {
+  root.querySelectorAll(".fit-line").forEach((el) => {
+    el.style.fontSize = "";
+    let size = parseFloat(getComputedStyle(el).fontSize);
+    while (el.scrollWidth > el.clientWidth && size > minPx) {
+      size -= 0.5;
+      el.style.fontSize = size + "px";
+    }
+  });
+}
+
 // 위쪽 제목줄 오른쪽 자리: 목록에선 업데이트 시각, 상세에선 항공편 선택 상자
 function setTopRight(html) { document.getElementById("topright").innerHTML = html; }
 
@@ -64,6 +76,8 @@ async function renderList() {
     <a href="#add" class="btn secondary" style="margin-top:16px">+ 노선 추가하기</a>
     <div style="margin-top:24px">${quotaHTML(index.quota)}</div>`;
   routes.forEach((r) => { const el = document.getElementById("spark-" + r.id); if (el) sparkline(el, r.spark, r.alert_below); });
+  fitOneLine($app);
+  window.onresize = () => fitOneLine($app);
   routes.forEach((r) => {
     const el = document.getElementById("plan-" + r.id), p = checkPlan(r, r.status, index.schedule_kst);
     if (el) el.textContent = p ? `다음 조회 ${planLabel(p.next)}경` : "";
@@ -151,8 +165,8 @@ function cardHTML(r) {
   if (s.current != null && s.days > 1 && s.current === s.min) badges.push(`<span class="badge good">역대 최저가</span>`);
   return `
   <a class="card route-card" href="#${esc(r.id)}">
+    <div class="route-name fit-line">${routePath(r)}</div>
     <div>
-      <div class="route-name">${routePath(r)}</div>
       <div class="route-meta">${dday(r.date)}</div>
       <div class="badges">${badges.join("")}</div>
       <div class="route-plan muted small" id="plan-${esc(r.id)}"></div>
@@ -276,7 +290,7 @@ async function renderDetail(id) {
   setTopRight(switcherHTML(r, routes));
   $app.innerHTML = `
     <section class="card">
-      <div class="hero-route">${routePath(r)}</div>
+      <div class="hero-route fit-line">${routePath(r)}</div>
       <div class="hero-sub">${tripLabel(r)} · ${(r.adults || 1) > 1 ? `성인 ${r.adults}명 총액` : "1인 가격"} · ${dday(r.date)}</div>
       <div class="hero-price num">${won(s.current)}</div>
       <div class="hero-delta num">${deltaHTML(s.current, s.prev)}${s.prev != null && s.current !== s.prev ? ` <span class="muted small">어제 대비</span>` : ""}</div>
@@ -348,7 +362,8 @@ async function renderDetail(id) {
   }));
   draw(0);
   bindSwitcher();
-  window.onresize = () => draw(+document.querySelector('.chip[aria-pressed="true"]').dataset.range);
+  fitOneLine($app);
+  window.onresize = () => { draw(+document.querySelector('.chip[aria-pressed="true"]').dataset.range); fitOneLine($app); };
 }
 
 function timeRange(a, b) {

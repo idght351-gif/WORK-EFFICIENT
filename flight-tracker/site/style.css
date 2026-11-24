@@ -200,3 +200,8 @@ pre.snippet { background: var(--bg); border-radius: 12px; padding: 12px; font-si
 .switch-item.on { background: var(--accent-wash); }
 .switch-item .n { display: block; font-weight: 700; font-size: 14px; }
 .switch-item .m { display: block; font-size: 12px; color: var(--muted); }
+
+/* 긴 공항 코드 경로는 한 줄로 (글자 크기는 app.js fitOneLine 이 줄임) */
+.fit-line { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.route-card .route-name { grid-column: 1 / -1; }
+.route-card > div { min-width: 0; }
