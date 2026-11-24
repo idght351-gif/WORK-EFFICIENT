@@ -79,125 +79,30 @@ async function getJSON(url) {
 
 const SAMPLE_NOTICE = `<div class="notice"><b>샘플 데이터예요.</b> 화면을 확인하기 위한 예시 숫자예요. 집 PC 조회가 시작되면 실제 결과로 바뀌어요.</div>`;
 
-// ------------------------------------------------------------ 목록
-const RUN = {
-  ok: ["good", "정상"],
-  running: ["info", "조회 중"],
-  login_required: ["warn", "로그인 필요"],
-  challenge: ["bad", "보안 확인 필요"],
-  error: ["bad", "조회 실패"],
-  never: ["", "조회 전"],
-};
+// ------------------------------------------------------------ 메인: 월 달력
+// 보던 노선 · 방향 · 좌석 등급 · 달은 이 기기에만 기억해요 (없어도 잘 동작).
+const VIEW_KEY = "award-view";
+function loadView() { try { return JSON.parse(localStorage.getItem(VIEW_KEY)) || {}; } catch { return {}; } }
+function saveView(v) { try { localStorage.setItem(VIEW_KEY, JSON.stringify(v)); } catch {} }
 
-function runnerHTML(r, sample) {
-  r = r || { status: "never" };
-  let [cls, label] = RUN[r.status] || RUN.never;
-  const days = r.last_run_at ? Math.floor((Date.now() - new Date(r.last_run_at)) / 86400000) : 0;
-  if (!sample && r.status === "ok" && days >= 1) { cls = ""; label = `${days}일 전 조회`; }
-  const msg = r.message || {
-    never: "집 PC에서 ‘마일 좌석 조회’ 버튼을 누르면 Claude가 조회하고, 여기에 결과가 보여요.",
-    running: "집 PC에서 Claude가 천천히 조회하고 있어요. 끝나면 결과가 바뀌어요.",
-    login_required: "에어프랑스 로그인이 풀려 조회를 멈췄어요. 집 PC 크롬에서 다시 로그인해 주세요.",
-    challenge: "보안 확인 화면이 나와 조회를 멈췄어요. 집 PC 크롬에서 직접 확인해 주세요.",
-  }[r.status] || "";
-  const searches = r.searches ?? r.searches_today;
-  const max = r.max_searches ?? r.daily_limit;
-  return `
-    <section class="card">
-      <div class="runner-head"><h2 class="section-title">집 PC 조회</h2><span class="badge ${cls}">${label}</span></div>
-      <div class="info-row"><span>마지막 조회</span><span>${stamp(r.last_run_at)}</span></div>
-      ${r.status === "running" && r.started_at ? `<div class="info-row"><span>이번 조회 시작</span><span>${stamp(r.started_at)}</span></div>` : ""}
-      ${r.next_run_at ? `<div class="info-row"><span>다음 조회</span><span>${stamp(r.next_run_at)}경</span></div>` : ""}
-      ${max && searches != null && r.status !== "running" ? `<div class="info-row"><span>지난 조회 검색 수</span><span class="num">${num(searches)}회 (한 번에 최대 ${num(max)}회)</span></div>` : ""}
-      ${msg ? `<p class="runner-msg">${esc(msg)}</p>` : ""}
-    </section>`;
-}
+const STOPPED = { running: "조회 중", login_required: "로그인 필요로 멈춤", challenge: "보안 확인으로 멈춤", error: "조회 실패로 멈춤" };
 
-function minText(x) {
-  if (x && x.min != null) return `${num(x.min)}<span class="muted small"> 마일</span>`;
-  return x && x.checked ? `<span class="muted">좌석 없음</span>` : `<span class="muted">조회 전</span>`;
-}
-
-function cardHTML(r) {
-  const s = r.summary || {};
-  const round = !!r.return_start;
-  const cabins = CABIN_ORDER.filter((c) => (r.cabins || []).includes(c));
-  let fresh = 0;
-  const rows = cabins.map((c) => {
-    const o = (s.out || {})[c] || {}, b = (s.back || {})[c] || {};
-    const target = (r.target_miles || {})[c];
-    const hits = (o.hit || 0) + (b.hit || 0);
-    fresh += (o.fresh || 0) + (b.fresh || 0);
-    const mins = round
-      ? `<span>가는 편 <strong class="num">${minText(o)}</strong></span><span>오는 편 <strong class="num">${minText(b)}</strong></span>`
-      : `<span>최저 <strong class="num">${minText(o)}</strong>${o.min_date ? ` <span class="muted small">${mdDow(o.min_date)}</span>` : ""}</span>`;
-    const hitBadge = target
-      ? `<span class="badge ${hits ? "good" : ""}">${num(target)} 이하 ${hits}일</span>`
-      : `<span class="muted small">목표 없음</span>`;
-    return `<div class="rc-cabin"><div class="rc-cabin-top"><b>${CABIN[c]}</b>${hitBadge}</div><div class="rc-cabin-mins">${mins}</div></div>`;
-  }).join("");
-  const paused = r.active === false;
-  return `
-    <a class="card route-card${paused ? " paused" : ""}" href="#r/${esc(encodeURIComponent(r.id))}">
-      <div class="rc-head">
-        <div>
-          <div class="route-name">${esc(r.name || routeTitle(r.from, r.to))}</div>
-          <div class="route-meta">${round ? "가는 편" : "편도"} ${periodText(r.start, r.end)}</div>
-          ${round ? `<div class="route-meta">오는 편 ${periodText(r.return_start, r.return_end)}</div>` : ""}
-        </div>
-        <div class="rc-badges">
-          ${paused ? `<span class="badge warn">일시 중지</span>` : fresh ? `<span class="badge info">새로 열림 ${fresh}</span>` : ""}
-        </div>
-      </div>
-      <div class="rc-cabins">${rows}</div>
-      <div class="route-meta small rc-foot">마지막 조회 ${stamp(r.last_checked_at)}</div>
-    </a>`;
-}
-
-async function renderList() {
-  let index;
-  try { index = await getJSON("data/index.json"); } catch { index = { routes: [] }; }
-  setTopRight(index.updated_at ? `<span class="muted small">업데이트 ${stamp(index.updated_at)}</span>` : "");
-  const routes = index.routes || [];
-  const active = routes.filter((r) => r.active !== false);
-  const paused = routes.filter((r) => r.active === false);
-  $app.innerHTML = `
-    ${index.sample ? SAMPLE_NOTICE : ""}
-    ${runnerHTML(index.runner, index.sample)}
-    <div class="list-title"><h2 class="section-title">추적 중인 노선</h2><span class="muted small">Flying Blue · 스카이팀 · 1인</span></div>
-    ${active.length ? active.map(cardHTML).join("") : `
-      <div class="card empty">
-        <p>아직 추적 중인 노선이 없어요.</p>
-        <p class="muted small">아래 ‘노선 추가하기’에서 한일 노선을 골라 routes.json 에 넣으면 다음 조회부터 기록돼요.</p>
-      </div>`}
-    ${paused.length ? `<div class="list-title"><h2 class="section-title">일시 중지</h2></div>${paused.map(cardHTML).join("")}` : ""}
-    <a href="#add" class="btn secondary" style="margin-top:16px">+ 노선 추가하기</a>`;
-}
-
-// ------------------------------------------------------------ 상세
-function calHTML(days, cabin, a, b, target, selected, ref) {
-  let min = null;
-  for (const [iso, d] of Object.entries(days)) {
-    const e = d && d[cabin];
-    if (iso >= a && iso <= b && e && e.miles != null && (min == null || e.miles < min)) min = e.miles;
+function monthHTML(days, cabin, y, m, a, b, target, selected, ref, min) {
+  const first = new Date(y, m, 1);
+  const last = new Date(y, m + 1, 0).getDate();
+  let cells = DOW.map((d, i) => `<div class="cal-dow${i === 0 ? " sun" : ""}" aria-hidden="true">${d}</div>`).join("");
+  cells += `<div aria-hidden="true"></div>`.repeat(first.getDay());
+  for (let d = 1; d <= last; d++) {
+    const iso = isoOf(new Date(y, m, d));
+    if (iso < a || iso > b) { cells += `<div class="day out" aria-hidden="true"><span class="d">${d}</span></div>`; continue; }
+    const e = days[iso] ? days[iso][cabin] : undefined;
+    const st = dayState(e, target);
+    const label = st === "unk" ? "" : st === "none" ? "–" : kMiles(e.miles);
+    const aria = `${m + 1}월 ${d}일 ${st === "unk" ? "조회 전" : st === "none" ? "좌석 없음" : `${num(e.miles)}마일`}`;
+    const isMin = (st === "hit" || st === "avail") && e.miles === min;
+    cells += `<button type="button" class="day ${st}${isMin ? " min" : ""}" data-date="${iso}" aria-pressed="${iso === selected}" aria-label="${aria}"><span class="d">${d}</span><span class="m">${label}</span>${isFresh(e, ref) ? `<i class="dot"></i>` : ""}</button>`;
   }
-  return monthsBetween(a, b).map(([y, m]) => {
-    const first = new Date(y, m, 1);
-    const last = new Date(y, m + 1, 0).getDate();
-    let cells = DOW.map((d, i) => `<div class="cal-dow${i === 0 ? " sun" : ""}" aria-hidden="true">${d}</div>`).join("");
-    cells += `<div aria-hidden="true"></div>`.repeat(first.getDay());
-    for (let d = 1; d <= last; d++) {
-      const iso = isoOf(new Date(y, m, d));
-      if (iso < a || iso > b) { cells += `<div class="day out" aria-hidden="true"><span class="d">${d}</span></div>`; continue; }
-      const e = days[iso] ? days[iso][cabin] : undefined;
-      const st = dayState(e, target);
-      const label = st === "unk" ? "" : st === "none" ? "–" : kMiles(e.miles);
-      const aria = `${m + 1}월 ${d}일 ${st === "unk" ? "조회 전" : st === "none" ? "좌석 없음" : `${num(e.miles)}마일`}`;
-      const isMin = st === "hit" || st === "avail" ? e.miles === min : false;
-      cells += `<button type="button" class="day ${st}${isMin ? " min" : ""}" data-date="${iso}" aria-pressed="${iso === selected}" aria-label="${aria}"><span class="d">${d}</span><span class="m">${label}</span>${isFresh(e, ref) ? `<i class="dot"></i>` : ""}</button>`;
-    }
-    return `<div class="cal-month"><div class="cal-title">${y}년 ${m + 1}월</div><div class="cal-grid">${cells}</div></div>`;
-  }).join("");
+  return `<div class="cal-grid">${cells}</div>`;
 }
 
 function flightsHTML(fs) {
@@ -220,7 +125,7 @@ function dayHTML(iso, cabin, e, target, from, to, ref) {
   const title = `${d.getMonth() + 1}월 ${d.getDate()}일 (${DOW[d.getDay()]}) · ${CABIN[cabin]}`;
   let body;
   if (e === undefined) {
-    body = `<p class="muted dd-empty">아직 조회하지 않은 날짜예요. 다음 조회 때 확인해요.</p>`;
+    body = `<p class="muted dd-empty">아직 조회하지 않은 날짜예요.</p>`;
   } else if (e.miles == null) {
     body = `<p class="dd-empty"><b>좌석 없음</b></p><p class="muted small" style="margin:2px 0 0">${stamp(e.checked_at)} 확인</p>`;
   } else {
@@ -249,114 +154,123 @@ function dayHTML(iso, cabin, e, target, from, to, ref) {
     </section>`;
 }
 
-function combosHTML(doc, r, cabin) {
-  const pick = (days, a, b) => Object.entries(days || {})
-    .filter(([iso, d]) => iso >= a && iso <= b && d && d[cabin] && d[cabin].miles != null)
-    .map(([iso, d]) => ({ iso, ...d[cabin] }));
-  const O = pick(doc.directions.out.days, r.start, r.end);
-  const B = pick(doc.directions.back.days, r.return_start, r.return_end);
-  const list = [];
-  for (const o of O) for (const b of B) {
-    if (b.iso <= o.iso) continue;
-    const tax = o.tax && b.tax && (o.tax.currency || "KRW") === (b.tax.currency || "KRW")
-      ? { amount: o.tax.amount + b.tax.amount, currency: o.tax.currency || "KRW" } : null;
-    list.push({ o, b, miles: o.miles + b.miles, tax });
-  }
-  list.sort((x, y) => x.miles - y.miles || (x.tax ? x.tax.amount : Infinity) - (y.tax ? y.tax.amount : Infinity) || x.o.iso.localeCompare(y.o.iso));
-  const nights = (a, b) => Math.round((parseDate(b) - parseDate(a)) / 86400000);
-  return `
-    <h3 class="section-title">마일이 가장 적은 왕복 조합 · ${CABIN[cabin]}</h3>
-    ${list.length ? list.slice(0, 5).map((c) => `
-      <div class="combo">
-        <div><div class="when">${mdDow(c.o.iso)} → ${mdDow(c.b.iso)}</div>
-          <div class="muted small">${nights(c.o.iso, c.b.iso)}박 · 가는 ${num(c.o.miles)} + 오는 ${num(c.b.miles)}</div></div>
-        <div class="cost"><b class="num">${num(c.miles)}마일</b>
-          <div class="small ${c.tax ? "" : "muted"}">${c.tax ? "+ " + money(c.tax) : "세금 일부 확인 전"}</div></div>
-      </div>`).join("") : `<p class="muted" style="margin:0">가는 편과 오는 편 모두 좌석이 있는 조합이 아직 없어요.</p>`}`;
-}
-
-function switcherHTML(current, routes) {
-  if (!routes || routes.length < 2) return "";
-  return `<select class="switch-select" id="switch" aria-label="다른 노선 보기">${routes.map((r) =>
-    `<option value="${esc(r.id)}"${r.id === current ? " selected" : ""}>${esc(r.name || routeTitle(r.from, r.to))}</option>`).join("")}</select>`;
-}
-
-async function renderDetail(id) {
-  let doc, index = null;
-  try {
-    [doc, index] = await Promise.all([
-      getJSON(`data/routes/${encodeURIComponent(id)}.json`),
-      getJSON("data/index.json").catch(() => null),
-    ]);
-  } catch {
-    $app.innerHTML = `<a class="back" href="#">‹ 목록</a><div class="card empty">노선을 찾을 수 없어요.</div>`;
+async function renderMain(want) {
+  setTopRight("");
+  let index;
+  try { index = await getJSON("data/index.json"); } catch { index = { routes: [] }; }
+  const routes = index.routes || [];
+  if (!routes.length) {
+    $app.innerHTML = `
+      <div class="card empty">
+        <p>아직 추적 중인 노선이 없어요.</p>
+        <p class="muted small">한일 노선을 골라 routes.json 에 넣으면, 집 PC에서 조회한 뒤 여기 달력에 보여요.</p>
+      </div>
+      <a href="#add" class="btn">+ 노선 추가하기</a>`;
     return;
   }
+
+  const saved = loadView();
+  const pickable = (id) => id && routes.some((r) => r.id === id);
+  const rid = pickable(want) ? want : pickable(saved.route) ? saved.route : (routes.find((r) => r.active !== false) || routes[0]).id;
+  let doc;
+  try { doc = await getJSON(`data/routes/${encodeURIComponent(rid)}.json`); }
+  catch { doc = { route: routes.find((r) => r.id === rid), directions: {} }; }
   const r = doc.route;
   const dirs = doc.directions || {};
-  dirs.out = dirs.out || { days: {} };
-  doc.directions = dirs;
   const round = !!(r.return_start && dirs.back);
   const cabins = CABIN_ORDER.filter((c) => (r.cabins || []).includes(c));
-  const st = { dir: "out", cabin: cabins[0] || "economy", day: null };
+  const same = saved.route === rid;
+  const st = {
+    dir: same && saved.dir === "back" && round ? "back" : "out",
+    cabin: same && cabins.includes(saved.cabin) ? saved.cabin : cabins[0] || "economy",
+    month: same ? saved.month : null,
+    day: null,
+  };
+  const span = () => (st.dir === "back" ? [r.return_start, r.return_end] : [r.start, r.end]);
+  const monthList = () => monthsBetween(...span()).map(([y, m]) => `${y}-${String(m + 1).padStart(2, "0")}`);
+  const fitMonth = () => {
+    const list = monthList();
+    if (!list.includes(st.month)) {
+      const now = kstToday().slice(0, 7);
+      st.month = list.find((x) => x >= now) || list[0];
+    }
+  };
+  fitMonth();
 
-  if (index) {
-    setTopRight(switcherHTML(id, index.routes));
-    const sw = document.getElementById("switch");
-    if (sw) sw.onchange = () => { location.hash = "#r/" + encodeURIComponent(sw.value); };
-  }
+  const runner = index.runner || {};
+  const stopped = STOPPED[runner.status] ? ` · ${STOPPED[runner.status]}` : "";
+  const target = () => (r.target_miles || {})[st.cabin];
 
   $app.innerHTML = `
-    <a class="back" href="#">‹ 목록</a>
-    ${index && index.sample ? SAMPLE_NOTICE : ""}
-    <section class="card">
-      <div class="hero-route">${esc(r.from)} → ${esc(r.to)} · ${round ? "왕복" : "편도"} · 1인 · 직항</div>
-      <h2 class="hero-title">${esc(r.name || routeTitle(r.from, r.to))}</h2>
-      <div class="hero-sub">${round ? "가는 편 " : ""}${periodText(r.start, r.end)}</div>
-      ${round ? `<div class="hero-sub">오는 편 ${periodText(r.return_start, r.return_end)}</div>` : ""}
-      <div class="targets">
-        ${cabins.map((c) => `<span class="badge">${CABIN[c]} 목표 ${r.target_miles && r.target_miles[c] ? `${num(r.target_miles[c])} 이하` : "없음"}</span>`).join("")}
-        ${r.active === false ? `<span class="badge warn">일시 중지</span>` : ""}
+    ${index.sample ? SAMPLE_NOTICE : ""}
+    <div class="pick">
+      ${routes.length > 1
+        ? `<select class="route-select" id="route" aria-label="노선">${routes.map((x) =>
+            `<option value="${esc(x.id)}"${x.id === rid ? " selected" : ""}>${esc(x.name || routeTitle(x.from, x.to))}${x.active === false ? " (일시 중지)" : ""}</option>`).join("")}</select>`
+        : `<h2 class="route-title">${esc(r.name || routeTitle(r.from, r.to))}</h2>`}
+    </div>
+    ${round ? `
+      <div class="seg" role="group" aria-label="방향" id="dirs">
+        <button type="button" data-dir="out">가는 편<span class="sub">${esc(r.from)} → ${esc(r.to)}</span></button>
+        <button type="button" data-dir="back">오는 편<span class="sub">${esc(r.to)} → ${esc(r.from)}</span></button>
+      </div>` : ""}
+    ${cabins.length > 1 ? `<div class="chips" id="cabins" role="group" aria-label="좌석 등급">${cabins.map((c) => `<button type="button" class="chip" data-cabin="${c}">${CABIN[c]}</button>`).join("")}</div>` : ""}
+    <section class="card cal-card">
+      <div class="cal-nav">
+        <button type="button" class="nav-btn" id="prev" aria-label="이전 달">‹</button>
+        <div class="cal-head"><div class="cal-month-title" id="mtitle"></div><div class="muted small" id="period"></div></div>
+        <button type="button" class="nav-btn" id="next" aria-label="다음 달">›</button>
       </div>
-      <div class="hero-sub" style="margin-top:10px">마지막 조회 ${stamp(doc.updated_at)}</div>
-    </section>
-    <section class="card">
-      ${round ? `
-        <div class="seg" role="group" aria-label="방향" id="dirs">
-          <button type="button" data-dir="out">가는 편<span class="sub">${esc(r.from)} → ${esc(r.to)}</span></button>
-          <button type="button" data-dir="back">오는 편<span class="sub">${esc(r.to)} → ${esc(r.from)}</span></button>
-        </div>` : ""}
-      ${cabins.length > 1 ? `<div class="chips" id="cabins" role="group" aria-label="좌석 등급">${cabins.map((c) => `<button type="button" class="chip" data-cabin="${c}">${CABIN[c]}</button>`).join("")}</div>` : ""}
       <div id="cal"></div>
-      <div class="legend">
-        <span><i class="hit"></i>목표 이하</span><span><i class="avail"></i>좌석 있음</span>
-        <span>– 좌석 없음</span><span><i class="unk"></i>조회 전</span><span><i class="dot"></i> 새로 열림</span>
-      </div>
+      <div class="legend" id="legend"></div>
+      <div class="last-check">마지막 조회 <b>${stamp(doc.updated_at || runner.last_run_at)}</b>${esc(stopped)}</div>
     </section>
     <div id="daybox"></div>
-    ${round ? `<section class="card" id="combos"></section>` : ""}
-    <a class="btn secondary" href="#edit/${esc(encodeURIComponent(id))}">조건 바꾸기</a>`;
+    <p class="foot-links"><a href="#add">노선 추가</a> · <a href="#edit/${esc(encodeURIComponent(rid))}">이 노선 조건 바꾸기</a></p>`;
 
   const draw = () => {
+    saveView({ route: rid, dir: st.dir, cabin: st.cabin, month: st.month });
     document.querySelectorAll("#dirs [data-dir]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.dir === st.dir)));
     document.querySelectorAll("#cabins [data-cabin]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.cabin === st.cabin)));
     const back = st.dir === "back";
     const days = (dirs[st.dir] && dirs[st.dir].days) || {};
-    const [a, b] = back ? [r.return_start, r.return_end] : [r.start, r.end];
-    const target = (r.target_miles || {})[st.cabin];
-    document.getElementById("cal").innerHTML = calHTML(days, st.cabin, a, b, target, st.day, doc.updated_at);
+    const [a, b] = span();
+    const t = target();
+    let min = null;
+    for (const [iso, d] of Object.entries(days)) {
+      const e = d && d[st.cabin];
+      if (iso >= a && iso <= b && e && e.miles != null && (min == null || e.miles < min)) min = e.miles;
+    }
+    const list = monthList();
+    const i = list.indexOf(st.month);
+    const [y, m] = st.month.split("-").map(Number);
+    document.getElementById("mtitle").textContent = `${y}년 ${m}월`;
+    document.getElementById("period").textContent = `${round ? (back ? "오는 편 " : "가는 편 ") : ""}${periodText(a, b)}`;
+    document.getElementById("prev").disabled = i <= 0;
+    document.getElementById("next").disabled = i >= list.length - 1;
+    document.getElementById("cal").innerHTML = monthHTML(days, st.cabin, y, m - 1, a, b, t, st.day, doc.updated_at, min);
+    document.getElementById("legend").innerHTML =
+      (t ? `<span><i class="hit"></i>${num(t)} 이하</span><span><i class="avail"></i>${num(t)} 초과</span>` : `<span><i class="avail"></i>좌석 있음</span>`)
+      + `<span>– 좌석 없음</span><span><i class="unk"></i>조회 전</span><span><i class="dot"></i> 새로 열림</span>`;
     document.getElementById("daybox").innerHTML = st.day
-      ? dayHTML(st.day, st.cabin, days[st.day] ? days[st.day][st.cabin] : undefined, target, back ? r.to : r.from, back ? r.from : r.to, doc.updated_at)
+      ? dayHTML(st.day, st.cabin, days[st.day] ? days[st.day][st.cabin] : undefined, t, back ? r.to : r.from, back ? r.from : r.to, doc.updated_at)
       : "";
-    if (round) document.getElementById("combos").innerHTML = combosHTML(doc, r, st.cabin);
   };
 
+  const sel = document.getElementById("route");
+  if (sel) sel.onchange = () => { location.hash = "#r/" + encodeURIComponent(sel.value); };
   const dirsEl = document.getElementById("dirs");
-  if (dirsEl) dirsEl.onclick = (e) => { const b = e.target.closest("[data-dir]"); if (b && b.dataset.dir !== st.dir) { st.dir = b.dataset.dir; st.day = null; draw(); } };
+  if (dirsEl) dirsEl.onclick = (ev) => {
+    const b = ev.target.closest("[data-dir]");
+    if (b && b.dataset.dir !== st.dir) { st.dir = b.dataset.dir; st.day = null; st.month = null; fitMonth(); draw(); }
+  };
   const cabinsEl = document.getElementById("cabins");
-  if (cabinsEl) cabinsEl.onclick = (e) => { const b = e.target.closest("[data-cabin]"); if (b) { st.cabin = b.dataset.cabin; draw(); } };
-  document.getElementById("cal").onclick = (e) => {
-    const b = e.target.closest("button.day");
+  if (cabinsEl) cabinsEl.onclick = (ev) => { const b = ev.target.closest("[data-cabin]"); if (b) { st.cabin = b.dataset.cabin; draw(); } };
+  const step = (k) => { const list = monthList(); const i = list.indexOf(st.month) + k; if (i >= 0 && i < list.length) { st.month = list[i]; st.day = null; draw(); } };
+  document.getElementById("prev").onclick = () => step(-1);
+  document.getElementById("next").onclick = () => step(1);
+  document.getElementById("cal").onclick = (ev) => {
+    const b = ev.target.closest("button.day");
     if (!b) return;
     st.day = st.day === b.dataset.date ? null : b.dataset.date;
     draw();
@@ -386,7 +300,7 @@ function pairOptions(sel) {
 async function renderEdit(id) {
   let doc;
   try { doc = await getJSON(`data/routes/${encodeURIComponent(id)}.json`); }
-  catch { $app.innerHTML = `<a class="back" href="#">‹ 목록</a><div class="card empty">노선을 찾을 수 없어요.</div>`; return; }
+  catch { $app.innerHTML = `<a class="back" href="#">‹ 달력</a><div class="card empty">노선을 찾을 수 없어요.</div>`; return; }
   renderAdd(doc.route);
 }
 
@@ -413,7 +327,7 @@ async function renderAdd(edit) {
   const t = e.target_miles || {};
 
   $app.innerHTML = `
-    <a class="back" href="${edit ? `#r/${esc(encodeURIComponent(edit.id))}` : "#"}">‹ ${edit ? "노선" : "목록"}</a>
+    <a class="back" href="${edit ? `#r/${esc(encodeURIComponent(edit.id))}` : "#"}">‹ 달력</a>
     <section class="card">
       <h3 class="section-title">${edit ? "추적 조건 바꾸기" : "노선 추가하기"}</h3>
       <p class="muted small" style="margin-top:-6px">입력하면 아래에 routes.json 에 넣을 내용이 만들어져요. 대한항공 · (구)아시아나 한일 직항, 1인 기준이에요.</p>
@@ -534,11 +448,10 @@ function route() {
   setTopRight("");
   window.scrollTo(0, 0);
   const h = decodeURIComponent(location.hash.slice(1));
-  if (!h) renderList();
-  else if (h === "add") renderAdd();
+  if (h === "add") renderAdd();
   else if (h.startsWith("edit/")) renderEdit(h.slice(5));
-  else if (h.startsWith("r/")) renderDetail(h.slice(2));
-  else renderList();
+  else if (h.startsWith("r/")) renderMain(h.slice(2));   // 알림 메일의 '달력 보기' 링크
+  else renderMain();
 }
 window.addEventListener("hashchange", route);
 route();
