@@ -100,6 +100,13 @@ class SyncAndPlan(Base):
         e = self.doc()["directions"]["out"]["days"]["2027-06-20"]["business"]
         self.assertEqual((e["miles"], e["source"]), (21500, "detail"))
 
+    def test_route_max_months(self):
+        self.write_routes([{**ROUTE, "start": "2027-02-01", "end": "2027-10-01"}])
+        with self.assertRaises(award.AwardError):
+            award.sync(self.P)
+        self.write_routes([{**ROUTE, "start": "2027-02-01", "end": "2027-09-30", "return_start": "2027-02-01", "return_end": "2027-09-30"}])
+        award.sync(self.P)
+
     def test_bad_config(self):
         self.write_routes([{**ROUTE, "cabins": ["first"]}])
         with self.assertRaises(award.AwardError):

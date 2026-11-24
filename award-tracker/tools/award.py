@@ -42,6 +42,7 @@ DEFAULT_SETTINGS = {
     "run_at_kst": None,
 }
 FRESH = timedelta(hours=48)
+MAX_MONTHS = 8  # 노선 한 방향 기간은 최대 8개월 (앱 site/app.js 와 같은 값)
 BOOKABLE_DAYS = 355  # 발권은 보통 약 1년 전부터 열림 (앱 site/app.js 와 같은 값)
 
 
@@ -149,6 +150,9 @@ def validate_route(r: dict) -> None:
         raise AwardError(f"노선 {rid} 의 가는 편 기간 끝이 시작보다 빨라요")
     if bool(r.get("return_start")) != bool(r.get("return_end")):
         raise AwardError(f"노선 {rid} 의 오는 편 기간은 시작과 끝을 같이 적어 주세요")
+    for a, b, label in ((r["start"], r["end"], "가는 편"), (r.get("return_start"), r.get("return_end"), "오는 편")):
+        if a and b and len(months(a, b)) > MAX_MONTHS:
+            raise AwardError(f"노선 {rid} 의 {label} 기간이 {len(months(a, b))}개월이에요. 최대 {MAX_MONTHS}개월(예: 2월~9월)까지 정해 주세요")
     bad = [c for c in r["cabins"] if c not in CABINS]
     if bad:
         raise AwardError(f"노선 {rid} 의 좌석 등급을 알 수 없어요: {', '.join(bad)} (economy / business)")

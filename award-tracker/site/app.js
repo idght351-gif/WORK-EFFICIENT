@@ -3,6 +3,7 @@
 const $app = document.getElementById("app");
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const num = (n) => Number(n).toLocaleString("ko-KR");
+const MAX_MONTHS = 8; // 노선 한 방향 기간은 최대 8개월 (tools/award.py 와 같은 값)
 const DOW = ["일", "월", "화", "수", "목", "금", "토"];
 const CABIN = { economy: "이코노미", business: "비즈니스" };
 const CABIN_ORDER = ["economy", "business"];
@@ -433,10 +434,12 @@ async function renderAdd(edit) {
     if (!body.start || !body.end) problems.push("가는 편 기간을 정해 주세요.");
     else if (body.end < body.start) problems.push("가는 편 기간의 끝이 시작보다 빨라요.");
     else if (body.end < today) problems.push("가는 편 기간이 이미 지났어요.");
+    else if (monthsBetween(body.start, body.end).length > MAX_MONTHS) problems.push(`가는 편 기간은 최대 ${MAX_MONTHS}개월(예: 2월~9월)까지 정할 수 있어요.`);
     if (hasReturn) {
       if (!body.return_start || !body.return_end) problems.push("오는 편 기간을 정해 주세요.");
       else if (body.return_end < body.return_start) problems.push("오는 편 기간의 끝이 시작보다 빨라요.");
       else if (body.start && body.return_end < body.start) problems.push("오는 편 기간이 가는 편보다 빨라요.");
+      else if (monthsBetween(body.return_start, body.return_end).length > MAX_MONTHS) problems.push(`오는 편 기간은 최대 ${MAX_MONTHS}개월(예: 2월~9월)까지 정할 수 있어요.`);
     }
     if (!cab.length) problems.push("좌석 등급을 하나 이상 골라 주세요.");
     const far = [body.end, body.return_end].filter(Boolean).some((d) => d > lastBookable);
