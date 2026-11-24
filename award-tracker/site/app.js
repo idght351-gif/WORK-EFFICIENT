@@ -85,6 +85,14 @@ const VIEW_KEY = "award-view";
 function loadView() { try { return JSON.parse(localStorage.getItem(VIEW_KEY)) || {}; } catch { return {}; } }
 function saveView(v) { try { localStorage.setItem(VIEW_KEY, JSON.stringify(v)); } catch {} }
 
+// 탭 이름: "인천→나리타"처럼 짧게. 같은 구간이 둘 이상이면 시작 날짜를 붙여 구분해요.
+const shortCity = (code) => (AIRPORT[code] || code).split(" ").pop();
+function tabLabel(r, all) {
+  const base = `${shortCity(r.from)}→${shortCity(r.to)}`;
+  const dup = all.filter((x) => x.from === r.from && x.to === r.to).length > 1;
+  return dup ? `${base} ${mdDow(r.start).replace(/\(.\)/, "")}~` : base;
+}
+
 const STOPPED = { running: "조회 중", login_required: "로그인 필요로 멈춤", challenge: "보안 확인으로 멈춤", error: "조회 실패로 멈춤" };
 
 function monthHTML(days, cabin, y, m, a, b, target, selected, ref, min) {
@@ -203,11 +211,11 @@ async function renderMain(want) {
 
   $app.innerHTML = `
     ${index.sample ? SAMPLE_NOTICE : ""}
-    <div class="pick">
-      ${routes.length > 1
-        ? `<select class="route-select" id="route" aria-label="노선">${routes.map((x) =>
-            `<option value="${esc(x.id)}"${x.id === rid ? " selected" : ""}>${esc(x.name || routeTitle(x.from, x.to))}${x.active === false ? " (일시 중지)" : ""}</option>`).join("")}</select>`
-        : `<h2 class="route-title">${esc(r.name || routeTitle(r.from, r.to))}</h2>`}
+    <div class="route-tabs" role="tablist" aria-label="노선" id="routes">
+      ${routes.map((x) => `
+        <button type="button" role="tab" class="route-tab${x.active === false ? " paused" : ""}" data-route="${esc(x.id)}"
+          aria-selected="${x.id === rid}" title="${esc(x.name || routeTitle(x.from, x.to))}">${esc(tabLabel(x, routes))}${x.active === false ? `<span class="tab-note">중지</span>` : ""}</button>`).join("")}
+      <a class="route-tab add" href="#add" aria-label="노선 추가">+ 노선</a>
     </div>
     ${round ? `
       <div class="seg" role="group" aria-label="방향" id="dirs">
@@ -226,7 +234,7 @@ async function renderMain(want) {
       <div class="last-check">마지막 조회 <b>${stamp(doc.updated_at || runner.last_run_at)}</b>${esc(stopped)}</div>
     </section>
     <div id="daybox"></div>
-    <p class="foot-links"><a href="#add">노선 추가</a> · <a href="#edit/${esc(encodeURIComponent(rid))}">이 노선 조건 바꾸기</a></p>`;
+    <p class="foot-links"><a href="#edit/${esc(encodeURIComponent(rid))}">이 노선 조건 바꾸기</a></p>`;
 
   const draw = () => {
     saveView({ route: rid, dir: st.dir, cabin: st.cabin, month: st.month });
@@ -257,8 +265,13 @@ async function renderMain(want) {
       : "";
   };
 
-  const sel = document.getElementById("route");
-  if (sel) sel.onchange = () => { location.hash = "#r/" + encodeURIComponent(sel.value); };
+  const tabs = document.getElementById("routes");
+  tabs.onclick = (ev) => {
+    const b = ev.target.closest("[data-route]");
+    if (b && b.dataset.route !== rid) location.hash = "#r/" + encodeURIComponent(b.dataset.route);
+  };
+  const on = tabs.querySelector('[aria-selected="true"]');
+  if (on) tabs.scrollLeft = Math.max(0, on.offsetLeft - tabs.clientWidth / 2 + on.offsetWidth / 2);
   const dirsEl = document.getElementById("dirs");
   if (dirsEl) dirsEl.onclick = (ev) => {
     const b = ev.target.closest("[data-dir]");
