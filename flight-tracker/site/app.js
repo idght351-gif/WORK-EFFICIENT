@@ -64,7 +64,7 @@ async function renderList() {
   routes.forEach((r) => { const el = document.getElementById("spark-" + r.id); if (el) sparkline(el, r.spark, r.alert_below); });
   routes.forEach((r) => {
     const el = document.getElementById("plan-" + r.id), p = checkPlan(r, r.status, index.schedule_kst);
-    if (el) el.textContent = p ? `다음 조회 ${planLabel(p.next)}경 · 마지막 ${planLabel(p.last, false)}` : "";
+    if (el) el.textContent = p ? `다음 조회 ${planLabel(p.next)}경` : "";
   });
 }
 
