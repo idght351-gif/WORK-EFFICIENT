@@ -95,7 +95,7 @@ function runnerHTML(r, sample) {
   const days = r.last_run_at ? Math.floor((Date.now() - new Date(r.last_run_at)) / 86400000) : 0;
   if (!sample && r.status === "ok" && days >= 1) { cls = ""; label = `${days}일 전 조회`; }
   const msg = r.message || {
-    never: "집 PC에서 Claude가 처음 조회하면 여기에 결과가 보여요.",
+    never: "집 PC에서 ‘마일 좌석 조회’ 버튼을 누르면 Claude가 조회하고, 여기에 결과가 보여요.",
     running: "집 PC에서 Claude가 천천히 조회하고 있어요. 끝나면 결과가 바뀌어요.",
     login_required: "에어프랑스 로그인이 풀려 조회를 멈췄어요. 집 PC 크롬에서 다시 로그인해 주세요.",
     challenge: "보안 확인 화면이 나와 조회를 멈췄어요. 집 PC 크롬에서 직접 확인해 주세요.",
@@ -451,7 +451,7 @@ async function renderAdd(edit) {
       ${editUrl ? `<a class="btn secondary" style="margin-top:8px;background:var(--bg)" href="${editUrl}" target="_blank" rel="noopener">GitHub 에서 routes.json 열기</a>` : ""}
       <p class="muted small" style="margin:10px 0 0">
         ${edit ? "routes.json 에서 같은 id 의 항목을 이 내용으로 바꿔 주세요." : "routes.json 의 \"routes\": [ … ] 안에 붙여 넣어 주세요 (항목 사이에 쉼표)."}
-        저장(Commit)하면 집 PC에서 다음에 조회할 때부터 포함돼요.
+        저장(Commit)하면 다음에 집 PC에서 ‘마일 좌석 조회’ 버튼을 누를 때부터 포함돼요.
       </p>
     </section>`;
 

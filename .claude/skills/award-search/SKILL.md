@@ -1,6 +1,6 @@
 ---
 name: award-search
-description: 에어프랑스 Flying Blue 마일리지 좌석 조회를 실행할 때 쓴다. 예 "마일 좌석 조회해 줘", "에어프랑스 마일 검색 돌려 줘", "조회 시작", 예약 작업으로 시작된 조회. award-tracker/playbook/PLAYBOOK.md 를 따라 Claude in Chrome 으로 천천히 검색하고 결과를 휴대폰 앱에 올린다.
+description: 에어프랑스 Flying Blue 마일리지 좌석 조회를 실행할 때 쓴다. 예 "마일 좌석 조회해 줘", "에어프랑스 마일 검색 돌려 줘", "조회 시작", PC 바탕화면의 "마일 좌석 조회" 버튼(award-tracker/pc/award-search.cmd)으로 시작된 조회. award-tracker/playbook/PLAYBOOK.md 를 따라 Claude in Chrome 으로 천천히 검색하고 결과를 휴대폰 앱에 올린다. 조회는 사용자가 요청할 때만 하고, 스스로 예약 · 반복 실행을 만들지 않는다.
 ---
 
 # 마일 좌석 조회
