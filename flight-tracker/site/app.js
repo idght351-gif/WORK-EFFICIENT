@@ -216,14 +216,14 @@ function switcherHTML(current, routes) {
   return `<div class="switch-box">
       <button type="button" class="switch-btn" id="switch-btn" aria-haspopup="true" aria-expanded="false" aria-controls="switch-menu"
         aria-label="다른 추적 항공편 보기 (지금: ${esc(current.name)})">
-        <span class="switch-name">${esc(current.name)}</span>
+        <span class="switch-name">${routePath(current)}</span>
         <span class="switch-chev" aria-hidden="true">▾</span>
       </button>
       <div class="switch-menu" id="switch-menu" hidden>
         ${list.map((x) => {
           const on = x.id === current.id;
           return `<a class="switch-item${on ? " on" : ""}" href="#${esc(encodeURIComponent(x.id))}"${on ? ' aria-current="page"' : ""}>
-            <span class="n">${on ? "✓ " : ""}${esc(x.name)}${x.status !== "active" ? ` <span class="badge">${x.status === "ended" ? "종료" : "중지"}</span>` : ""}</span>
+            <span class="n">${on ? "✓ " : ""}${routePath(x)}${x.status !== "active" ? ` <span class="badge">${x.status === "ended" ? "종료" : "중지"}</span>` : ""}</span>
             <span class="m">${tripLabel(x)}</span>
           </a>`; }).join("")}
       </div>
@@ -270,7 +270,7 @@ async function renderDetail(id) {
   setTopRight(switcherHTML(r, routes));
   $app.innerHTML = `
     <section class="card">
-      <div class="hero-route">${esc(r.name)} · ${routePath(r)}</div>
+      <div class="hero-route">${routePath(r)}</div>
       <div class="hero-sub">${tripLabel(r)} · ${(r.adults || 1) > 1 ? `성인 ${r.adults}명 총액` : "1인 가격"} · ${dday(r.date)}</div>
       <div class="hero-price num">${won(s.current)}</div>
       <div class="hero-delta num">${deltaHTML(s.current, s.prev)}${s.prev != null && s.current !== s.prev ? ` <span class="muted small">어제 대비</span>` : ""}</div>
