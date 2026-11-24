@@ -108,6 +108,7 @@
 | 3-4b | — | **비즈니스는 읽지도 저장하지도 않아요** (2026-11-24 사용자: 비즈니스는 필요 없음, 앱에서도 뺌). 노선 `cabins` 는 `["economy"]` 만 | — | |
 | 3-4 | — | 5장 형식(`source: detail`)으로 `save`. 세금은 `{"amount": 18, "currency": "USD"}` 처럼 **USD 로, 센트는 반올림**(도구가 정수만 받음). 편명 `no` 는 비워 둠 | — | "✓ 저장" |
 | 3-1b | 편 목록 화면 | **같은 방향의 다음 추천 날짜는 Back 하지 말고 위 날짜 띠에서 바로 열어요** — 날짜 칸(tab "Display flights for departure on Wed 3 Feb")을 누르면 그날 편 목록으로 바뀜(search). 띠에 없으면 "Show flights for next 3 days"(click)로 넘긴 뒤 누름. 접속 수가 줄어요 (2026-11-24 SEL→OSA 에서 확인) | search | find 의 "Displaying flights departing on (그 날짜)" |
+| 3-1c | 편 목록 화면 | **검색 결과는 약 5~6분만 유효해요** (2026-11-24~25 접속 기록: 검색 뒤 6~7분 지나 날짜 띠로 이동하면 "Sorry, something went wrong" 이나 이코노미 칸이 빠진 화면). 검색(2-7) 뒤 **5분 안에** 띠로 볼 날짜를 끝내고, 더 멀거나 시간이 지났으면 "← Back" → 날짜 비우기 → 다시 검색 → 달 → 날짜. "Show flights for next 3 days" 는 한 번에 2번까지만 | — | |
 | 3-5 | 편 목록 화면 | 왼쪽 위 **"← Back"** 누르기. **캘린더가 아니라 검색 칸 화면으로 돌아가요** | search | 주소 `…/search/advanced`, 탭 제목 "Book a flight", 검색 칸에 이전 값(One-way · 등급 · From · To · 마일 스위치 켜짐)이 남아 있고 **Departure date 칸에 고른 날짜(예: "Feb 15")가 들어가 있음** |
 
 ## 4. 끝
