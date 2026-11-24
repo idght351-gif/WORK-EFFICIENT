@@ -56,11 +56,11 @@ async function renderList() {
   const routes = [...index.routes].sort((a, b) => order[a.status] - order[b.status] || a.date.localeCompare(b.date));
 
   $app.innerHTML = `
-    ${quotaHTML(index.quota)}
     <div class="quota-head" style="margin-top:8px"><h2 class="section-title">추적 중인 항공권</h2><span class="muted small">조회 ${scheduleText(index.schedule_kst)}</span></div>
     ${routes.length ? routes.map(cardHTML).join("") :
       `<div class="card empty"><p>아직 추적 중인 노선이 없어요.</p><p class="muted small">routes.json 에 노선을 추가하면 다음 실행부터 기록돼요.</p></div>`}
-    <a href="#add" class="btn secondary" style="margin-top:16px">+ 노선 추가하기</a>`;
+    <a href="#add" class="btn secondary" style="margin-top:16px">+ 노선 추가하기</a>
+    <div style="margin-top:24px">${quotaHTML(index.quota)}</div>`;
   routes.forEach((r) => { const el = document.getElementById("spark-" + r.id); if (el) sparkline(el, r.spark, r.alert_below); });
   routes.forEach((r) => {
     const el = document.getElementById("plan-" + r.id), p = checkPlan(r, r.status, index.schedule_kst);
