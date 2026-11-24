@@ -146,6 +146,7 @@
 | **캘린더가 비어 있음 (서버 렉)** | 달 띠의 그 달 칸에는 "from 9,500 Miles" 처럼 마일이 있는데, 달력 날짜 칸에는 마일이 없거나 날짜가 모두 회색(비활성) (날짜 버튼 이름에 "Lowest fare is" 가 없음) | **`null` 로 save 하지 않아요.** `wait search` 한 번 더 기다려도 그대로면 → `wait between` 두 번(약 3~5분) 쉬고 → 처음 주소(`https://wwws.airfrance.co.kr/en`)로 **한 번만** 가서 → `wait search` → 2-1 부터 다시. 그래도 비거나 홈이 오류 페이지면 바로 `finish challenge` (2026-11-24 TYO→SEL 2월은 재검색으로 풀림, SEL→OSA 2월은 재시도 중 접속 차단) |
 | **크롬 오류 페이지 / 접속 차단** | navigate 결과 "ended without loading a page", 스크린샷 · 글자 읽기가 "showing error page", 사용자 크롬에서도 안 열림, 로그인이 풀림 | 다시 시도하지 않음 → 탭 닫기 → `finish challenge --message "…"` → `publish` → 사용자에게 알림. 원인은 IP 보다 그 크롬의 쿠키 · 세션 쪽으로 보임 (2026-11-24 사용자 확인: 시크릿 창이나 쿠키 삭제 후에는 다시 열림). **쿠키 삭제 · 다시 로그인은 사용자가 직접** 해요 (Claude 는 브라우저 설정 · 비밀번호를 건드리지 않음). 사용자가 다시 로그인했다고 하면 그때 이어서 하되, 기다림을 줄이지 않아요. 쿠키를 지우면 쿠키 배너가 다시 뜨니 1-4 대로 모두 승인 |
 | **어린이 계정 안내** | "Search flights" 뒤 검색 칸 위 빨간 글씨 "Depending on their destination, children under 4 or 5 years old must be accompanied by an adult…", 화면이 넘어가지 않음 | 차단이 아니라 로그인한 계정이 어린이라서 생김. 승객 수를 바꾸지 말고 멈춤 → 사람이 있으면 어른 계정으로 다시 로그인을 부탁, 없으면 `finish login_required --message "어린이 계정으로 로그인됨"` |
+| **사이트 새 버전 안내창** | 화면 가운데 창 "A new version of our website is available. Refresh the page…" + 파란 버튼 "Refresh page" | "Refresh page" 를 누름(사이트 안 창이라 브라우저 알림창 아님) → `wait search`. 새로고침 뒤 검색 칸이 **직전 값으로 돌아가 있을 수 있으니** From · To · 날짜를 다시 확인하고 맞춰요 (2026-11-24 만남) |
 | 대한항공 편이 안 보임 | ❓ | ❓ |
 
 ## 가르친 기록
