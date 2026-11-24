@@ -9,8 +9,7 @@
   "return_start": "2027-02-01",
   "return_end": "2027-02-28",
   "cabins": [
-   "economy",
-   "business"
+   "economy"
   ],
   "target_miles": null,
   "nonstop": false,

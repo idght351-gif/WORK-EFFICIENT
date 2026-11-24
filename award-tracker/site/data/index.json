@@ -1,6 +1,6 @@
 {
  "sample": false,
- "updated_at": "2026-11-24T21:55:04+09:00",
+ "updated_at": "2026-11-24T22:17:38+09:00",
  "settings": {
   "max_searches_per_run": 8,
   "max_details_per_route": 3,
@@ -22,10 +22,10 @@
  },
  "runner": {
   "status": "ok",
-  "last_run_at": "2026-11-24T21:55:04+09:00",
+  "last_run_at": "2026-11-24T22:17:38+09:00",
   "next_run_at": null,
   "message": null,
-  "searches": 8,
+  "searches": 5,
   "max_searches": 8
  },
  "routes": [
@@ -39,8 +39,7 @@
    "return_start": "2027-02-01",
    "return_end": "2027-02-28",
    "cabins": [
-    "economy",
-    "business"
+    "economy"
    ],
    "target_miles": null,
    "nonstop": false,
@@ -55,14 +54,6 @@
       "avail": 17,
       "checked": 28,
       "fresh": 17
-     },
-     "business": {
-      "min": 21500,
-      "min_date": "2027-02-15",
-      "hit": 0,
-      "avail": 1,
-      "checked": 1,
-      "fresh": 1
      }
     },
     "back": {
@@ -73,14 +64,6 @@
       "avail": 16,
       "checked": 28,
       "fresh": 16
-     },
-     "business": {
-      "min": 22500,
-      "min_date": "2027-02-16",
-      "hit": 0,
-      "avail": 1,
-      "checked": 1,
-      "fresh": 1
      }
     }
    },
@@ -92,12 +75,11 @@
    "from": "SEL",
    "to": "OSA",
    "start": "2027-02-01",
-   "end": "2027-02-28",
+   "end": "2027-03-31",
    "return_start": "2027-02-01",
-   "return_end": "2027-02-28",
+   "return_end": "2027-03-31",
    "cabins": [
-    "economy",
-    "business"
+    "economy"
    ],
    "target_miles": null,
    "nonstop": false,
@@ -109,17 +91,9 @@
       "min": 6000,
       "min_date": "2027-02-02",
       "hit": 0,
-      "avail": 16,
-      "checked": 28,
-      "fresh": 16
-     },
-     "business": {
-      "min": 15500,
-      "min_date": "2027-02-02",
-      "hit": 0,
-      "avail": 3,
-      "checked": 3,
-      "fresh": 3
+      "avail": 37,
+      "checked": 59,
+      "fresh": 37
      }
     },
     "back": {
@@ -127,21 +101,13 @@
       "min": 6000,
       "min_date": "2027-02-16",
       "hit": 0,
-      "avail": 12,
-      "checked": 28,
-      "fresh": 12
-     },
-     "business": {
-      "min": null,
-      "min_date": null,
-      "hit": 0,
-      "avail": 0,
-      "checked": 0,
-      "fresh": 0
+      "avail": 35,
+      "checked": 59,
+      "fresh": 35
      }
     }
    },
-   "last_checked_at": "2026-11-24T21:54:58+09:00"
+   "last_checked_at": "2026-11-24T22:17:33+09:00"
   }
  ]
 }
