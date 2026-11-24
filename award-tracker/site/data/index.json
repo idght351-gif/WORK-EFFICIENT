@@ -1,0 +1,170 @@
+{
+ "sample": true,
+ "updated_at": "2026-11-24T05:42:10+09:00",
+ "settings": {
+  "daily_search_limit": 40,
+  "max_details_per_route": 4,
+  "run_at_kst": "05:40"
+ },
+ "runner": {
+  "status": "ok",
+  "last_run_at": "2026-11-24T05:42:10+09:00",
+  "next_run_at": "2026-11-25T05:40:10+09:00",
+  "searches_today": 14,
+  "daily_limit": 40,
+  "message": null
+ },
+ "routes": [
+  {
+   "id": "icn-nrt-20270620",
+   "name": "인천 → 도쿄 나리타",
+   "from": "ICN",
+   "to": "NRT",
+   "start": "2027-06-20",
+   "end": "2027-07-10",
+   "return_start": "2027-06-25",
+   "return_end": "2027-07-15",
+   "cabins": [
+    "economy",
+    "business"
+   ],
+   "target_miles": {
+    "economy": 15000,
+    "business": 35000
+   },
+   "nonstop": true,
+   "adults": 1,
+   "active": true,
+   "summary": {
+    "out": {
+     "economy": {
+      "min": 12500,
+      "min_date": "2027-06-20",
+      "hit": 5,
+      "avail": 16,
+      "checked": 21,
+      "fresh": 4
+     },
+     "business": {
+      "min": 30000,
+      "min_date": "2027-06-20",
+      "hit": 5,
+      "avail": 14,
+      "checked": 21,
+      "fresh": 4
+     }
+    },
+    "back": {
+     "economy": {
+      "min": 12500,
+      "min_date": "2027-06-30",
+      "hit": 6,
+      "avail": 18,
+      "checked": 21,
+      "fresh": 4
+     },
+     "business": {
+      "min": 30000,
+      "min_date": "2027-07-01",
+      "hit": 4,
+      "avail": 11,
+      "checked": 21,
+      "fresh": 4
+     }
+    }
+   },
+   "last_checked_at": "2026-11-24T05:40:10+09:00"
+  },
+  {
+   "id": "gmp-hnd-20270110",
+   "name": "김포 → 도쿄 하네다",
+   "from": "GMP",
+   "to": "HND",
+   "start": "2027-01-10",
+   "end": "2027-02-07",
+   "return_start": null,
+   "return_end": null,
+   "cabins": [
+    "economy"
+   ],
+   "target_miles": {
+    "economy": 12500
+   },
+   "nonstop": true,
+   "adults": 1,
+   "active": true,
+   "summary": {
+    "out": {
+     "economy": {
+      "min": 12500,
+      "min_date": "2027-01-18",
+      "hit": 3,
+      "avail": 16,
+      "checked": 26,
+      "fresh": 1
+     }
+    }
+   },
+   "last_checked_at": "2026-11-24T05:38:10+09:00"
+  },
+  {
+   "id": "icn-cts-20270625",
+   "name": "인천 → 삿포로",
+   "from": "ICN",
+   "to": "CTS",
+   "start": "2027-06-25",
+   "end": "2027-07-05",
+   "return_start": "2027-07-01",
+   "return_end": "2027-07-10",
+   "cabins": [
+    "economy",
+    "business"
+   ],
+   "target_miles": {
+    "economy": 17500
+   },
+   "nonstop": true,
+   "adults": 1,
+   "active": false,
+   "summary": {
+    "out": {
+     "economy": {
+      "min": 12500,
+      "min_date": "2027-07-02",
+      "hit": 3,
+      "avail": 7,
+      "checked": 11,
+      "fresh": 3
+     },
+     "business": {
+      "min": 30000,
+      "min_date": "2027-06-28",
+      "hit": 0,
+      "avail": 6,
+      "checked": 11,
+      "fresh": 3
+     }
+    },
+    "back": {
+     "economy": {
+      "min": 12500,
+      "min_date": "2027-07-09",
+      "hit": 3,
+      "avail": 8,
+      "checked": 10,
+      "fresh": 2
+     },
+     "business": {
+      "min": 30000,
+      "min_date": "2027-07-04",
+      "hit": 0,
+      "avail": 8,
+      "checked": 10,
+      "fresh": 3
+     }
+    }
+   },
+   "last_checked_at": "2026-11-15T05:42:10+09:00"
+  }
+ ]
+}

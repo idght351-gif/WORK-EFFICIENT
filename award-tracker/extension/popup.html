@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <title>마일 좌석 도우미</title>
+  <link rel="stylesheet" href="ext.css">
+</head>
+<body class="popup">
+  <header><b>마일 좌석 도우미</b><span id="pill" class="pill">확인 중</span></header>
+  <p id="count" class="muted small">&nbsp;</p>
+  <button id="toggle" class="btn" disabled>기록 시작</button>
+  <button id="snap" class="btn secondary">지금 화면 글자 저장</button>
+  <button id="manage" class="btn secondary">기록 파일 저장 · 관리</button>
+  <p id="msg" class="msg" role="status"></p>
+  <ol class="steps">
+    <li>에어프랑스 사이트에 먼저 <b>로그인</b>해요.</li>
+    <li><b>기록 시작</b>을 눌러요.</li>
+    <li>‘마일리지로 예약’에서 인천 → 도쿄(나리타), <b>날짜는 비우고</b> 1명 · 이코노미로 검색해요.</li>
+    <li>캘린더에서 날짜를 하나 눌러 편을 고르고, <b>세금이 보이는 화면</b>까지 가요. 결제는 하지 않아요.</li>
+    <li>좌석 등급을 비즈니스로 바꿔 한 번 더 해요.</li>
+    <li><b>기록 멈춤</b> → <b>기록 파일 저장</b> → 파일을 Claude 대화에 첨부해요.</li>
+  </ol>
+  <script src="popup.js" type="module"></script>
+</body>
+</html>

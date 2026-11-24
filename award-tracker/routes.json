@@ -1,0 +1,8 @@
+{
+  "settings": {
+    "run_at_kst": "05:40",
+    "daily_search_limit": 40,
+    "max_details_per_route": 4
+  },
+  "routes": []
+}

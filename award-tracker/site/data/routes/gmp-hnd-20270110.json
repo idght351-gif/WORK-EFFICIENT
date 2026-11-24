@@ -1,0 +1,280 @@
+{
+ "route": {
+  "id": "gmp-hnd-20270110",
+  "name": "김포 → 도쿄 하네다",
+  "from": "GMP",
+  "to": "HND",
+  "start": "2027-01-10",
+  "end": "2027-02-07",
+  "return_start": null,
+  "return_end": null,
+  "cabins": [
+   "economy"
+  ],
+  "target_miles": {
+   "economy": 12500
+  },
+  "nonstop": true,
+  "adults": 1,
+  "active": true
+ },
+ "updated_at": "2026-11-24T05:38:10+09:00",
+ "directions": {
+  "out": {
+   "from": "GMP",
+   "to": "HND",
+   "days": {
+    "2027-01-10": {
+     "economy": {
+      "miles": 15000,
+      "checked_at": "2026-11-24T05:38:10+09:00",
+      "source": "calendar",
+      "first_seen": "2026-11-21T05:38:10+09:00"
+     }
+    },
+    "2027-01-11": {
+     "economy": {
+      "miles": 25000,
+      "checked_at": "2026-11-24T05:38:10+09:00",
+      "source": "calendar",
+      "first_seen": "2026-11-07T13:38:10+09:00"
+     }
+    },
+    "2027-01-12": {
+     "economy": {
+      "miles": null,
+      "checked_at": "2026-11-24T05:38:10+09:00"
+     }
+    },
+    "2027-01-13": {
+     "economy": {
+      "miles": null,
+      "checked_at": "2026-11-24T05:38:10+09:00"
+     }
+    },
+    "2027-01-14": {
+     "economy": {
+      "miles": 20000,
+      "checked_at": "2026-11-24T05:38:10+09:00",
+      "source": "calendar",
+      "first_seen": "2026-11-23T23:38:10+09:00"
+     }
+    },
+    "2027-01-15": {
+     "economy": {
+      "miles": 30000,
+      "checked_at": "2026-11-24T05:38:10+09:00",
+      "source": "calendar",
+      "first_seen": "2026-11-19T05:38:10+09:00"
+     }
+    },
+    "2027-01-16": {
+     "economy": {
+      "miles": null,
+      "checked_at": "2026-11-24T05:38:10+09:00"
+     }
+    },
+    "2027-01-17": {
+     "economy": {
+      "miles": 20000,
+      "checked_at": "2026-11-24T05:38:10+09:00",
+      "source": "calendar",
+      "first_seen": "2026-11-22T23:38:10+09:00"
+     }
+    },
+    "2027-01-18": {
+     "economy": {
+      "miles": 12500,
+      "checked_at": "2026-11-24T05:38:10+09:00",
+      "source": "detail",
+      "first_seen": "2026-11-21T05:38:10+09:00",
+      "tax": {
+       "amount": 42200,
+       "currency": "KRW"
+      },
+      "seats": 1,
+      "flights": [
+       {
+        "no": "KE2101",
+        "dep": "08:10",
+        "arr": "10:20",
+        "miles": 12500,
+        "tax": {
+         "amount": 42200,
+         "currency": "KRW"
+        }
+       },
+       {
+        "no": "KE2105",
+        "dep": "14:45",
+        "arr": "16:55",
+        "miles": 12500,
+        "tax": {
+         "amount": 42200,
+         "currency": "KRW"
+        }
+       }
+      ]
+     }
+    },
+    "2027-01-19": {
+     "economy": {
+      "miles": 17500,
+      "checked_at": "2026-11-24T05:38:10+09:00",
+      "source": "calendar",
+      "first_seen": "2026-11-07T13:38:10+09:00"
+     }
+    },
+    "2027-01-20": {
+     "economy": {
+      "miles": 17500,
+      "checked_at": "2026-11-24T05:38:10+09:00",
+      "source": "calendar",
+      "first_seen": "2026-11-23T09:38:10+09:00"
+     }
+    },
+    "2027-01-21": {
+     "economy": {
+      "miles": null,
+      "checked_at": "2026-11-24T05:38:10+09:00"
+     }
+    },
+    "2027-01-22": {
+     "economy": {
+      "miles": null,
+      "checked_at": "2026-11-24T05:38:10+09:00"
+     }
+    },
+    "2027-01-23": {
+     "economy": {
+      "miles": 17500,
+      "checked_at": "2026-11-24T05:38:10+09:00",
+      "source": "calendar",
+      "first_seen": "2026-11-21T05:38:10+09:00"
+     }
+    },
+    "2027-01-24": {
+     "economy": {
+      "miles": null,
+      "checked_at": "2026-11-24T05:38:10+09:00"
+     }
+    },
+    "2027-01-25": {
+     "economy": {
+      "miles": null,
+      "checked_at": "2026-11-24T05:38:10+09:00"
+     }
+    },
+    "2027-01-26": {
+     "economy": {
+      "miles": 20000,
+      "checked_at": "2026-11-24T05:38:10+09:00",
+      "source": "calendar",
+      "first_seen": "2026-11-21T05:38:10+09:00"
+     }
+    },
+    "2027-01-27": {
+     "economy": {
+      "miles": 17500,
+      "checked_at": "2026-11-24T05:38:10+09:00",
+      "source": "calendar",
+      "first_seen": "2026-11-21T05:38:10+09:00"
+     }
+    },
+    "2027-01-28": {
+     "economy": {
+      "miles": null,
+      "checked_at": "2026-11-24T05:38:10+09:00"
+     }
+    },
+    "2027-01-29": {
+     "economy": {
+      "miles": 12500,
+      "checked_at": "2026-11-24T05:38:10+09:00",
+      "source": "detail",
+      "first_seen": "2026-11-19T05:38:10+09:00",
+      "tax": {
+       "amount": 46600,
+       "currency": "KRW"
+      },
+      "flights": [
+       {
+        "no": "KE2105",
+        "dep": "14:45",
+        "arr": "16:55",
+        "miles": 12500,
+        "tax": {
+         "amount": 46600,
+         "currency": "KRW"
+        }
+       }
+      ]
+     }
+    },
+    "2027-01-30": {
+     "economy": {
+      "miles": 17500,
+      "checked_at": "2026-11-24T05:38:10+09:00",
+      "source": "calendar",
+      "prev_miles": 30000,
+      "first_seen": "2026-11-24T04:38:10+09:00"
+     }
+    },
+    "2027-01-31": {
+     "economy": {
+      "miles": 30000,
+      "checked_at": "2026-11-24T05:38:10+09:00",
+      "source": "calendar",
+      "first_seen": "2026-11-21T05:38:10+09:00"
+     }
+    },
+    "2027-02-01": {
+     "economy": {
+      "miles": null,
+      "checked_at": "2026-11-24T05:38:10+09:00"
+     }
+    },
+    "2027-02-02": {
+     "economy": {
+      "miles": null,
+      "checked_at": "2026-11-24T05:38:10+09:00"
+     }
+    },
+    "2027-02-03": {
+     "economy": {
+      "miles": 12500,
+      "checked_at": "2026-11-24T05:38:10+09:00",
+      "source": "detail",
+      "prev_miles": 20000,
+      "first_seen": "2026-11-22T13:38:10+09:00",
+      "tax": {
+       "amount": 38000,
+       "currency": "KRW"
+      },
+      "seats": 2,
+      "flights": [
+       {
+        "no": "KE2101",
+        "dep": "08:10",
+        "arr": "10:20",
+        "miles": 12500,
+        "tax": {
+         "amount": 38000,
+         "currency": "KRW"
+        }
+       }
+      ]
+     }
+    },
+    "2027-02-04": {
+     "economy": {
+      "miles": 30000,
+      "checked_at": "2026-11-24T05:38:10+09:00",
+      "source": "calendar",
+      "first_seen": "2026-11-23T09:38:10+09:00"
+     }
+    }
+   }
+  }
+ }
+}
