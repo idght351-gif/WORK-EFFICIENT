@@ -123,6 +123,38 @@ def describe_options(data: dict, route: dict, window: tuple[str | None, str | No
     return f"검색 결과 {len(items)}개 · 경유 조건 통과 {len(stops_ok)}개 · 시간대까지 통과 {sum(map(dep_ok, stops_ok))}개"
 
 
+def check_separate(route: dict, api_key: str) -> tuple[dict | None, dict, str | None]:
+    """다구간을 구간별 편도 항공권으로 따로 검색해 합산합니다 (저가항공 조합처럼 한 장으로 묶어 팔지 않는 경우).
+    구간마다 검색 1회. 같은 날 이어지는 구간은 앞 편 도착 + 환승 시간 이후 편만 고릅니다."""
+    insights, url, picked = {}, None, []
+    for i, leg in enumerate(route["legs"]):
+        one = {**route, "from": leg["from"], "to": leg["to"], "date": leg["date"], "return_date": None, "legs": None}
+        params = build_params(one, api_key)
+        params.pop("outbound_times", None)  # 시간대는 아래에서 직접 거름(환승 조건과 함께)
+        data = fetch_serpapi(params)
+        if i == 0:
+            insights = data.get("price_insights") or {}
+            url = (data.get("search_metadata") or {}).get("google_flights_url")
+        after = leg.get("depart_after")
+        if i:
+            after = connection_after(picked[-1], leg, after, route.get("min_connection_min", MIN_CONNECTION_MIN))
+            if after is NO_CONNECTION:
+                raise RuntimeError(f"{i + 1}구간 {leg['from']}→{leg['to']} 같은 날 환승 시간이 모자람")
+        best = pick_cheapest(data, route, window=(after, leg.get("depart_before")))
+        if not best:
+            raise RuntimeError(f"{i + 1}구간 {leg['from']}→{leg['to']} 조건에 맞는 편 없음 "
+                               f"({describe_options(data, route, (after, leg.get('depart_before')))})")
+        best.update({"from": leg["from"].upper(), "to": leg["to"].upper(), "date": leg["date"]})
+        picked.append(best)
+    first = picked[0]
+    out = {k: first[k] for k in ("airline", "flight_number", "depart_time", "arrive_time", "stops", "duration_min")}
+    out["price"] = sum(p["price"] for p in picked)
+    out["legs"] = [{k: p[k] for k in ("from", "to", "date", "airline", "flight_number",
+                                      "depart_time", "arrive_time", "stops", "price")} for p in picked]
+    out["separate_tickets"] = True
+    return out, insights, url
+
+
 def check_multi(route: dict, api_key: str) -> tuple[dict | None, dict, str | None]:
     """다구간: 1구간 검색 → 고른 편의 departure_token 으로 다음 구간 검색 … 마지막 구간 가격 = 전체 여정 총액.
     구간마다 검색 1회를 씁니다."""
@@ -242,7 +274,7 @@ def pick_cheapest(data: dict, route: dict, leg: str = "depart",
 def check_route(route: dict, api_key: str) -> tuple[dict | None, dict, str | None]:
     """가는 편 검색 → (왕복이면) 그 가는 편으로 오는 편 검색. 가격은 항상 전체 인원 왕복/편도 총액."""
     if is_multi(route):
-        return check_multi(route, api_key)
+        return check_separate(route, api_key) if route.get("separate_tickets") else check_multi(route, api_key)
     params = build_params(route, api_key)
     data = fetch_serpapi(params)
     insights = data.get("price_insights") or {}
@@ -333,7 +365,8 @@ def stops_text(stops) -> str:
 
 def trip_text(route: dict) -> str:
     if is_multi(route):
-        return " · ".join(f"{l['date']} {l['from'].upper()}→{l['to'].upper()}" for l in route["legs"]) + " (다구간)"
+        kind = " (구간별 편도 합산)" if route.get("separate_tickets") else " (다구간)"
+        return " · ".join(f"{l['date']} {l['from'].upper()}→{l['to'].upper()}" for l in route["legs"]) + kind
     return f"{route['date']}" + (f" ~ {route['return_date']}" if route.get("return_date") else " 편도")
 
 
@@ -341,7 +374,8 @@ def flight_lines(e: dict) -> list[tuple[str, str]]:
     """(구분, 항공편 설명) 목록. 다구간은 구간별, 왕복은 가는 편/오는 편."""
     if e.get("legs"):
         return [(f"{i}구간 {l['date'][5:].replace('-', '/')} {l['from']}→{l['to']}",
-                 f"{l['airline']} {l['flight_number']} {l['depart_time']} → {l['arrive_time']}{stops_text(l.get('stops'))}")
+                 f"{l['airline']} {l['flight_number']} {l['depart_time']} → {l['arrive_time']}{stops_text(l.get('stops'))}"
+                 + (f" · {won(l['price'])}" if e.get("separate_tickets") and l.get("price") else ""))
                 for i, l in enumerate(e["legs"], 1)]
     rows = [("가는 편", f"{e.get('airline')} {e.get('flight_number')} {e.get('depart_time')} → "
                        f"{e.get('arrive_time')}{stops_text(e.get('stops'))}")]
