@@ -17,6 +17,7 @@ on:
       - "flight-tracker/site/**"
       - "flight-tracker/tracker/**"
       - "award-tracker/site/**"   # 마일 좌석 추적 앱 (같은 Pages 의 /award/ 에 함께 배포)
+      - "award-tracker/marks.json"   # 마일 좌석 앱에서 누른 "좌석 없어짐" 표시 → 아래에서 반영 후 배포
 
 permissions:
   contents: write
@@ -65,12 +66,19 @@ jobs:
             python check_prices.py
           fi
 
+      # 마일 좌석 앱에서 사용자가 사이트를 직접 보고 누른 "좌석 없어짐" 표시를 앱 데이터에 반영 (실패해도 가격 기록 · 배포는 계속)
+      - name: 마일 좌석 직접 확인 반영
+        if: always()
+        continue-on-error: true
+        run: python award-tracker/tools/award.py apply-marks
+
       - name: 기록 저장 (commit)
         if: always()
         run: |
           git config user.name "flight-price-bot"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add flight-tracker/site/data
+          git add flight-tracker/site/data award-tracker/site/data
+          if [ -f award-tracker/marks.json ]; then git add award-tracker/marks.json; fi
           if git diff --cached --quiet; then
             echo "변경 없음"
           else

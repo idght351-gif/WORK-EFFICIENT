@@ -9,6 +9,8 @@
   python award-tracker/tools/award.py publish                앱 데이터만 commit · push
   python award-tracker/tools/award.py sync                   노선 설정(routes.json)만 앱 데이터에 반영
   python award-tracker/tools/award.py send-alerts [--dry-run]  (GitHub Actions) 알림 메일
+  python award-tracker/tools/award.py refresh 노선 out|back 날짜…  휴대폰 앱 요청: 그 날짜만 다시 조회 시작
+  python award-tracker/tools/award.py apply-marks             (GitHub Actions) 휴대폰 앱의 "좌석 없어짐" 표시(marks.json)를 앱 데이터에 반영
 """
 from __future__ import annotations
 
@@ -59,6 +61,7 @@ class Paths:
         self.index = self.data / "index.json"
         self.route_dir = self.data / "routes"
         self.alerts = self.data / "alerts.json"
+        self.marks = self.root / "marks.json"   # 휴대폰 앱에서 직접 확인해 남긴 표시 (앱이 GitHub 에 바로 씀)
 
     def route_file(self, rid: str) -> Path:
         return self.route_dir / f"{rid}.json"
@@ -621,6 +624,82 @@ def print_refresh(x: dict) -> None:
           " → 3-1 날짜 → 3-2~3-4 상세 save (다음 날짜는 3-1b 날짜 띠) → 4장")
 
 
+# ------------------------------------------------------------ 휴대폰 앱의 직접 확인 표시
+# marks.json: {"marks": [{"route_id", "direction", "date", "cabin", "status": "gone", "marked_at"}]}
+# 사용자가 에어프랑스 사이트에서 직접 보고 "좌석 없어짐" 을 누르면 앱이 이 파일에 한 줄 더해요.
+# 반영하면 그날은 좌석 없음(source "manual")이 되고, 원래 값은 manual_before 에 남겨 되돌릴 수 있어요.
+# 표시보다 나중에 PC 가 조회한 값이 있으면 그 값이 이겨요 (다시 열렸으면 다시 보임). 지난 날짜 표시는 지워요.
+def apply_marks(P: Paths) -> list[str]:
+    cfg = read_json(P.marks, {}) or {}
+    marks = cfg.get("marks") or []
+    settings, routes = load_config(P)
+    by_id = {r["id"]: r for r in routes}
+    today = now().astimezone(KST).date().isoformat()
+    keep, active, lines = [], {}, []
+    for m in marks:
+        rid, key, iso, cabin = m.get("route_id"), m.get("direction"), m.get("date"), m.get("cabin") or "economy"
+        try:
+            at = ts(datetime.fromisoformat(str(m.get("marked_at")).replace("Z", "+00:00")))
+        except ValueError:
+            continue
+        if m.get("status") != "gone" or rid not in by_id or not iso or iso < today:
+            continue  # 모르는 표시 · 없어진 노선 · 지난 날짜는 버림
+        if key not in {x[0] for x in spans(by_id[rid])} or cabin not in by_id[rid]["cabins"]:
+            continue
+        m = {**m, "cabin": cabin, "marked_at": at}
+        keep.append(m)
+        k = (rid, key, iso, cabin)
+        if k not in active or m["marked_at"] > active[k]["marked_at"]:
+            active[k] = m
+    docs = {}
+    for r in routes:
+        doc = load_doc(P, r)
+        changed = False
+        for key, f, t, _a, _b in spans(r):
+            days = doc["directions"][key]["days"]
+            # 1) 앱에서 표시를 취소했으면 원래 값으로 되돌림
+            for iso, d in list(days.items()):
+                for cabin, e in list(d.items()):
+                    if e.get("source") != "manual":
+                        continue
+                    mk = active.get((r["id"], key, iso, cabin))
+                    if mk and mk["marked_at"] == e.get("checked_at"):
+                        continue
+                    if e.get("manual_before"):
+                        d[cabin] = e["manual_before"]
+                    else:
+                        del d[cabin]
+                    changed = True
+                    lines.append(f"↩ 되돌림 {f}→{t} {md(iso)} ({r['id']} · {DIRS[key]})")
+            # 2) 새 표시 반영
+            for (rid, k2, iso, cabin), mk in active.items():
+                if rid != r["id"] or k2 != key:
+                    continue
+                e = (days.get(iso) or {}).get(cabin)
+                if e and e.get("source") == "manual" and e.get("checked_at") == mk["marked_at"]:
+                    continue
+                if e and e.get("source") != "manual" and (e.get("checked_at") or "") >= mk["marked_at"]:
+                    continue  # 표시 뒤에 PC 가 다시 조회한 값이 있음
+                before = e.get("manual_before") if e and e.get("source") == "manual" else e
+                new = {"miles": None, "checked_at": mk["marked_at"], "source": "manual"}
+                if before:
+                    new["manual_before"] = before
+                    if before.get("miles") is not None:
+                        new["prev_miles"] = before["miles"]
+                days.setdefault(iso, {})[cabin] = new
+                changed = True
+                lines.append(f"✓ 좌석 없음으로 표시 {f}→{t} {md(iso)} ({r['id']} · {DIRS[key]})")
+        if changed:
+            docs[r["id"]] = doc
+    for rid, doc in docs.items():
+        write_json(P.route_file(rid), doc)
+    if docs:
+        build_index(P, settings, routes)
+    if len(keep) != len(marks):
+        write_json(P.marks, {**cfg, "marks": keep})
+    return lines or ["반영할 표시 변경이 없어요."]
+
+
 def finish(P: Paths, status: str, message: str | None = None) -> dict:
     if status not in STATUSES:
         raise AwardError(f"상태는 {', '.join(STATUSES)} 중 하나예요")
@@ -764,6 +843,7 @@ def main(argv=None) -> int:
     rf.add_argument("route_id")
     rf.add_argument("direction", choices=list(DIRS))
     rf.add_argument("dates", nargs="+", help="예: 2027-03-01")
+    sub.add_parser("apply-marks")
     a = sub.add_parser("send-alerts")
     a.add_argument("--dry-run", action="store_true")
     args = ap.parse_args(argv)
@@ -797,6 +877,8 @@ def main(argv=None) -> int:
                 print("\n".join(lines).rstrip())
         elif args.cmd == "publish":
             print(publish(P))
+        elif args.cmd == "apply-marks":
+            print("\n".join(apply_marks(P)))
         elif args.cmd == "refresh":
             print_refresh(refresh_start(P, args.route_id, args.direction, args.dates))
         elif args.cmd == "send-alerts":

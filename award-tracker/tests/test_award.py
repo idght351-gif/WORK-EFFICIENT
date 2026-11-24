@@ -333,5 +333,65 @@ class Refresh(Base):
         self.assertIn("날짜 다시 조회 (사용자 요청): ICN→NRT 이코노미 직항만 6/21", out.getvalue())
 
 
+class Marks(Base):
+    def mark(self, iso="2027-06-21", at="2026-11-25T10:00:00+09:00", direction="out", **kw):
+        return {"route_id": "icn-nrt-20270620", "direction": direction, "date": iso, "cabin": "economy",
+                "status": "gone", "marked_at": at, **kw}
+
+    def day(self, iso="2027-06-21", direction="out"):
+        return self.doc()["directions"][direction]["days"].get(iso, {}).get("economy")
+
+    def test_mark_gone_then_undo(self):
+        award.save_items(self.P, self.cal({"2027-06-21": 14000, "2027-06-22": 16000}))
+        award.write_json(self.P.marks, {"marks": [self.mark()]})
+        award.apply_marks(self.P)
+        e = self.day()
+        self.assertEqual((e["miles"], e["source"], e["prev_miles"]), (None, "manual", 14000))
+        self.assertEqual(self.index()["routes"][0]["summary"]["out"]["economy"]["min"], 16000)
+        award.apply_marks(self.P)  # 두 번 해도 그대로
+        self.assertEqual(self.day()["checked_at"], "2026-11-25T10:00:00+09:00")
+        # 앱에서 표시를 지우면 원래 값으로
+        award.write_json(self.P.marks, {"marks": []})
+        award.apply_marks(self.P)
+        self.assertEqual((self.day()["miles"], self.day()["source"]), (14000, "calendar"))
+
+    def test_newer_lookup_wins_and_reopen_alerts(self):
+        award.save_items(self.P, self.cal({"2027-06-21": 14000}))  # 05:40 조회
+        award.write_json(self.P.marks, {"marks": [self.mark(at="2026-11-25T05:00:00+09:00")]})  # 그보다 먼저 찍은 표시
+        award.apply_marks(self.P)
+        self.assertEqual(self.day()["miles"], 14000)
+        award.write_json(self.P.marks, {"marks": [self.mark()]})
+        award.apply_marks(self.P)
+        self.assertIsNone(self.day()["miles"])
+        # 나중에 PC 가 다시 조회해서 좌석이 다시 있으면 새로 열림으로 알림
+        self.set_now("2026-11-26T09:00:00+09:00")
+        award.start(self.P)
+        award.save_items(self.P, self.cal({"2027-06-21": 14000}))
+        self.assertEqual((self.day()["miles"], self.day()["source"]), (14000, "calendar"))
+        run = json.loads(self.P.alerts.read_text(encoding="utf-8"))
+        self.assertEqual([a["date"] for a in run["alerts"]], ["2027-06-21"])
+        award.apply_marks(self.P)  # 표시는 남아 있어도 더 새로운 조회가 이김
+        self.assertEqual(self.day()["miles"], 14000)
+
+    def test_bad_and_past_marks_are_dropped(self):
+        award.write_json(self.P.marks, {"marks": [
+            self.mark(), self.mark(route_id="nope"), self.mark(status="other"),
+            self.mark(direction="back", iso="2027-06-21"), self.mark(iso="2026-11-01"),
+            self.mark(direction="back", iso="2027-06-30"),
+        ]})
+        award.apply_marks(self.P)
+        left = json.loads(self.P.marks.read_text(encoding="utf-8"))["marks"]
+        self.assertEqual([(m["direction"], m["date"]) for m in left], [("out", "2027-06-21"), ("back", "2027-06-21"), ("back", "2027-06-30")])
+        # 조회 전 날짜에 찍은 표시도 좌석 없음으로, 취소하면 다시 조회 전으로
+        self.assertIsNone(self.day("2027-06-30", "back")["miles"])
+        award.write_json(self.P.marks, {"marks": []})
+        award.apply_marks(self.P)
+        self.assertIsNone(self.day("2027-06-30", "back"))
+        self.assertIsNone(self.day("2027-06-21", "back"))
+
+    def test_no_marks_file(self):
+        self.assertEqual(award.apply_marks(self.P), ["반영할 표시 변경이 없어요."])
+
+
 if __name__ == "__main__":
     unittest.main()

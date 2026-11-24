@@ -162,6 +162,82 @@ function flightsHTML(fs) {
     </table>`;
 }
 
+// ------------------------------------------------------------ 직접 확인 표시 (좌석 없어짐)
+// 사용자가 에어프랑스 사이트에서 직접 보고 "좌석 없어짐" 을 누르면 award-tracker/marks.json 에 한 줄 더해요 (GitHub API).
+// 그 push 로 배포 작업이 돌면서 award.py apply-marks 가 앱 데이터에 반영해요 (1~2분). 그동안은 이 기기에서 먼저 보여줘요.
+// 토큰은 이 기기(localStorage)에만 저장해요: 이 저장소만, Contents 읽기·쓰기 권한의 fine-grained 토큰.
+const GH_KEY = "award-gh-token";
+const PENDING_KEY = "award-marks-pending";
+const MARKS_PATH = "award-tracker/marks.json";
+const ghToken = () => { try { return localStorage.getItem(GH_KEY) || ""; } catch { return ""; } };
+function setGhToken(v) { try { v ? localStorage.setItem(GH_KEY, v) : localStorage.removeItem(GH_KEY); } catch {} }
+function loadPending() { try { return JSON.parse(localStorage.getItem(PENDING_KEY)) || []; } catch { return []; } }
+function savePending(v) { try { localStorage.setItem(PENDING_KEY, JSON.stringify(v)); } catch {} }
+function kstStamp(d = new Date()) {   // award.py 의 시각 형식과 같게 (2026-11-25T10:00:00+09:00)
+  const k = new Date(d.getTime() + 9 * 3600 * 1000).toISOString().slice(0, 19);
+  return `${k}+09:00`;
+}
+const b64encode = (text) => btoa(String.fromCharCode(...new TextEncoder().encode(text)));
+const b64decode = (b64) => new TextDecoder().decode(Uint8Array.from(atob(b64.replace(/\s/g, "")), (c) => c.charCodeAt(0)));
+
+async function gh(path, opts = {}) {
+  const info = repoInfo() || { owner: "idght351-gif", repo: "flight-tracker" };
+  const res = await fetch(`https://api.github.com/repos/${info.owner}/${info.repo}${path}`, {
+    ...opts,
+    headers: { Accept: "application/vnd.github+json", Authorization: `Bearer ${ghToken()}`, ...(opts.headers || {}) },
+  });
+  if (res.status === 401 || res.status === 403) throw new Error("GitHub 토큰이 맞지 않거나 권한(Contents 쓰기)이 없어요");
+  return res;
+}
+async function readMarks() {
+  const res = await gh(`/contents/${MARKS_PATH}?ref=main&t=${Date.now()}`);
+  if (res.status === 404) return { data: { marks: [] }, sha: null };
+  if (!res.ok) throw new Error(`GitHub 읽기 실패 (${res.status})`);
+  const j = await res.json();
+  return { data: JSON.parse(b64decode(j.content)), sha: j.sha };
+}
+// change(marks) → 새 marks. 다른 기기와 동시에 쓰면(sha 충돌) 한 번 더 읽어서 다시 써요.
+async function writeMarks(change, message) {
+  for (let i = 0; i < 3; i++) {
+    const { data, sha } = await readMarks();
+    const body = { message, branch: "main", content: b64encode(JSON.stringify({ ...data, marks: change(data.marks || []) }, null, 1) + "\n") };
+    if (sha) body.sha = sha;
+    const res = await gh(`/contents/${MARKS_PATH}`, { method: "PUT", body: JSON.stringify(body) });
+    if (res.ok) return;
+    if (res.status !== 409 && res.status !== 422) throw new Error(`GitHub 저장 실패 (${res.status})`);
+  }
+  throw new Error("다른 저장과 겹쳤어요. 잠시 뒤 다시 눌러 주세요");
+}
+const sameMark = (a, b) => a.route_id === b.route_id && a.direction === b.direction && a.date === b.date && (a.cabin || "economy") === (b.cabin || "economy");
+
+// 아직 앱 데이터에 반영 전인 표시를 이 기기에서 먼저 보여줘요. 반영됐거나 1시간 지난 것은 지워요.
+function overlayPending(p, days) {
+  const cur = (days[p.date] || {})[p.cabin];
+  if (p.action === "gone") {
+    const before = cur ? (cur.source === "manual" ? cur.manual_before : cur) : null;
+    (days[p.date] = days[p.date] || {})[p.cabin] = { miles: null, checked_at: p.at, source: "manual", pending: true, ...(before ? { manual_before: before } : {}) };
+  } else if (cur && cur.source === "manual") {
+    if (cur.manual_before) days[p.date][p.cabin] = { ...cur.manual_before, pending: true };
+    else delete days[p.date][p.cabin];
+  }
+}
+function applyPending(rid, dirs) {
+  const now = Date.now();
+  const keep = loadPending().filter((p) => {
+    if (now - new Date(p.at).getTime() > 3600 * 1000) return false;
+    const days = p.route_id === rid && (dirs[p.direction] || {}).days;
+    if (!days) return true;   // 다른 노선 표시는 그대로 둠
+    const cur = (days[p.date] || {})[p.cabin];
+    const reflected = p.action === "gone"
+      ? !!cur && ((cur.source === "manual" && cur.checked_at === p.at) || (cur.source !== "manual" && (cur.checked_at || "") >= p.at))
+      : !cur || cur.source !== "manual" || cur.checked_at > p.at;
+    if (reflected) return false;
+    overlayPending(p, days);
+    return true;
+  });
+  savePending(keep);
+}
+
 // 이 날짜 다시 조회: 요청 문장을 만들어 복사해요. 사용자가 Claude 대화창(집 PC 세션)에 보내면
 // PC 의 Claude 가 refresh 명령으로 그 날짜만 다시 조회해요 (PLAYBOOK 7장). 앱이 PC 를 직접 부르지는 않아요.
 const DIR_NAME = { out: "가는 편", back: "오는 편" };
@@ -176,6 +252,10 @@ function dayHTML(iso, cabin, e, target, from, to, ref, rid, dir) {
   let body;
   if (e === undefined) {
     body = `<p class="muted dd-empty">아직 조회하지 않은 날짜예요.</p>`;
+  } else if (e.miles == null && e.source === "manual") {
+    const before = e.manual_before;
+    body = `<p class="dd-empty"><b>좌석 없음</b> <span class="badge">직접 확인</span>${e.pending ? ` <span class="muted small">앱에 반영 중…</span>` : ""}</p>
+      <p class="muted small" style="margin:2px 0 0">${stamp(e.checked_at)} 사이트에서 직접 확인${before && before.miles != null ? ` · 그전 조회 ${num(before.miles)}마일 (${stamp(before.checked_at)})` : ""}</p>`;
   } else if (e.miles == null) {
     body = `<p class="dd-empty"><b>좌석 없음</b></p><p class="muted small" style="margin:2px 0 0">${stamp(e.checked_at)} 확인</p>`;
   } else {
@@ -204,7 +284,11 @@ function dayHTML(iso, cabin, e, target, from, to, ref, rid, dir) {
       ${body}
       ${rid && iso >= kstToday() ? `<div class="refresh">
         <button class="btn line" id="refresh-btn" type="button" data-text="${esc(refreshText(rid, dir, iso, from, to))}">↻ 이 날짜 다시 조회</button>
-        <div id="refresh-out" hidden></div></div>` : ""}
+        <div id="refresh-out" hidden></div>
+        ${e && e.source === "manual"
+          ? `<button class="btn line" id="mark-btn" type="button" data-action="undo">↩ 직접 확인 표시 되돌리기</button>`
+          : e && e.miles != null ? `<button class="btn line warn" id="mark-btn" type="button" data-action="gone">✕ 사이트에서 좌석 없어진 것 확인</button>` : ""}
+        <div id="mark-out" class="muted small" hidden></div></div>` : ""}
     </section>`;
 }
 
@@ -329,6 +413,7 @@ async function renderMain(want) {
   catch { doc = { route: routes.find((r) => r.id === rid), directions: {} }; }
   const r = doc.route;
   const dirs = doc.directions || {};
+  applyPending(rid, dirs);
   const round = !!(r.return_start && dirs.back);
   const cabins = CABIN_ORDER.filter((c) => (r.cabins || []).includes(c));
   const same = saved.route === rid;
@@ -432,6 +517,30 @@ async function renderMain(want) {
     if (ev.target.id === "nights") { st.nights = Number(ev.target.value); draw(); }
   };
   document.getElementById("daybox").onclick = async (ev) => {
+    const mb = ev.target.closest("#mark-btn");
+    if (mb) {
+      const out = document.getElementById("mark-out");
+      out.hidden = false;
+      if (!ghToken()) { out.innerHTML = `먼저 GitHub 연결이 필요해요 (한 번만). <a href="#github">연결하기 →</a>`; return; }
+      const back = st.dir === "back";
+      const mark = { route_id: r.id, direction: st.dir, date: st.day, cabin: st.cabin, status: "gone", marked_at: kstStamp() };
+      const gone = mb.dataset.action === "gone";
+      const label = `${back ? r.to : r.from}→${back ? r.from : r.to} ${mdDow(st.day)}`;
+      mb.disabled = true;
+      out.textContent = "GitHub 에 저장하는 중…";
+      try {
+        await writeMarks((ms) => gone ? [...ms.filter((m) => !sameMark(m, mark)), mark] : ms.filter((m) => !sameMark(m, mark)),
+          `마일 좌석 직접 확인: ${label} ${gone ? "좌석 없어짐" : "표시 되돌림"}`);
+        const p = { route_id: r.id, direction: st.dir, date: st.day, cabin: st.cabin, action: gone ? "gone" : "undo", at: mark.marked_at };
+        savePending([...loadPending().filter((x) => !sameMark(x, p)), p]);
+        overlayPending(p, dirs[st.dir].days);
+        draw();
+      } catch (err) {
+        mb.disabled = false;
+        out.textContent = `저장하지 못했어요: ${err.message}`;
+      }
+      return;
+    }
     const b = ev.target.closest("#refresh-btn");
     if (!b) return;
     const text = b.dataset.text;
@@ -621,11 +730,58 @@ async function renderAdd(edit) {
 }
 
 // ------------------------------------------------------------ 화면 전환
+function renderGithub() {
+  setTopRight("");
+  const has = !!ghToken();
+  const info = repoInfo() || { owner: "idght351-gif", repo: "flight-tracker" };
+  $app.innerHTML = `
+    <a href="#" class="back">‹ 달력으로</a>
+    <section class="card">
+      <h3 class="section-title">GitHub 연결</h3>
+      <p class="small">날짜 카드의 <b>"사이트에서 좌석 없어진 것 확인"</b> 을 누르면, 이 앱이 저장소의 <code>${MARKS_PATH}</code> 에 바로 기록해요.
+        그러면 1~2분 뒤 모든 기기의 앱과 추천 일정에서 그 날짜가 좌석 없음으로 바뀌어요. 그 날짜를 PC 가 다시 조회하면 새 결과가 우선해요.</p>
+      <ol class="small steps">
+        <li><a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">GitHub 토큰 만들기</a> (Fine-grained token)</li>
+        <li>Repository access: <b>Only select repositories</b> → <b>${esc(info.repo)}</b></li>
+        <li>Permissions → Repository permissions → <b>Contents: Read and write</b> (다른 권한은 필요 없어요)</li>
+        <li>만든 토큰(github_pat_…)을 아래에 붙여 넣고 저장</li>
+      </ol>
+      <label class="gh-field">토큰 <input id="gh-token" type="password" autocomplete="off" placeholder="${has ? "저장돼 있어요 (바꾸려면 새로 붙여 넣기)" : "github_pat_…"}"></label>
+      <div class="gh-btns">
+        <button class="btn" id="gh-save" type="button">저장하고 확인</button>
+        ${has ? `<button class="btn line" id="gh-del" type="button">이 기기에서 지우기</button>` : ""}
+      </div>
+      <p class="muted small" id="gh-msg">${has ? "이 기기에 토큰이 저장돼 있어요." : "토큰은 이 기기에만 저장돼요. 다른 사람과 쓰는 기기에는 넣지 마세요."}</p>
+    </section>`;
+  const msg = document.getElementById("gh-msg");
+  document.getElementById("gh-save").onclick = async () => {
+    const v = document.getElementById("gh-token").value.trim();
+    const old = ghToken();
+    if (!v && !old) { msg.textContent = "토큰을 붙여 넣어 주세요."; return; }
+    if (v) setGhToken(v);
+    msg.textContent = "확인하는 중…";
+    try {
+      const res = await gh("");
+      if (!res.ok) throw new Error(`저장소를 볼 수 없어요 (${res.status})`);
+      const j = await res.json();
+      if (!(j.permissions && j.permissions.push)) throw new Error("이 토큰은 저장소에 쓸 수 없어요 (Contents: Read and write 필요)");
+      msg.textContent = "연결됐어요 ✓ 이제 날짜 카드에서 좌석 없어짐을 기록할 수 있어요.";
+      document.getElementById("gh-token").value = "";
+    } catch (err) {
+      if (v) setGhToken(old);   // 새로 넣은 토큰이 안 되면 저장하지 않음
+      msg.textContent = `연결하지 못했어요: ${err.message}`;
+    }
+  };
+  const del = document.getElementById("gh-del");
+  if (del) del.onclick = () => { setGhToken(""); renderGithub(); };
+}
+
 function route() {
   setTopRight("");
   window.scrollTo(0, 0);
   const h = decodeURIComponent(location.hash.slice(1));
   if (h === "add") renderAdd();
+  else if (h === "github") renderGithub();
   else if (h.startsWith("edit/")) renderEdit(h.slice(5));
   else if (h.startsWith("r/")) renderMain(h.slice(2));   // 알림 메일의 '달력 보기' 링크
   else renderMain();
