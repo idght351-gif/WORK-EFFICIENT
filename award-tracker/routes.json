@@ -1,8 +1,10 @@
 {
   "settings": {
-    "run_at_kst": "05:40",
-    "daily_search_limit": 40,
-    "max_details_per_route": 4
+    "airfrance_url": null,
+    "max_searches_per_run": 40,
+    "max_details_per_route": 4,
+    "wait_seconds": { "click": [8, 15], "search": [20, 35], "between": [40, 80] },
+    "run_at_kst": null
   },
   "routes": []
 }

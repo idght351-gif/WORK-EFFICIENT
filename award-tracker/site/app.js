@@ -82,6 +82,7 @@ const SAMPLE_NOTICE = `<div class="notice"><b>샘플 데이터예요.</b> 화면
 // ------------------------------------------------------------ 목록
 const RUN = {
   ok: ["good", "정상"],
+  running: ["info", "조회 중"],
   login_required: ["warn", "로그인 필요"],
   challenge: ["bad", "보안 확인 필요"],
   error: ["bad", "조회 실패"],
@@ -91,17 +92,23 @@ const RUN = {
 function runnerHTML(r, sample) {
   r = r || { status: "never" };
   let [cls, label] = RUN[r.status] || RUN.never;
-  const stale = !sample && r.last_run_at && Date.now() - new Date(r.last_run_at) > 36 * 3600 * 1000;
-  if (stale && r.status === "ok") { cls = "warn"; label = "하루 넘게 조회 없음"; }
-  const msg = r.message
-    || (stale ? "집 PC나 크롬이 꺼져 있었는지 확인해 주세요."
-      : r.status === "never" ? "집 PC의 크롬 확장 프로그램이 조회를 시작하면 여기에 결과가 보여요." : "");
+  const days = r.last_run_at ? Math.floor((Date.now() - new Date(r.last_run_at)) / 86400000) : 0;
+  if (!sample && r.status === "ok" && days >= 1) { cls = ""; label = `${days}일 전 조회`; }
+  const msg = r.message || {
+    never: "집 PC에서 Claude가 처음 조회하면 여기에 결과가 보여요.",
+    running: "집 PC에서 Claude가 천천히 조회하고 있어요. 끝나면 결과가 바뀌어요.",
+    login_required: "에어프랑스 로그인이 풀려 조회를 멈췄어요. 집 PC 크롬에서 다시 로그인해 주세요.",
+    challenge: "보안 확인 화면이 나와 조회를 멈췄어요. 집 PC 크롬에서 직접 확인해 주세요.",
+  }[r.status] || "";
+  const searches = r.searches ?? r.searches_today;
+  const max = r.max_searches ?? r.daily_limit;
   return `
     <section class="card">
       <div class="runner-head"><h2 class="section-title">집 PC 조회</h2><span class="badge ${cls}">${label}</span></div>
       <div class="info-row"><span>마지막 조회</span><span>${stamp(r.last_run_at)}</span></div>
+      ${r.status === "running" && r.started_at ? `<div class="info-row"><span>이번 조회 시작</span><span>${stamp(r.started_at)}</span></div>` : ""}
       ${r.next_run_at ? `<div class="info-row"><span>다음 조회</span><span>${stamp(r.next_run_at)}경</span></div>` : ""}
-      ${r.daily_limit ? `<div class="info-row"><span>오늘 조회 횟수</span><span class="num">${num(r.searches_today || 0)} / ${num(r.daily_limit)}회</span></div>` : ""}
+      ${max && searches != null && r.status !== "running" ? `<div class="info-row"><span>지난 조회 검색 수</span><span class="num">${num(searches)}회 (한 번에 최대 ${num(max)}회)</span></div>` : ""}
       ${msg ? `<p class="runner-msg">${esc(msg)}</p>` : ""}
     </section>`;
 }
@@ -231,7 +238,8 @@ function dayHTML(iso, cabin, e, target, from, to, ref) {
       ${e.seats != null ? `<div class="info-row"><span>남은 좌석</span><span>${num(e.seats)}석</span></div>` : ""}
       ${change ? `<div class="info-row"><span>지난 조회 대비</span><span>${change}</span></div>` : ""}
       ${e.first_seen ? `<div class="info-row"><span>처음 본 때</span><span>${stamp(e.first_seen)}</span></div>` : ""}
-      <div class="info-row"><span>확인</span><span>${e.source === "detail" ? "편 상세까지 확인" : "캘린더 값 · 세금은 상세 확인 때"}<br><span class="muted small">${stamp(e.checked_at)}</span></span></div>
+      <div class="info-row"><span>확인</span><span>${e.source === "detail" ? "편 상세까지 확인"
+        : e.detail_checked_at ? `캘린더 값 · 세금은 ${stamp(e.detail_checked_at)} 상세 확인 때 값` : "캘린더 값 · 세금은 상세 확인 때"}<br><span class="muted small">${stamp(e.checked_at)}</span></span></div>
       ${flightsHTML(e.flights)}`;
   }
   return `
@@ -385,8 +393,12 @@ async function renderEdit(id) {
 async function renderAdd(edit) {
   let settings = {};
   try { settings = (await getJSON("data/index.json")).settings || {}; } catch {}
-  const dailyLimit = settings.daily_search_limit || 40;
+  const runLimit = settings.max_searches_per_run || settings.daily_search_limit || 40;
   const detailMax = settings.max_details_per_route || 4;
+  const waits = settings.wait_seconds || { click: [8, 15], search: [20, 35], between: [40, 80] };
+  const avg = (k) => (waits[k][0] + waits[k][1]) / 2;
+  const perCalendarMin = (6 * avg("click") + avg("search") + avg("between") + 60) / 60;
+  const perDetailMin = (3 * avg("click") + avg("search") + 40) / 60;
   const info = repoInfo();
   const editUrl = info ? `https://github.com/${info.owner}/${info.repo}/edit/main/award-tracker/routes.json` : null;
   const e = edit || {};
@@ -439,7 +451,7 @@ async function renderAdd(edit) {
       ${editUrl ? `<a class="btn secondary" style="margin-top:8px;background:var(--bg)" href="${editUrl}" target="_blank" rel="noopener">GitHub 에서 routes.json 열기</a>` : ""}
       <p class="muted small" style="margin:10px 0 0">
         ${edit ? "routes.json 에서 같은 id 의 항목을 이 내용으로 바꿔 주세요." : "routes.json 의 \"routes\": [ … ] 안에 붙여 넣어 주세요 (항목 사이에 쉼표)."}
-        저장(Commit)하면 집 PC가 켜져 있을 때 30분 안에 한 번 바로 조회하고, 그 뒤로는 매일 정해진 시각에 조회해요.
+        저장(Commit)하면 집 PC에서 다음에 조회할 때부터 포함돼요.
       </p>
     </section>`;
 
@@ -501,9 +513,10 @@ async function renderAdd(edit) {
 
     const months = monthsBetween(body.start, body.end).length + (hasReturn ? monthsBetween(body.return_start, body.return_end).length : 0);
     const cal = months * cab.length;
+    const lo = Math.round(cal * perCalendarMin), hi = Math.round(cal * perCalendarMin + detailMax * perDetailMin);
     est.innerHTML = cal
-      ? `이 노선은 하루에 <b>캘린더 조회 약 ${cal}회</b>(달 ${months}개 × 좌석 등급 ${cab.length}개) + <b>목표 이하 날짜 상세 확인 최대 ${detailMax}회</b>를 써요. 모든 노선을 합친 하루 한도는 ${dailyLimit}회예요.`
-      : "기간과 좌석 등급을 정하면 하루 조회 횟수를 계산해 드려요.";
+      ? `한 번 조회할 때 이 노선은 <b>캘린더 검색 약 ${cal}회</b>(달 ${months}개 × 좌석 등급 ${cab.length}개) + <b>목표 이하 날짜 상세 확인 최대 ${detailMax}회</b>예요. 클릭마다 넉넉히 기다리며 진행해서 <b>약 ${lo}~${hi}분</b> 걸려요. 모든 노선을 합쳐 한 번에 최대 ${runLimit}회까지 검색해요.`
+      : "기간과 좌석 등급을 정하면 검색 횟수와 걸리는 시간을 계산해 드려요.";
   };
 
   document.getElementById("dirseg").onclick = (ev) => { const b = ev.target.closest("[data-dir]"); if (b) { dir = b.dataset.dir; update(); } };

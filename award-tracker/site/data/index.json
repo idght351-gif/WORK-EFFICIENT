@@ -2,17 +2,31 @@
  "sample": true,
  "updated_at": "2026-11-24T05:42:10+09:00",
  "settings": {
-  "daily_search_limit": 40,
+  "max_searches_per_run": 40,
   "max_details_per_route": 4,
-  "run_at_kst": "05:40"
+  "run_at_kst": null,
+  "wait_seconds": {
+   "click": [
+    8,
+    15
+   ],
+   "search": [
+    20,
+    35
+   ],
+   "between": [
+    40,
+    80
+   ]
+  }
  },
  "runner": {
   "status": "ok",
   "last_run_at": "2026-11-24T05:42:10+09:00",
-  "next_run_at": "2026-11-25T05:40:10+09:00",
-  "searches_today": 14,
-  "daily_limit": 40,
-  "message": null
+  "next_run_at": null,
+  "message": null,
+  "searches": 14,
+  "max_searches": 40
  },
  "routes": [
   {

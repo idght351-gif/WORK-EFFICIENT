@@ -1,0 +1,35 @@
+name: 마일 좌석 알림
+
+# 집 PC 의 Claude 가 조회를 끝내고 결과(award-tracker/site/data/alerts.json)를 올리면,
+# 목표 마일 이하로 새로 열린 좌석이나 문제 상황(로그인 필요 · 보안 확인 · 실패)이 있을 때만 메일을 보냅니다.
+# 받는 주소: ALERT_EMAIL 비밀값, 없으면 GMAIL_USER (항공권 가격 추적과 같은 Gmail 설정을 씀)
+on:
+  push:
+    branches: [main]
+    paths:
+      - "award-tracker/site/data/alerts.json"
+  workflow_dispatch:        # Actions 탭에서 마지막 조회 결과로 다시 보내 보기
+
+permissions:
+  contents: read
+
+jobs:
+  alert:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: 테스트
+        run: python -m unittest discover -s award-tracker/tests -q
+
+      - name: 알림 메일
+        env:
+          GMAIL_USER: ${{ secrets.GMAIL_USER }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+          ALERT_EMAIL: ${{ secrets.ALERT_EMAIL }}
+          SITE_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/award/
+        run: python award-tracker/tools/award.py send-alerts

@@ -118,6 +118,7 @@ a { color: inherit; text-decoration: none; }
 .rc-cabin-mins { display: flex; flex-wrap: wrap; gap: 2px 14px; margin-top: 2px; font-size: 14px; }
 .rc-cabin-mins span { white-space: nowrap; }
 .rc-cabin-mins strong { font-size: 16px; letter-spacing: -0.02em; }
+.rc-cabin-mins strong > .muted:only-child { font-size: 14px; font-weight: 500; letter-spacing: 0; }
 .rc-foot { margin-top: 10px; }
 .card.paused { opacity: .72; }
 
