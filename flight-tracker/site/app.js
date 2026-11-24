@@ -39,6 +39,9 @@ function deltaHTML(cur, prev) {
     : `<span class="up">▲ ${won(d)} (${pct}%)</span>`;
 }
 
+// 위쪽 제목줄 오른쪽 자리: 목록에선 업데이트 시각, 상세에선 항공편 선택 상자
+function setTopRight(html) { document.getElementById("topright").innerHTML = html; }
+
 async function getJSON(url) {
   const r = await fetch(url + "?t=" + Date.now());
   if (!r.ok) throw new Error(r.status);
@@ -49,8 +52,7 @@ async function getJSON(url) {
 async function renderList() {
   let index;
   try { index = await getJSON("data/index.json"); } catch { index = { routes: [] }; }
-  if (index.updated_at) document.getElementById("updated").textContent =
-    "업데이트 " + new Date(index.updated_at).toLocaleString("ko-KR", { month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" });
+  setTopRight(index.updated_at ? `<span class="muted small">업데이트 ${new Date(index.updated_at).toLocaleString("ko-KR", { month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" })}</span>` : "");
 
   const order = { active: 0, paused: 1, ended: 2 };
   const routes = [...index.routes].sort((a, b) => order[a.status] - order[b.status] || a.date.localeCompare(b.date));
@@ -211,13 +213,10 @@ function compareHTML(r) {
 function switcherHTML(current, routes) {
   const order = { active: 0, paused: 1, ended: 2 };
   const list = [...routes].sort((a, b) => (order[a.status] ?? 3) - (order[b.status] ?? 3) || a.date.localeCompare(b.date));
-  const others = list.length - 1;
-  return `<div class="switch">
-    <a class="switch-back" href="#" aria-label="전체 목록">‹</a>
-    <div class="switch-box">
-      <button type="button" class="switch-btn" id="switch-btn" aria-haspopup="true" aria-expanded="false" aria-controls="switch-menu">
-        <span class="switch-text"><span class="switch-name">${esc(current.name)}</span>
-          <span class="switch-sub">${others > 0 ? `추적 중 ${list.length}개 · 눌러서 다른 항공편 보기` : "추적 중인 항공편 1개"}</span></span>
+  return `<div class="switch-box">
+      <button type="button" class="switch-btn" id="switch-btn" aria-haspopup="true" aria-expanded="false" aria-controls="switch-menu"
+        aria-label="다른 추적 항공편 보기 (지금: ${esc(current.name)})">
+        <span class="switch-name">${esc(current.name)}</span>
         <span class="switch-chev" aria-hidden="true">▾</span>
       </button>
       <div class="switch-menu" id="switch-menu" hidden>
@@ -230,8 +229,7 @@ function switcherHTML(current, routes) {
         <a class="switch-all" href="#">전체 목록으로 ›</a>
         <a class="switch-all" href="#add">+ 노선 추가하기</a>
       </div>
-    </div>
-  </div>`;
+    </div>`;
 }
 
 function bindSwitcher() {
@@ -271,8 +269,8 @@ async function renderDetail(id) {
   if (todayEntry && todayEntry.price == null && todayEntry.error) badges.push(`<span class="badge warn" title="${esc(todayEntry.error)}">최근 조회 실패</span>`);
 
   const routes = index.routes && index.routes.some((x) => x.id === r.id) ? index.routes : [{ ...r, status: doc.status, summary: s }];
+  setTopRight(switcherHTML(r, routes));
   $app.innerHTML = `
-    ${switcherHTML(r, routes)}
     <section class="card">
       <div class="hero-route">${esc(r.name)} · ${routePath(r)}</div>
       <div class="hero-sub">${tripLabel(r)} · ${(r.adults || 1) > 1 ? `성인 ${r.adults}명 총액` : "1인 가격"} · ${dday(r.date)}</div>
@@ -604,6 +602,7 @@ function renderAdd(edit) {
 
 // ------------------------------------------------------------ 라우팅
 function route() {
+  setTopRight("");
   window.onresize = null;
   document.onclick = null;
   document.onkeydown = null;
