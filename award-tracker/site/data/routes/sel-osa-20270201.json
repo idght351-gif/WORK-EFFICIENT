@@ -17,17 +17,698 @@
   "adults": 1,
   "active": true
  },
- "updated_at": null,
+ "updated_at": "2026-11-24T21:54:58+09:00",
  "directions": {
   "out": {
    "from": "SEL",
    "to": "OSA",
-   "days": {}
+   "days": {
+    "2027-02-01": {
+     "economy": {
+      "miles": 15500,
+      "checked_at": "2026-11-24T21:43:37+09:00",
+      "source": "calendar",
+      "first_seen": "2026-11-24T21:43:37+09:00"
+     }
+    },
+    "2027-02-02": {
+     "economy": {
+      "miles": 6000,
+      "checked_at": "2026-11-24T21:44:31+09:00",
+      "source": "detail",
+      "first_seen": "2026-11-24T21:43:37+09:00",
+      "tax": {
+       "amount": 18,
+       "currency": "USD"
+      },
+      "seats": "2+",
+      "flights": [
+       {
+        "from": "ICN",
+        "to": "UKB",
+        "dep": "08:25",
+        "arr": "10:10",
+        "stops": 0,
+        "miles": 6000
+       },
+       {
+        "from": "ICN",
+        "to": "KIX",
+        "dep": "20:55",
+        "arr": "22:40",
+        "stops": 0,
+        "miles": 6500
+       }
+      ],
+      "detail_checked_at": "2026-11-24T21:44:31+09:00"
+     },
+     "business": {
+      "miles": 15500,
+      "checked_at": "2026-11-24T21:44:31+09:00",
+      "source": "detail",
+      "first_seen": "2026-11-24T21:44:31+09:00",
+      "flights": [
+       {
+        "from": "ICN",
+        "to": "UKB",
+        "dep": "15:50",
+        "arr": "17:40",
+        "stops": 0,
+        "miles": 15500
+       },
+       {
+        "from": "GMP",
+        "to": "KIX",
+        "dep": "16:50",
+        "arr": "18:40",
+        "stops": 0,
+        "miles": 15500
+       },
+       {
+        "from": "ICN",
+        "to": "KIX",
+        "dep": "18:55",
+        "arr": "20:45",
+        "stops": 0,
+        "miles": 16000
+       }
+      ],
+      "detail_checked_at": "2026-11-24T21:44:31+09:00"
+     }
+    },
+    "2027-02-03": {
+     "economy": {
+      "miles": 6000,
+      "checked_at": "2026-11-24T21:45:30+09:00",
+      "source": "detail",
+      "first_seen": "2026-11-24T21:43:37+09:00",
+      "tax": {
+       "amount": 18,
+       "currency": "USD"
+      },
+      "seats": "2+",
+      "flights": [
+       {
+        "from": "ICN",
+        "to": "UKB",
+        "dep": "15:50",
+        "arr": "17:40",
+        "stops": 0,
+        "miles": 6000
+       },
+       {
+        "from": "ICN",
+        "to": "KIX",
+        "dep": "18:55",
+        "arr": "20:45",
+        "stops": 0,
+        "miles": 6500
+       }
+      ],
+      "detail_checked_at": "2026-11-24T21:45:30+09:00"
+     },
+     "business": {
+      "miles": 15500,
+      "checked_at": "2026-11-24T21:45:30+09:00",
+      "source": "detail",
+      "first_seen": "2026-11-24T21:45:30+09:00",
+      "flights": [
+       {
+        "from": "ICN",
+        "to": "UKB",
+        "dep": "08:25",
+        "arr": "10:10",
+        "stops": 0,
+        "miles": 15500
+       },
+       {
+        "from": "ICN",
+        "to": "KIX",
+        "dep": "11:05",
+        "arr": "12:50",
+        "stops": 0,
+        "miles": 16000
+       },
+       {
+        "from": "ICN",
+        "to": "KIX",
+        "dep": "18:55",
+        "arr": "20:45",
+        "stops": 0,
+        "miles": 16000
+       },
+       {
+        "from": "ICN",
+        "to": "KIX",
+        "dep": "20:55",
+        "arr": "22:40",
+        "stops": 0,
+        "miles": 16000
+       }
+      ],
+      "detail_checked_at": "2026-11-24T21:45:30+09:00"
+     }
+    },
+    "2027-02-04": {
+     "economy": {
+      "miles": 15500,
+      "checked_at": "2026-11-24T21:43:37+09:00",
+      "source": "calendar",
+      "first_seen": "2026-11-24T21:43:37+09:00"
+     }
+    },
+    "2027-02-05": {
+     "economy": {
+      "miles": null,
+      "checked_at": "2026-11-24T21:43:37+09:00",
+      "source": "calendar"
+     }
+    },
+    "2027-02-06": {
+     "economy": {
+      "miles": null,
+      "checked_at": "2026-11-24T21:43:37+09:00",
+      "source": "calendar"
+     }
+    },
+    "2027-02-07": {
+     "economy": {
+      "miles": null,
+      "checked_at": "2026-11-24T21:43:37+09:00",
+      "source": "calendar"
+     }
+    },
+    "2027-02-08": {
+     "economy": {
+      "miles": null,
+      "checked_at": "2026-11-24T21:43:37+09:00",
+      "source": "calendar"
+     }
+    },
+    "2027-02-09": {
+     "economy": {
+      "miles": null,
+      "checked_at": "2026-11-24T21:43:37+09:00",
+      "source": "calendar"
+     }
+    },
+    "2027-02-10": {
+     "economy": {
+      "miles": 6500,
+      "checked_at": "2026-11-24T21:43:37+09:00",
+      "source": "calendar",
+      "first_seen": "2026-11-24T21:43:37+09:00"
+     }
+    },
+    "2027-02-11": {
+     "economy": {
+      "miles": 6000,
+      "checked_at": "2026-11-24T21:48:59+09:00",
+      "source": "detail",
+      "first_seen": "2026-11-24T21:43:37+09:00",
+      "tax": {
+       "amount": 18,
+       "currency": "USD"
+      },
+      "seats": "2+",
+      "flights": [
+       {
+        "from": "ICN",
+        "to": "UKB",
+        "dep": "08:25",
+        "arr": "10:10",
+        "stops": 0,
+        "miles": 6000
+       },
+       {
+        "from": "ICN",
+        "to": "UKB",
+        "dep": "11:55",
+        "arr": "14:00",
+        "stops": 0,
+        "miles": 6000
+       },
+       {
+        "from": "ICN",
+        "to": "UKB",
+        "dep": "15:50",
+        "arr": "17:40",
+        "stops": 0,
+        "miles": 6000
+       },
+       {
+        "from": "ICN",
+        "to": "KIX",
+        "dep": "16:40",
+        "arr": "18:30",
+        "stops": 0,
+        "miles": 6500
+       },
+       {
+        "from": "GMP",
+        "to": "KIX",
+        "dep": "17:20",
+        "arr": "19:00",
+        "stops": 0,
+        "miles": 6000
+       },
+       {
+        "from": "ICN",
+        "to": "KIX",
+        "dep": "20:55",
+        "arr": "22:40",
+        "stops": 0,
+        "miles": 6500
+       },
+       {
+        "from": "ICN",
+        "to": "KIX",
+        "dep": "21:00",
+        "arr": "22:45",
+        "stops": 0,
+        "miles": 6500
+       }
+      ],
+      "detail_checked_at": "2026-11-24T21:48:59+09:00"
+     },
+     "business": {
+      "miles": 15500,
+      "checked_at": "2026-11-24T21:48:59+09:00",
+      "source": "detail",
+      "first_seen": "2026-11-24T21:48:59+09:00",
+      "flights": [
+       {
+        "from": "GMP",
+        "to": "KIX",
+        "dep": "07:55",
+        "arr": "09:45",
+        "stops": 0,
+        "miles": 15500
+       },
+       {
+        "from": "ICN",
+        "to": "UKB",
+        "dep": "11:55",
+        "arr": "14:00",
+        "stops": 0,
+        "miles": 15500
+       },
+       {
+        "from": "ICN",
+        "to": "KIX",
+        "dep": "15:10",
+        "arr": "17:00",
+        "stops": 0,
+        "miles": 16000
+       },
+       {
+        "from": "ICN",
+        "to": "UKB",
+        "dep": "15:50",
+        "arr": "17:40",
+        "stops": 0,
+        "miles": 15500
+       },
+       {
+        "from": "ICN",
+        "to": "KIX",
+        "dep": "16:40",
+        "arr": "18:30",
+        "stops": 0,
+        "miles": 16000
+       },
+       {
+        "from": "GMP",
+        "to": "KIX",
+        "dep": "17:20",
+        "arr": "19:00",
+        "stops": 0,
+        "miles": 15500
+       },
+       {
+        "from": "ICN",
+        "to": "KIX",
+        "dep": "18:45",
+        "arr": "20:35",
+        "stops": 0,
+        "miles": 16000
+       },
+       {
+        "from": "ICN",
+        "to": "KIX",
+        "dep": "21:00",
+        "arr": "22:45",
+        "stops": 0,
+        "miles": 16000
+       }
+      ],
+      "detail_checked_at": "2026-11-24T21:48:59+09:00"
+     }
+    },
+    "2027-02-12": {
+     "economy": {
+      "miles": null,
+      "checked_at": "2026-11-24T21:43:37+09:00",
+      "source": "calendar"
+     }
+    },
+    "2027-02-13": {
+     "economy": {
+      "miles": null,
+      "checked_at": "2026-11-24T21:43:37+09:00",
+      "source": "calendar"
+     }
+    },
+    "2027-02-14": {
+     "economy": {
+      "miles": null,
+      "checked_at": "2026-11-24T21:43:37+09:00",
+      "source": "calendar"
+     }
+    },
+    "2027-02-15": {
+     "economy": {
+      "miles": 6500,
+      "checked_at": "2026-11-24T21:43:37+09:00",
+      "source": "calendar",
+      "first_seen": "2026-11-24T21:43:37+09:00"
+     }
+    },
+    "2027-02-16": {
+     "economy": {
+      "miles": 6500,
+      "checked_at": "2026-11-24T21:43:37+09:00",
+      "source": "calendar",
+      "first_seen": "2026-11-24T21:43:37+09:00"
+     }
+    },
+    "2027-02-17": {
+     "economy": {
+      "miles": 6000,
+      "checked_at": "2026-11-24T21:43:37+09:00",
+      "source": "calendar",
+      "first_seen": "2026-11-24T21:43:37+09:00"
+     }
+    },
+    "2027-02-18": {
+     "economy": {
+      "miles": 6500,
+      "checked_at": "2026-11-24T21:43:37+09:00",
+      "source": "calendar",
+      "first_seen": "2026-11-24T21:43:37+09:00"
+     }
+    },
+    "2027-02-19": {
+     "economy": {
+      "miles": 15500,
+      "checked_at": "2026-11-24T21:43:37+09:00",
+      "source": "calendar",
+      "first_seen": "2026-11-24T21:43:37+09:00"
+     }
+    },
+    "2027-02-20": {
+     "economy": {
+      "miles": null,
+      "checked_at": "2026-11-24T21:43:37+09:00",
+      "source": "calendar"
+     }
+    },
+    "2027-02-21": {
+     "economy": {
+      "miles": null,
+      "checked_at": "2026-11-24T21:43:37+09:00",
+      "source": "calendar"
+     }
+    },
+    "2027-02-22": {
+     "economy": {
+      "miles": 6000,
+      "checked_at": "2026-11-24T21:43:37+09:00",
+      "source": "calendar",
+      "first_seen": "2026-11-24T21:43:37+09:00"
+     }
+    },
+    "2027-02-23": {
+     "economy": {
+      "miles": 6000,
+      "checked_at": "2026-11-24T21:43:37+09:00",
+      "source": "calendar",
+      "first_seen": "2026-11-24T21:43:37+09:00"
+     }
+    },
+    "2027-02-24": {
+     "economy": {
+      "miles": 6000,
+      "checked_at": "2026-11-24T21:43:37+09:00",
+      "source": "calendar",
+      "first_seen": "2026-11-24T21:43:37+09:00"
+     }
+    },
+    "2027-02-25": {
+     "economy": {
+      "miles": 6000,
+      "checked_at": "2026-11-24T21:43:37+09:00",
+      "source": "calendar",
+      "first_seen": "2026-11-24T21:43:37+09:00"
+     }
+    },
+    "2027-02-26": {
+     "economy": {
+      "miles": 6000,
+      "checked_at": "2026-11-24T21:43:37+09:00",
+      "source": "calendar",
+      "first_seen": "2026-11-24T21:43:37+09:00"
+     }
+    },
+    "2027-02-27": {
+     "economy": {
+      "miles": null,
+      "checked_at": "2026-11-24T21:43:37+09:00",
+      "source": "calendar"
+     }
+    },
+    "2027-02-28": {
+     "economy": {
+      "miles": null,
+      "checked_at": "2026-11-24T21:43:37+09:00",
+      "source": "calendar"
+     }
+    }
+   }
   },
   "back": {
    "from": "OSA",
    "to": "SEL",
-   "days": {}
+   "days": {
+    "2027-02-01": {
+     "economy": {
+      "miles": null,
+      "checked_at": "2026-11-24T21:54:58+09:00",
+      "source": "calendar"
+     }
+    },
+    "2027-02-02": {
+     "economy": {
+      "miles": 15500,
+      "checked_at": "2026-11-24T21:54:58+09:00",
+      "source": "calendar",
+      "first_seen": "2026-11-24T21:54:58+09:00"
+     }
+    },
+    "2027-02-03": {
+     "economy": {
+      "miles": 6500,
+      "checked_at": "2026-11-24T21:54:58+09:00",
+      "source": "calendar",
+      "first_seen": "2026-11-24T21:54:58+09:00"
+     }
+    },
+    "2027-02-04": {
+     "economy": {
+      "miles": null,
+      "checked_at": "2026-11-24T21:54:58+09:00",
+      "source": "calendar"
+     }
+    },
+    "2027-02-05": {
+     "economy": {
+      "miles": null,
+      "checked_at": "2026-11-24T21:54:58+09:00",
+      "source": "calendar"
+     }
+    },
+    "2027-02-06": {
+     "economy": {
+      "miles": null,
+      "checked_at": "2026-11-24T21:54:58+09:00",
+      "source": "calendar"
+     }
+    },
+    "2027-02-07": {
+     "economy": {
+      "miles": null,
+      "checked_at": "2026-11-24T21:54:58+09:00",
+      "source": "calendar"
+     }
+    },
+    "2027-02-08": {
+     "economy": {
+      "miles": null,
+      "checked_at": "2026-11-24T21:54:58+09:00",
+      "source": "calendar"
+     }
+    },
+    "2027-02-09": {
+     "economy": {
+      "miles": null,
+      "checked_at": "2026-11-24T21:54:58+09:00",
+      "source": "calendar"
+     }
+    },
+    "2027-02-10": {
+     "economy": {
+      "miles": null,
+      "checked_at": "2026-11-24T21:54:58+09:00",
+      "source": "calendar"
+     }
+    },
+    "2027-02-11": {
+     "economy": {
+      "miles": null,
+      "checked_at": "2026-11-24T21:54:58+09:00",
+      "source": "calendar"
+     }
+    },
+    "2027-02-12": {
+     "economy": {
+      "miles": null,
+      "checked_at": "2026-11-24T21:54:58+09:00",
+      "source": "calendar"
+     }
+    },
+    "2027-02-13": {
+     "economy": {
+      "miles": null,
+      "checked_at": "2026-11-24T21:54:58+09:00",
+      "source": "calendar"
+     }
+    },
+    "2027-02-14": {
+     "economy": {
+      "miles": null,
+      "checked_at": "2026-11-24T21:54:58+09:00",
+      "source": "calendar"
+     }
+    },
+    "2027-02-15": {
+     "economy": {
+      "miles": 6500,
+      "checked_at": "2026-11-24T21:54:58+09:00",
+      "source": "calendar",
+      "first_seen": "2026-11-24T21:54:58+09:00"
+     }
+    },
+    "2027-02-16": {
+     "economy": {
+      "miles": 6000,
+      "checked_at": "2026-11-24T21:54:58+09:00",
+      "source": "calendar",
+      "first_seen": "2026-11-24T21:54:58+09:00"
+     }
+    },
+    "2027-02-17": {
+     "economy": {
+      "miles": 6000,
+      "checked_at": "2026-11-24T21:54:58+09:00",
+      "source": "calendar",
+      "first_seen": "2026-11-24T21:54:58+09:00"
+     }
+    },
+    "2027-02-18": {
+     "economy": {
+      "miles": 6500,
+      "checked_at": "2026-11-24T21:54:58+09:00",
+      "source": "calendar",
+      "first_seen": "2026-11-24T21:54:58+09:00"
+     }
+    },
+    "2027-02-19": {
+     "economy": {
+      "miles": 15500,
+      "checked_at": "2026-11-24T21:54:58+09:00",
+      "source": "calendar",
+      "first_seen": "2026-11-24T21:54:58+09:00"
+     }
+    },
+    "2027-02-20": {
+     "economy": {
+      "miles": null,
+      "checked_at": "2026-11-24T21:54:58+09:00",
+      "source": "calendar"
+     }
+    },
+    "2027-02-21": {
+     "economy": {
+      "miles": null,
+      "checked_at": "2026-11-24T21:54:58+09:00",
+      "source": "calendar"
+     }
+    },
+    "2027-02-22": {
+     "economy": {
+      "miles": 6500,
+      "checked_at": "2026-11-24T21:54:58+09:00",
+      "source": "calendar",
+      "first_seen": "2026-11-24T21:54:58+09:00"
+     }
+    },
+    "2027-02-23": {
+     "economy": {
+      "miles": 15500,
+      "checked_at": "2026-11-24T21:54:58+09:00",
+      "source": "calendar",
+      "first_seen": "2026-11-24T21:54:58+09:00"
+     }
+    },
+    "2027-02-24": {
+     "economy": {
+      "miles": 6000,
+      "checked_at": "2026-11-24T21:54:58+09:00",
+      "source": "calendar",
+      "first_seen": "2026-11-24T21:54:58+09:00"
+     }
+    },
+    "2027-02-25": {
+     "economy": {
+      "miles": 6500,
+      "checked_at": "2026-11-24T21:54:58+09:00",
+      "source": "calendar",
+      "first_seen": "2026-11-24T21:54:58+09:00"
+     }
+    },
+    "2027-02-26": {
+     "economy": {
+      "miles": 15500,
+      "checked_at": "2026-11-24T21:54:58+09:00",
+      "source": "calendar",
+      "first_seen": "2026-11-24T21:54:58+09:00"
+     }
+    },
+    "2027-02-27": {
+     "economy": {
+      "miles": null,
+      "checked_at": "2026-11-24T21:54:58+09:00",
+      "source": "calendar"
+     }
+    },
+    "2027-02-28": {
+     "economy": {
+      "miles": null,
+      "checked_at": "2026-11-24T21:54:58+09:00",
+      "source": "calendar"
+     }
+    }
+   }
   }
  }
 }

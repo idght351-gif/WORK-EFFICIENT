@@ -1,6 +1,6 @@
 {
  "sample": false,
- "updated_at": "2026-11-24T20:41:28+09:00",
+ "updated_at": "2026-11-24T21:55:04+09:00",
  "settings": {
   "max_searches_per_run": 8,
   "max_details_per_route": 3,
@@ -21,12 +21,12 @@
   }
  },
  "runner": {
-  "status": "challenge",
-  "last_run_at": "2026-11-24T20:27:44+09:00",
+  "status": "ok",
+  "last_run_at": "2026-11-24T21:55:04+09:00",
   "next_run_at": null,
-  "message": "SEL→OSA 2월 캘린더가 비어 홈으로 다시 가자 오류 페이지 2번, 이후 사용자 크롬도 에어프랑스 접속이 막힘 (일시 차단 추정). 로그인도 풀림",
-  "searches": 0,
-  "max_searches": 40
+  "message": null,
+  "searches": 8,
+  "max_searches": 8
  },
  "routes": [
   {
@@ -106,30 +106,30 @@
    "summary": {
     "out": {
      "economy": {
-      "min": null,
-      "min_date": null,
+      "min": 6000,
+      "min_date": "2027-02-02",
       "hit": 0,
-      "avail": 0,
-      "checked": 0,
-      "fresh": 0
+      "avail": 16,
+      "checked": 28,
+      "fresh": 16
      },
      "business": {
-      "min": null,
-      "min_date": null,
+      "min": 15500,
+      "min_date": "2027-02-02",
       "hit": 0,
-      "avail": 0,
-      "checked": 0,
-      "fresh": 0
+      "avail": 3,
+      "checked": 3,
+      "fresh": 3
      }
     },
     "back": {
      "economy": {
-      "min": null,
-      "min_date": null,
+      "min": 6000,
+      "min_date": "2027-02-16",
       "hit": 0,
-      "avail": 0,
-      "checked": 0,
-      "fresh": 0
+      "avail": 12,
+      "checked": 28,
+      "fresh": 12
      },
      "business": {
       "min": null,
@@ -141,7 +141,7 @@
      }
     }
    },
-   "last_checked_at": null
+   "last_checked_at": "2026-11-24T21:54:58+09:00"
   }
  ]
 }
