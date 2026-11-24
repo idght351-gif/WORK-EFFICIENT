@@ -191,5 +191,45 @@ class FinishAndMail(Base):
         self.assertIn("처음 조회", out)
 
 
+class CityCodesNoTarget(Base):
+    """SEL · TYO 같은 도시 코드, 목표 마일 없음, 직항 · 경유 모두."""
+    def setUp(self):
+        super().setUp()
+        self.route = {"id": "sel-tyo-20270201", "name": "서울 → 도쿄", "from": "SEL", "to": "TYO",
+                      "start": "2027-02-01", "end": "2027-02-28", "return_start": "2027-02-01", "return_end": "2027-02-28",
+                      "cabins": ["economy", "business"], "target_miles": None, "nonstop": False, "adults": 1, "active": True}
+        self.write_routes([self.route], max_details_per_route=3)
+        award.start(self.P)
+
+    def test_plan_shows_city_codes_and_stops(self):
+        s, routes = award.load_config(self.P)
+        planned, _ = award.make_plan(self.P, s, routes)
+        self.assertEqual(len(planned), 4)  # 2월 × 2등급 × 가는/오는 편
+        self.assertEqual((planned[0]["from"], planned[0]["to"], planned[0]["nonstop"]), ("SEL", "TYO", False))
+        self.assertEqual({(x["from"], x["to"]) for x in planned}, {("SEL", "TYO"), ("TYO", "SEL")})
+
+    def test_no_target_suggests_cheapest_days_and_no_alerts(self):
+        out = award.save_items(self.P, {"route_id": "sel-tyo-20270201", "direction": "out", "cabin": "economy",
+                                        "days": {"2027-02-03": 12500, "2027-02-04": 10000, "2027-02-05": 10000, "2027-02-06": None}})
+        text = "\n".join(out)
+        self.assertIn("상세 확인 추천 (남은 3개): 2/4(목), 2/5(금)", text)
+        run = json.loads(self.P.alerts.read_text(encoding="utf-8"))
+        self.assertEqual(run["alerts"], [])  # 목표가 없으면 알림 없음
+        s = self.index()["routes"][0]["summary"]["out"]["economy"]
+        self.assertEqual((s["min"], s["min_date"], s["hit"], s["avail"]), (10000, "2027-02-04", 0, 3))
+
+    def test_connecting_flight_details(self):
+        award.save_items(self.P, {"route_id": "sel-tyo-20270201", "direction": "out", "cabin": "economy", "source": "detail",
+                                  "days": {"2027-02-04": {"tax": 61200, "flights": [
+                                      {"no": "KE2101", "from": "gmp", "to": "hnd", "dep": "08:10", "arr": "10:20", "stops": 0, "miles": 10000},
+                                      {"no": "MU5042", "from": "ICN", "to": "NRT", "dep": "09:00", "arr": "16:30", "stops": 1, "via": "PVG", "miles": 15000},
+                                  ]}}})
+        e = self.doc("sel-tyo-20270201")["directions"]["out"]["days"]["2027-02-04"]["economy"]
+        self.assertEqual(e["miles"], 10000)
+        self.assertEqual((e["flights"][0]["from"], e["flights"][0]["to"], e["flights"][0]["stops"]), ("GMP", "HND", 0))
+        self.assertEqual((e["flights"][1]["stops"], e["flights"][1]["via"]), (1, "PVG"))
+        self.assertEqual(e["tax"], {"amount": 61200, "currency": "KRW"})
+
+
 if __name__ == "__main__":
     unittest.main()

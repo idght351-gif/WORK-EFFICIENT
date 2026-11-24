@@ -25,160 +25,123 @@
   "last_run_at": "2026-11-24T05:42:10+09:00",
   "next_run_at": null,
   "message": null,
-  "searches": 14,
+  "searches": 8,
   "max_searches": 40
  },
  "routes": [
   {
-   "id": "icn-nrt-20270620",
-   "name": "인천 → 도쿄 나리타",
-   "from": "ICN",
-   "to": "NRT",
-   "start": "2027-06-20",
-   "end": "2027-07-10",
-   "return_start": "2027-06-25",
-   "return_end": "2027-07-15",
+   "id": "sel-tyo-20270201",
+   "name": "서울 → 도쿄",
+   "from": "SEL",
+   "to": "TYO",
+   "start": "2027-02-01",
+   "end": "2027-02-28",
+   "return_start": "2027-02-01",
+   "return_end": "2027-02-28",
    "cabins": [
     "economy",
     "business"
    ],
-   "target_miles": {
-    "economy": 15000,
-    "business": 35000
+   "target_miles": null,
+   "nonstop": false,
+   "adults": 1,
+   "active": true,
+   "summary": {
+    "out": {
+     "economy": {
+      "min": 10000,
+      "min_date": "2027-02-04",
+      "hit": 0,
+      "avail": 21,
+      "checked": 25,
+      "fresh": 12
+     },
+     "business": {
+      "min": 25000,
+      "min_date": "2027-02-08",
+      "hit": 0,
+      "avail": 17,
+      "checked": 25,
+      "fresh": 10
+     }
+    },
+    "back": {
+     "economy": {
+      "min": 10000,
+      "min_date": "2027-02-03",
+      "hit": 0,
+      "avail": 21,
+      "checked": 25,
+      "fresh": 8
+     },
+     "business": {
+      "min": 25000,
+      "min_date": "2027-02-12",
+      "hit": 0,
+      "avail": 13,
+      "checked": 25,
+      "fresh": 6
+     }
+    }
    },
-   "nonstop": true,
+   "last_checked_at": "2026-11-24T05:34:10+09:00"
+  },
+  {
+   "id": "sel-osa-20270201",
+   "name": "서울 → 오사카·고베",
+   "from": "SEL",
+   "to": "OSA",
+   "start": "2027-02-01",
+   "end": "2027-02-28",
+   "return_start": "2027-02-01",
+   "return_end": "2027-02-28",
+   "cabins": [
+    "economy",
+    "business"
+   ],
+   "target_miles": null,
+   "nonstop": false,
    "adults": 1,
    "active": true,
    "summary": {
     "out": {
      "economy": {
       "min": 12500,
-      "min_date": "2027-06-20",
-      "hit": 5,
-      "avail": 16,
-      "checked": 21,
-      "fresh": 4
+      "min_date": "2027-02-07",
+      "hit": 0,
+      "avail": 24,
+      "checked": 25,
+      "fresh": 12
      },
      "business": {
-      "min": 30000,
-      "min_date": "2027-06-20",
-      "hit": 5,
-      "avail": 14,
-      "checked": 21,
-      "fresh": 4
+      "min": 25000,
+      "min_date": "2027-02-04",
+      "hit": 0,
+      "avail": 16,
+      "checked": 25,
+      "fresh": 7
      }
     },
     "back": {
      "economy": {
-      "min": 12500,
-      "min_date": "2027-06-30",
-      "hit": 6,
+      "min": 10000,
+      "min_date": "2027-02-12",
+      "hit": 0,
+      "avail": 20,
+      "checked": 25,
+      "fresh": 10
+     },
+     "business": {
+      "min": 25000,
+      "min_date": "2027-02-02",
+      "hit": 0,
       "avail": 18,
-      "checked": 21,
-      "fresh": 4
-     },
-     "business": {
-      "min": 30000,
-      "min_date": "2027-07-01",
-      "hit": 4,
-      "avail": 11,
-      "checked": 21,
-      "fresh": 4
+      "checked": 25,
+      "fresh": 11
      }
     }
    },
-   "last_checked_at": "2026-11-24T05:40:10+09:00"
-  },
-  {
-   "id": "gmp-hnd-20270110",
-   "name": "김포 → 도쿄 하네다",
-   "from": "GMP",
-   "to": "HND",
-   "start": "2027-01-10",
-   "end": "2027-02-07",
-   "return_start": null,
-   "return_end": null,
-   "cabins": [
-    "economy"
-   ],
-   "target_miles": {
-    "economy": 12500
-   },
-   "nonstop": true,
-   "adults": 1,
-   "active": true,
-   "summary": {
-    "out": {
-     "economy": {
-      "min": 12500,
-      "min_date": "2027-01-18",
-      "hit": 3,
-      "avail": 16,
-      "checked": 26,
-      "fresh": 1
-     }
-    }
-   },
-   "last_checked_at": "2026-11-24T05:38:10+09:00"
-  },
-  {
-   "id": "icn-cts-20270625",
-   "name": "인천 → 삿포로",
-   "from": "ICN",
-   "to": "CTS",
-   "start": "2027-06-25",
-   "end": "2027-07-05",
-   "return_start": "2027-07-01",
-   "return_end": "2027-07-10",
-   "cabins": [
-    "economy",
-    "business"
-   ],
-   "target_miles": {
-    "economy": 17500
-   },
-   "nonstop": true,
-   "adults": 1,
-   "active": false,
-   "summary": {
-    "out": {
-     "economy": {
-      "min": 12500,
-      "min_date": "2027-07-02",
-      "hit": 3,
-      "avail": 7,
-      "checked": 11,
-      "fresh": 3
-     },
-     "business": {
-      "min": 30000,
-      "min_date": "2027-06-28",
-      "hit": 0,
-      "avail": 6,
-      "checked": 11,
-      "fresh": 3
-     }
-    },
-    "back": {
-     "economy": {
-      "min": 12500,
-      "min_date": "2027-07-09",
-      "hit": 3,
-      "avail": 8,
-      "checked": 10,
-      "fresh": 2
-     },
-     "business": {
-      "min": 30000,
-      "min_date": "2027-07-04",
-      "hit": 0,
-      "avail": 8,
-      "checked": 10,
-      "fresh": 3
-     }
-    }
-   },
-   "last_checked_at": "2026-11-15T05:42:10+09:00"
+   "last_checked_at": "2026-11-24T05:41:10+09:00"
   }
  ]
 }

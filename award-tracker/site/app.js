@@ -8,21 +8,20 @@ const CABIN = { economy: "이코노미", business: "비즈니스" };
 const CABIN_ORDER = ["economy", "business"];
 
 // ------------------------------------------------------------ 한일 노선 목록
-// 대한항공, 그리고 12/17부터 대한항공 편명으로 바뀌는 (구)아시아나 직항 기준이에요.
-// 시즌·감편으로 바뀔 수 있어서, 실제로 운항하지 않는 노선은 조회하면 '좌석 없음'으로만 나와요.
+// 서울 SEL(인천·김포) · 도쿄 TYO(나리타·하네다) · 오사카 OSA(간사이·이타미·고베)는 도시 코드로 공항을 한꺼번에 검색해요.
+// 대한항공, 그리고 12/17부터 대한항공 편명으로 바뀌는 (구)아시아나 기준이에요. 시즌·감편으로 바뀔 수 있어요.
 const AIRPORT = {
+  SEL: "서울", TYO: "도쿄", OSA: "오사카·고베",
   ICN: "인천", GMP: "김포", PUS: "부산",
-  NRT: "도쿄 나리타", HND: "도쿄 하네다", KIX: "오사카 간사이", NGO: "나고야", FUK: "후쿠오카",
+  NRT: "도쿄 나리타", HND: "도쿄 하네다", KIX: "오사카 간사이", ITM: "오사카 이타미", UKB: "고베", NGO: "나고야", FUK: "후쿠오카",
   CTS: "삿포로", OKA: "오키나와", KOJ: "가고시마", KMJ: "구마모토", NGS: "나가사키", OIT: "오이타",
   KMQ: "고마쓰", KIJ: "니가타", SDJ: "센다이", OKJ: "오카야마", AOJ: "아오모리", HIJ: "히로시마",
 };
-const KR = ["ICN", "GMP", "PUS"];
 const CATALOG = {
-  ICN: ["NRT", "KIX", "NGO", "FUK", "CTS", "OKA", "KOJ", "KMJ", "NGS", "OIT", "KMQ", "KIJ", "SDJ", "OKJ", "AOJ", "HIJ"],
-  GMP: ["HND", "KIX"],
-  PUS: ["NRT", "KIX", "FUK", "CTS"],
+  SEL: ["TYO", "OSA", "NGO", "FUK", "CTS", "OKA", "KOJ", "KMJ", "NGS", "OIT", "KMQ", "KIJ", "SDJ", "OKJ", "AOJ", "HIJ"],
+  PUS: ["TYO", "OSA", "FUK", "CTS"],
 };
-const SEASONAL = new Set(["ICN-NGS", "ICN-OIT", "ICN-KIJ", "ICN-OKJ", "ICN-AOJ", "ICN-HIJ", "PUS-KIX", "PUS-FUK", "PUS-CTS"]);
+const SEASONAL = new Set(["SEL-NGS", "SEL-OIT", "SEL-KIJ", "SEL-OKJ", "SEL-AOJ", "SEL-HIJ", "PUS-OSA", "PUS-FUK", "PUS-CTS"]);
 const cityName = (code) => AIRPORT[code] || code;
 const routeTitle = (from, to) => `${cityName(from)} → ${cityName(to)}`;
 const inCatalog = (k, j) => !!(CATALOG[k] && CATALOG[k].includes(j));
@@ -104,7 +103,8 @@ function monthHTML(days, cabin, y, m, a, b, target, selected, ref, min) {
     const iso = isoOf(new Date(y, m, d));
     if (iso < a || iso > b) { cells += `<div class="day out" aria-hidden="true"><span class="d">${d}</span></div>`; continue; }
     const e = days[iso] ? days[iso][cabin] : undefined;
-    const st = dayState(e, target);
+    let st = dayState(e, target);
+    if (!target && st === "avail" && e.miles === min) st = "hit";   // 목표가 없으면 기간 최저 = 초록
     const label = st === "unk" ? "" : st === "none" ? "–" : kMiles(e.miles);
     const aria = `${m + 1}월 ${d}일 ${st === "unk" ? "조회 전" : st === "none" ? "좌석 없음" : `${num(e.miles)}마일`}`;
     const isMin = (st === "hit" || st === "avail") && e.miles === min;
@@ -113,15 +113,20 @@ function monthHTML(days, cabin, y, m, a, b, target, selected, ref, min) {
   return `<div class="cal-grid">${cells}</div>`;
 }
 
+function stopsText(f) {
+  if (f.stops == null) return "";
+  return f.stops === 0 ? "직항" : `${f.stops}회 경유${f.via ? ` (${esc(f.via)})` : ""}`;
+}
+
 function flightsHTML(fs) {
   if (!fs || !fs.length) return "";
   return `
     <table class="flights">
-      <thead><tr><th>편명</th><th>출발–도착</th><th class="r">마일 · 추가 비용</th></tr></thead>
+      <thead><tr><th>편명</th><th>출발–도착</th><th class="r">마일 · 세금</th></tr></thead>
       <tbody>${fs.map((f) => `
         <tr>
           <td><b>${esc(f.no)}</b>${f.operated_by ? `<div class="sub">${esc(f.operated_by)} 운항</div>` : ""}</td>
-          <td class="num">${esc(f.dep || "")}–${esc(f.arr || "")}</td>
+          <td class="num">${esc(f.dep || "")}–${esc(f.arr || "")}<div class="sub">${[f.from && f.to ? `${esc(f.from)}→${esc(f.to)}` : "", stopsText(f)].filter(Boolean).join(" · ")}</div></td>
           <td class="r num">${f.miles != null ? num(f.miles) : "-"}${money(f.tax) ? `<div class="sub">${money(f.tax)}</div>` : ""}</td>
         </tr>`).join("")}
       </tbody>
@@ -258,7 +263,7 @@ async function renderMain(want) {
     document.getElementById("next").disabled = i >= list.length - 1;
     document.getElementById("cal").innerHTML = monthHTML(days, st.cabin, y, m - 1, a, b, t, st.day, doc.updated_at, min);
     document.getElementById("legend").innerHTML =
-      (t ? `<span><i class="hit"></i>${num(t)} 이하</span><span><i class="avail"></i>${num(t)} 초과</span>` : `<span><i class="avail"></i>좌석 있음</span>`)
+      (t ? `<span><i class="hit"></i>${num(t)} 이하</span><span><i class="avail"></i>${num(t)} 초과</span>` : `<span><i class="hit"></i>기간 최저</span><span><i class="avail"></i>좌석 있음</span>`)
       + `<span>– 좌석 없음</span><span><i class="unk"></i>조회 전</span><span><i class="dot"></i> 새로 열림</span>`;
     document.getElementById("daybox").innerHTML = st.day
       ? dayHTML(st.day, st.cabin, days[st.day] ? days[st.day][st.cabin] : undefined, t, back ? r.to : r.from, back ? r.from : r.to, doc.updated_at)
@@ -302,7 +307,7 @@ function repoInfo() {
 }
 
 function pairOptions(sel) {
-  const groups = { ICN: "인천 출발 · 도착", GMP: "김포 출발 · 도착", PUS: "부산 출발 · 도착" };
+  const groups = { SEL: "서울(인천·김포) 출발 · 도착", PUS: "부산 출발 · 도착" };
   return Object.entries(CATALOG).map(([k, list]) => `
     <optgroup label="${groups[k]}">${list.map((j) => {
       const v = `${k}-${j}`;
@@ -330,7 +335,7 @@ async function renderAdd(edit) {
   const editUrl = info ? `https://github.com/${info.owner}/${info.repo}/edit/main/award-tracker/routes.json` : null;
   const e = edit || {};
 
-  let pair = "ICN-NRT", dir = "kr";
+  let pair = "SEL-TYO", dir = "kr";
   if (e.from) {
     if (inCatalog(e.from, e.to)) pair = `${e.from}-${e.to}`;
     else if (inCatalog(e.to, e.from)) { pair = `${e.to}-${e.from}`; dir = "jp"; }
@@ -343,15 +348,15 @@ async function renderAdd(edit) {
     <a class="back" href="${edit ? `#r/${esc(encodeURIComponent(edit.id))}` : "#"}">‹ 달력</a>
     <section class="card">
       <h3 class="section-title">${edit ? "추적 조건 바꾸기" : "노선 추가하기"}</h3>
-      <p class="muted small" style="margin-top:-6px">입력하면 아래에 routes.json 에 넣을 내용이 만들어져요. 대한항공 · (구)아시아나 한일 직항, 1인 기준이에요.</p>
+      <p class="muted small" style="margin-top:-6px">입력하면 아래에 routes.json 에 넣을 내용이 만들어져요. 서울 · 도쿄 · 오사카는 도시 코드(SEL · TYO · OSA)로 모든 공항을 함께 검색하고, 1인 기준이에요.</p>
       <form id="f" class="form" onsubmit="return false">
         <label class="full">노선<select name="pair">${pairOptions(pair)}</select></label>
         <div class="full seg" id="dirseg" role="group" aria-label="방향">
           <button type="button" data-dir="kr">한국 → 일본</button>
           <button type="button" data-dir="jp">일본 → 한국</button>
         </div>
-        <label class="custom">출발 공항<input name="from" maxlength="3" value="${esc(pair === "custom" ? e.from : "")}" placeholder="ICN"></label>
-        <label class="custom">도착 공항<input name="to" maxlength="3" value="${esc(pair === "custom" ? e.to : "")}" placeholder="NRT"></label>
+        <label class="custom">출발 (공항·도시 코드)<input name="from" maxlength="3" value="${esc(pair === "custom" ? e.from : "")}" placeholder="SEL"></label>
+        <label class="custom">도착 (공항·도시 코드)<input name="to" maxlength="3" value="${esc(pair === "custom" ? e.to : "")}" placeholder="TYO"></label>
         <label class="full">이름 (비워 두면 자동)<input name="name" value="${esc(e.name && e.name !== routeTitle(e.from, e.to) ? e.name : "")}"></label>
 
         <div class="form-sub">가는 편 출발 기간</div>
@@ -366,7 +371,8 @@ async function renderAdd(edit) {
         <label>이코노미 목표<input type="number" name="t_economy" min="0" step="500" inputmode="numeric" placeholder="예: 15000" value="${esc(t.economy || "")}"></label>
         <label class="check"><input type="checkbox" name="c_business"${cabins.includes("business") ? " checked" : ""}> 비즈니스</label>
         <label>비즈니스 목표<input type="number" name="t_business" min="0" step="500" inputmode="numeric" placeholder="예: 30000" value="${esc(t.business || "")}"></label>
-        <label class="full check"><input type="checkbox" name="active"${e.active === false ? "" : " checked"}> 매일 조회하기 (끄면 일시 중지)</label>
+        <label class="full check"><input type="checkbox" name="nonstop"${e.nonstop === true ? " checked" : ""}> 직항만 (끄면 직항 · 경유 모두)</label>
+        <label class="full check"><input type="checkbox" name="active"${e.active === false ? "" : " checked"}> 조회하기 (끄면 일시 중지)</label>
       </form>
       <div class="estimate" id="est"></div>
       <p class="warn-text" id="warn" hidden></p>
@@ -413,7 +419,7 @@ async function renderAdd(edit) {
       return_end: hasReturn ? v.return_end || null : null,
       cabins: cab,
       target_miles: Object.keys(targets).length ? targets : null,
-      nonstop: true,
+      nonstop: f.nonstop.checked,
       adults: 1,
       active: f.active.checked,
     };

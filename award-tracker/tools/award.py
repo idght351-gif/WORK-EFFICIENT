@@ -299,7 +299,7 @@ def make_plan(P: Paths, settings: dict, routes: list):
                     items.append({
                         "route_id": r["id"], "name": r.get("name") or f"{r['from']} → {r['to']}",
                         "direction": key, "from": f, "to": t, "cabin": c, "month": m,
-                        "period": [lo, hi], "_last": last, "_order": order,
+                        "period": [lo, hi], "nonstop": bool(r.get("nonstop")), "_last": last, "_order": order,
                     })
     items.sort(key=lambda x: (x["_last"], x["_order"]))
     for x in items:
@@ -323,7 +323,7 @@ def print_plan(settings: dict, planned: list, postponed: list) -> None:
     print(f"이번 조회: 캘린더 검색 {len(planned)}회 · 예상 약 {minutes_estimate(settings, len(planned))}분 (상세 확인 제외)")
     for i, x in enumerate(planned, 1):
         seen = f"마지막 확인 {x['last_checked'][5:16].replace('T', ' ')}" if x["last_checked"] else "처음"
-        print(f"{i:>2}. {x['from']}→{x['to']} {CABINS[x['cabin']]} {x['month']}  "
+        print(f"{i:>2}. {x['from']}→{x['to']} {CABINS[x['cabin']]} {x['month']} {'직항만' if x['nonstop'] else '직항·경유 모두'}  "
               f"[{x['route_id']} · {DIRS[x['direction']]} · 기간 {x['period'][0]}~{x['period'][1]} · {seen}]")
     if postponed:
         print(f"한 번에 최대 {settings['max_searches_per_run']}회라서 {len(postponed)}개는 다음 조회로 미뤄요 (오래된 것부터 먼저 해요).")
@@ -333,7 +333,9 @@ def print_plan(settings: dict, planned: list, postponed: list) -> None:
 def clean_flight(f: dict) -> dict:
     out = {
         "no": str(f.get("no") or f.get("flight") or "").replace(" ", "").upper() or None,
+        "from": (f.get("from") or "").upper() or None, "to": (f.get("to") or "").upper() or None,
         "dep": f.get("dep"), "arr": f.get("arr"),
+        "stops": to_int(f.get("stops")), "via": f.get("via") or None,
         "miles": to_int(f.get("miles")), "tax": money(f.get("tax")),
         "operated_by": f.get("operated_by"),
     }
@@ -473,17 +475,23 @@ def save_items(P: Paths, items) -> list[str]:
             line += f" · 기간 밖 {len(res['skipped'])}일은 건너뜀"
         reports.append(line)
 
-        if source == "calendar" and target:
+        if source == "calendar" and found:
             used = run.get("details", {}).get(r["id"], 0) if running else 0
             left = max(0, settings["max_details_per_route"] - used)
             new_dates = {al["date"] for al in res["alerts"]}
-            cands = [d for d in found if days[d][cabin]["miles"] <= target
-                     and (d in new_dates or not days[d][cabin].get("tax"))]
+            if target:
+                # 목표 이하인 날 중 새로 열렸거나 세금을 아직 모르는 날
+                cands = [d for d in found if days[d][cabin]["miles"] <= target
+                         and (d in new_dates or not days[d][cabin].get("tax"))]
+            else:
+                # 목표가 없으면: 이번에 본 날 중 마일이 가장 적은 날 (세금을 아직 모르는 날)
+                low = min(days[d][cabin]["miles"] for d in found)
+                cands = [d for d in found if days[d][cabin]["miles"] == low and not days[d][cabin].get("tax")]
             cands.sort(key=lambda d: (d not in new_dates, days[d][cabin]["miles"], d))
             if cands and left:
                 reports.append(f"  → 상세 확인 추천 (남은 {left}개): " + ", ".join(md(d) for d in cands[:left]))
             elif cands:
-                reports.append("  → 목표 이하 날짜가 있지만 이 노선의 상세 확인 횟수를 다 썼어요 (다음 조회 때 확인)")
+                reports.append("  → 상세 확인할 날짜가 있지만 이 노선의 상세 확인 횟수를 다 썼어요 (다음 조회 때 확인)")
 
     for doc in docs.values():
         write_json(P.route_file(doc["route"]["id"]), doc)
