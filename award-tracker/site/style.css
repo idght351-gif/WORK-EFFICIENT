@@ -155,6 +155,7 @@ a { color: inherit; text-decoration: none; }
 .day.avail { background: var(--chip); }
 .day.hit { background: var(--good-bg); }
 .day.hit .m, .day.hit .d { color: var(--good-fg); }
+.day.red .d { color: var(--up); }
 .day.min .m::after { content: "최저"; display: block; font-size: 9px; font-weight: 700; letter-spacing: 0; }
 .day[aria-pressed="true"] { box-shadow: inset 0 0 0 2px var(--accent); }
 .day:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }

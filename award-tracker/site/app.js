@@ -125,7 +125,9 @@ function monthHTML(days, cabin, y, m, a, b, target, selected, ref, min) {
   cells += `<div aria-hidden="true"></div>`.repeat(first.getDay());
   for (let d = 1; d <= last; d++) {
     const iso = isoOf(new Date(y, m, d));
-    if (iso < a || iso > b) { cells += `<div class="day out" aria-hidden="true"><span class="d">${d}</span></div>`; continue; }
+    // 일요일 · 공휴일은 날짜 숫자를 빨간색으로 (토요일은 그대로)
+    const red = new Date(y, m, d).getDay() === 0 || KR_HOLIDAYS.has(iso) ? " red" : "";
+    if (iso < a || iso > b) { cells += `<div class="day out${red}" aria-hidden="true"><span class="d">${d}</span></div>`; continue; }
     const e = days[iso] ? days[iso][cabin] : undefined;
     let st = dayState(e, target);
     // 목표가 없으면 기간 최저 + LOW_PCT% 이내 = 초록 ("최저" 글자는 진짜 최저에만)
@@ -133,9 +135,9 @@ function monthHTML(days, cabin, y, m, a, b, target, selected, ref, min) {
     const label = st === "unk" ? "" : st === "none" ? "–" : kMiles(e.miles);
     const ds = detailState(e);
     const dsText = ds === "done" ? ", 상세 확인" : ds === "part" ? ", 상세 일부 확인" : "";
-    const aria = `${m + 1}월 ${d}일 ${st === "unk" ? "조회 전" : st === "none" ? "좌석 없음" : `${num(e.miles)}마일${dsText}`}`;
+    const aria = `${m + 1}월 ${d}일${KR_HOLIDAYS.has(iso) ? " 공휴일" : ""} ${st === "unk" ? "조회 전" : st === "none" ? "좌석 없음" : `${num(e.miles)}마일${dsText}`}`;
     const isMin = (st === "hit" || st === "avail") && e.miles === min;
-    cells += `<button type="button" class="day ${st}${isMin ? " min" : ""}" data-date="${iso}" aria-pressed="${iso === selected}" aria-label="${aria}"><span class="d">${d}</span><span class="m">${label}</span>${ds ? `<i class="ds ${ds}" aria-hidden="true"></i>` : ""}${isFresh(e, ref) ? `<i class="dot"></i>` : ""}</button>`;
+    cells += `<button type="button" class="day ${st}${isMin ? " min" : ""}${red}" data-date="${iso}" aria-pressed="${iso === selected}" aria-label="${aria}"><span class="d">${d}</span><span class="m">${label}</span>${ds ? `<i class="ds ${ds}" aria-hidden="true"></i>` : ""}${isFresh(e, ref) ? `<i class="dot"></i>` : ""}</button>`;
   }
   return `<div class="cal-grid">${cells}</div>`;
 }
