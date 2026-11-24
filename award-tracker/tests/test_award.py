@@ -136,6 +136,12 @@ class Merge(Base):
         award.save_items(self.P, self.cal({"2027-06-20": 17500}))
         self.assertNotIn("tax", self.doc()["directions"]["out"]["days"]["2027-06-20"]["economy"])
 
+    def test_detail_seats_plus(self):
+        award.save_items(self.P, self.cal({"2027-06-20": {"flights": [{"dep": "09:00", "miles": 15000}], "seats": "2+"},
+                                           "2027-06-21": {"flights": [{"dep": "09:00", "miles": 15000}], "seats": 1}}, source="detail"))
+        days = self.doc()["directions"]["out"]["days"]
+        self.assertEqual((days["2027-06-20"]["economy"]["seats"], days["2027-06-21"]["economy"]["seats"]), ("2+", 1))
+
     def test_detail_budget(self):
         award.save_items(self.P, self.cal({"2027-06-20": 15000, "2027-06-21": 12500, "2027-06-22": 15000}, cabin="economy"))
         award.save_items(self.P, self.cal({"2027-06-21": 12500, "2027-06-22": 15000}, source="detail"))

@@ -1,8 +1,8 @@
 {
   "settings": {
-    "airfrance_url": null,
+    "airfrance_url": "https://wwws.airfrance.co.kr/en",
     "max_searches_per_run": 40,
-    "max_details_per_route": 4,
+    "max_details_per_route": 15,
     "wait_seconds": { "click": [8, 15], "search": [20, 35], "between": [40, 80] }
   },
   "routes": [

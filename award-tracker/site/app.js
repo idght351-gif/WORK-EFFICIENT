@@ -153,7 +153,7 @@ function dayHTML(iso, cabin, e, target, from, to, ref) {
         ${target && e.miles <= target ? `<span class="badge good">목표 이하</span>` : ""}
         ${isFresh(e, ref) ? `<span class="badge info">새로 열림</span>` : ""}</div>
       <div class="info-row"><span>추가 비용 (세금·유류할증료)</span><span>${tax ? `<b>${tax}</b>` : `<span class="muted">상세 확인 전</span>`}</span></div>
-      ${e.seats != null ? `<div class="info-row"><span>남은 좌석</span><span>${num(e.seats)}석</span></div>` : ""}
+      ${e.seats != null ? `<div class="info-row"><span>남은 좌석</span><span>${typeof e.seats === "string" ? e.seats : num(e.seats)}석</span></div>` : ""}
       ${change ? `<div class="info-row"><span>지난 조회 대비</span><span>${change}</span></div>` : ""}
       ${e.first_seen ? `<div class="info-row"><span>처음 본 때</span><span>${stamp(e.first_seen)}</span></div>` : ""}
       <div class="info-row"><span>확인</span><span>${e.source === "detail" ? "편 상세까지 확인"

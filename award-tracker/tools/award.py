@@ -376,7 +376,11 @@ def merge_days(days: dict, new_days: dict, cabin: str, source: str, checked: str
                     tax = cheapest.get("tax")
                 if tax:
                     e["tax"] = tax
-                seats = to_int(val.get("seats"))
+                raw_seats = val.get("seats")
+                if isinstance(raw_seats, str) and raw_seats.strip().endswith("+"):
+                    seats = f"{to_int(raw_seats.strip()[:-1])}+"  # "2+" = 1석 경고가 없어 2석 이상
+                else:
+                    seats = to_int(raw_seats)
                 if seats is not None:
                     e["seats"] = seats
                 if flights:
