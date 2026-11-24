@@ -222,11 +222,10 @@ function switcherHTML(current, routes) {
       </button>
       <div class="switch-menu" id="switch-menu" hidden>
         ${list.map((x) => {
-          const sm = x.summary || {}, on = x.id === current.id;
+          const on = x.id === current.id;
           return `<a class="switch-item${on ? " on" : ""}" href="#${esc(encodeURIComponent(x.id))}"${on ? ' aria-current="page"' : ""}>
-            <span><span class="n">${on ? "✓ " : ""}${esc(x.name)}${x.status !== "active" ? ` <span class="badge">${x.status === "ended" ? "종료" : "중지"}</span>` : ""}</span>
-              <span class="m">${routePath(x)} · ${tripLabel(x)}</span></span>
-            <span class="r"><span class="p num">${won(sm.current)}</span><span class="d num">${sm.current != null && sm.prev != null && sm.current !== sm.prev ? deltaHTML(sm.current, sm.prev).replace(/ \(.*?\)/, "") : ""}</span></span>
+            <span class="n">${on ? "✓ " : ""}${esc(x.name)}${x.status !== "active" ? ` <span class="badge">${x.status === "ended" ? "종료" : "중지"}</span>` : ""}</span>
+            <span class="m">${tripLabel(x)}</span>
           </a>`; }).join("")}
         <a class="switch-all" href="#">전체 목록으로 ›</a>
         <a class="switch-all" href="#add">+ 노선 추가하기</a>

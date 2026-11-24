@@ -199,13 +199,10 @@ pre.snippet { background: var(--bg); border-radius: 12px; padding: 12px; font-si
   background: var(--card); border-radius: 16px; padding: 6px; border: 1px solid var(--line);
   box-shadow: 0 12px 32px rgba(0, 0, 0, .16); max-height: 70vh; overflow-y: auto;
 }
-.switch-item { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 11px 12px; border-radius: 11px; }
+.switch-item { display: block; padding: 10px 12px; border-radius: 11px; }
 .switch-item:hover { background: var(--chip); }
 .switch-item.on { background: var(--accent-wash); }
 .switch-item .n { display: block; font-weight: 700; font-size: 14px; }
 .switch-item .m { display: block; font-size: 12px; color: var(--muted); }
-.switch-item .r { text-align: right; }
-.switch-item .p { display: block; font-weight: 800; font-size: 15px; }
-.switch-item .d { display: block; font-size: 12px; }
 .switch-all { display: block; padding: 12px; font-size: 14px; font-weight: 600; color: var(--accent); border-top: 1px solid var(--line); }
 .switch-all + .switch-all { border-top: 0; padding-top: 4px; }
