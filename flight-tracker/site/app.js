@@ -7,10 +7,32 @@ const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "
 const LEVEL = { low: ["good", "Google 기준 싼 편"], typical: ["", "Google 기준 보통"], high: ["bad", "Google 기준 비싼 편"] };
 const DOW = ["일", "월", "화", "수", "목", "금", "토"];
 
+// 여정을 [공항, 비행(날짜), 공항, (육로 등 끊김), 공항 …] 순서로 펼칩니다.
+// withReturn 이면 왕복의 돌아오는 편까지 넣습니다(상세 화면용).
+function pathSteps(r, withReturn = false) {
+  const legs = r.legs && r.legs.length
+    ? r.legs
+    : [{ from: r.from, to: r.to, date: r.date }].concat(withReturn && r.return_date ? [{ from: r.to, to: r.from, date: r.return_date }] : []);
+  const steps = [];
+  legs.forEach((l, i) => {
+    const from = l.from.toUpperCase(), to = l.to.toUpperCase();
+    if (i === 0) steps.push({ code: from });
+    else if (legs[i - 1].to.toUpperCase() !== from) steps.push({ gap: true }, { code: from });
+    steps.push({ date: l.date }, { code: to });
+  });
+  return steps;
+}
+
 function routePath(r) {
-  return r.legs && r.legs.length
-    ? r.legs.map((l) => l.from).concat(r.legs[r.legs.length - 1].to).map((c) => esc(c.toUpperCase())).join(" → ")
-    : `${esc(r.from)} → ${esc(r.to)}`;
+  return pathSteps(r).map((st) => (st.code ? esc(st.code) : st.gap ? "·" : "→")).join(" ");
+}
+
+// 상세 화면: 화살표(비행 구간)마다 아래에 날짜
+function pathWithDatesHTML(r) {
+  return `<div class="leg-path fit-line" data-min="10">${pathSteps(r, true).map((st) =>
+    st.code ? `<span class="lp"><b>${esc(st.code)}</b><i></i></span>`
+    : st.gap ? `<span class="lp gap"><b>·</b><i></i></span>`
+    : `<span class="lp arrow"><b>→</b><i>${md(st.date)}</i></span>`).join("")}</div>`;
 }
 
 // 날짜만: 다구간 "6/26 · 6/29 · 7/3 · 7/3", 왕복 "6/29(화) ~ 7/5", 편도 "6/29(화)"
@@ -49,12 +71,20 @@ function deltaHTML(cur, prev) {
 // 긴 공항 코드 경로를 한 줄로: 넘치면 글자를 조금씩 줄이고(최소 minPx), 그래도 넘치면 … 처리
 function fitOneLine(root = document, minPx = 12) {
   root.querySelectorAll(".fit-line").forEach((el) => {
-    el.style.fontSize = "";
-    let size = parseFloat(getComputedStyle(el).fontSize);
-    while (el.scrollWidth > el.clientWidth && size > minPx) {
-      size -= 0.5;
-      el.style.fontSize = size + "px";
-    }
+    const min = +el.dataset.min || minPx;
+    const shrink = () => {
+      el.style.fontSize = "";
+      let size = parseFloat(getComputedStyle(el).fontSize);
+      while (el.scrollWidth > el.clientWidth && size > min) {
+        size -= 0.5;
+        el.style.fontSize = size + "px";
+      }
+    };
+    // 상세 경로: 아주 좁은 화면에서 그래도 넘치면 D-day 만 다음 줄로 내리고 다시 맞춤
+    const top = el.closest(".hero-top");
+    if (top) top.classList.remove("wrap");
+    shrink();
+    if (top && el.scrollWidth > el.clientWidth) { top.classList.add("wrap"); shrink(); }
   });
 }
 
@@ -297,8 +327,7 @@ async function renderDetail(id) {
   setTopRight(switcherHTML(r, routes));
   $app.innerHTML = `
     <section class="card">
-      <div class="hero-route fit-line">${routePath(r)}</div>
-      <div class="hero-sub">${dateLabel(r)} (${dday(r.date)})</div>
+      <div class="hero-top">${pathWithDatesHTML(r)}<span class="hero-dday">${dday(r.date)}</span></div>
       <div class="hero-price num">${won(s.current)}</div>
       <div class="hero-delta num">${deltaHTML(s.current, s.prev)}${s.prev != null && s.current !== s.prev ? ` <span class="muted small">어제 대비</span>` : ""}</div>
       <div class="badges" style="margin-top:10px">${badges.join("")}</div>
