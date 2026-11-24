@@ -235,6 +235,14 @@ function tripPlans(dirs, r, cabin, nights) {
   return { plans, out, back };
 }
 
+// 그날 최저 마일 편들의 실제 공항 (예: "GMP→KIX · ICN→UKB"). 상세를 안 본 날은 도시 코드만 흐리게.
+function legAirports(e, from, to) {
+  const fs = (e.flights || []).filter((f) => f.from && f.to && f.miles === e.miles);
+  const pairs = [...new Set(fs.map((f) => `${f.from}→${f.to}`))];
+  if (!pairs.length) return `<span class="ap muted" title="상세 확인 전이라 공항을 몰라요">${esc(from)}→${esc(to)}</span>`;
+  return pairs.map((x) => `<span class="ap">${esc(x)}</span>`).join(`<span class="muted"> · </span>`);
+}
+
 function tripHTML(dirs, r, cabin, nights) {
   const { plans, out, back } = tripPlans(dirs, r, cabin, nights);
   const opts = TRIP_NIGHTS.map((n) => `<option value="${n}"${n === nights ? " selected" : ""}>${n}박 ${n + 1}일</option>`).join("");
@@ -252,7 +260,9 @@ function tripHTML(dirs, r, cabin, nights) {
       const tax = [p.eo.tax, p.eb.tax].every((t) => t && t.currency === (p.eo.tax || {}).currency)
         ? money({ amount: p.eo.tax.amount + p.eb.tax.amount, currency: p.eo.tax.currency }) : null;
       return `<li class="trip">
-        <div class="trip-dates"><b>${mdDow(p.go)}</b> ${esc(cityName(r.from))} 출발 <span class="muted">→</span> <b>${mdDow(p.ret)}</b> ${esc(cityName(r.to))} 출발
+        <div class="trip-dates">
+          <div class="leg"><span class="leg-k">가는 편</span><b>${mdDow(p.go)}</b><div class="aps">${legAirports(p.eo, r.from, r.to)}</div></div>
+          <div class="leg"><span class="leg-k">오는 편</span><b>${mdDow(p.ret)}</b><div class="aps">${legAirports(p.eb, r.to, r.from)}</div></div>
           <div class="trip-tag">${tripTag(p)}</div></div>
         <div class="trip-miles"><b class="num">${num(p.total)}</b>마일${p.total === best ? ` <span class="badge good">최저</span>` : ""}
           <div class="sub">${num(p.eo.miles)} + ${num(p.eb.miles)}${tax ? ` · 세금 약 ${tax}` : ""}</div></div>
