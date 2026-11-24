@@ -332,17 +332,10 @@ async function renderDetail(id) {
         : `<div class="info-row"><span>가는 편 출발</span><span>${timeRange(r.depart_after, r.depart_before)}</span></div>`}
       ${r.return_date ? `<div class="info-row"><span>오는 편 출발</span><span>${timeRange(r.return_after, r.return_before)}</span></div>` : ""}
       ${(() => { const p = checkPlan(r, doc.status, doc.schedule_kst); return `
-      <div class="info-row"><span>조회 일정</span><span>${scheduleText(doc.schedule_kst)}<div class="sub muted small">빠지면 07:10 · 07:50 에 다시 시도</div></span></div>
-      <div class="info-row"><span>다음 조회</span><span>${p ? `${planLabel(p.next)}경` : "조회 끝"}</span></div>
-      <div class="info-row"><span>마지막 조회</span><span>${p ? `${planLabel(p.last)} (출발일)` : "-"}</span></div>`; })()}
+      <div class="info-row"><span>다음 조회</span><span>${p ? `${planLabel(p.next)}경` : "조회 끝"}</span></div>`; })()}
       <div class="info-row"><span>인원</span><span>성인 ${r.adults || 1}명</span></div>
-      <div class="info-row"><span>알림 목표가</span><span class="num">${r.alert_below ? won(r.alert_below) + " 이하" : "설정 안 함"}</span></div>
       <div class="info-row"><span>좌석</span><span>${{ economy: "일반석", premium_economy: "프리미엄 일반석", business: "비즈니스", first: "일등석" }[r.travel_class] || "일반석"}</span></div>
       <div class="info-row"><span>경유</span><span>${r.max_stops == null ? "상관없음" : r.max_stops === 0 ? "직항만" : `${r.max_stops}회 이하`}</span></div>
-      ${lastEntry && lastEntry.legs
-        ? lastEntry.legs.map((l, i) => `<div class="info-row"><span>최근 최저가 ${i + 1}구간</span><span>${esc(`${l.airline} ${l.flight_number}`)}</span></div>`).join("")
-        : `<div class="info-row"><span>최근 최저가 가는 편</span><span>${lastEntry ? esc(`${lastEntry.airline} ${lastEntry.flight_number}`) : "-"}</span></div>`}
-      ${lastEntry && lastEntry.return_airline ? `<div class="info-row"><span>최근 최저가 오는 편</span><span>${esc(`${lastEntry.return_airline} ${lastEntry.return_flight_number}`)}</span></div>` : ""}
       <a class="btn secondary" href="#edit/${esc(encodeURIComponent(r.id))}" style="margin-top:14px">조건 바꾸기 (직항 · 시간 · 인원 등)</a>
     </section>`;
 
