@@ -248,7 +248,7 @@ function tripHTML(dirs, r, cabin, nights) {
   if (out.low == null || back.low == null) {
     body = `<p class="muted small">가는 편 · 오는 편이 모두 조회돼야 추천할 수 있어요.</p>`;
   } else if (!plans.length) {
-    body = `<p class="muted small">${nights}박으로 평일 ${TRIP_WEEKDAYS(nights)}일 이하인 일정이 없어요. 상세까지 확인한 날이 늘면 나타나요. 다른 박수도 골라 보세요.</p>`;
+    body = `<p class="muted small">추천 일정이 없습니다.</p>`;
   } else {
     const best = Math.min(...plans.map((p) => p.total));
     const shown = plans.slice(0, TRIP_MAX);
