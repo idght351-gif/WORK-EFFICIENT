@@ -1,6 +1,6 @@
 # 마일 좌석 조회 절차서
 
-> **상태: 가르치기 전** — 아래 ❓ 칸은 사용자와 함께 화면을 보며 채워요. ❓ 가 남아 있는 단계는 혼자 진행하지 말고 사용자에게 물어요.
+> **상태: 일부 가르침 (2026-11-24)** — 남은 ❓: 직항 필터 위치(직항만 노선이 생기면), 다음 달 검색을 2-8 부터만 해도 되는지, 오사카 노선의 상세 기준 마일, 예외 표 일부. ❓ 가 남아 있는 단계는 혼자 진행하지 말고 사용자에게 물어요.
 
 집 PC의 Claude 가 **조회할 때마다 처음부터 끝까지 읽고 그대로 따르는** 문서예요.
 에어프랑스 Flying Blue "마일리지로 예약" 화면에서, 노선마다 날짜별 최저 마일(캘린더)을 읽고, 목표 마일 이하인 날짜만 편 상세까지 열어 세금 · 유류할증료를 확인해요.
@@ -46,44 +46,53 @@
 1. `git pull --autostash` (사용자가 휴대폰으로 바꾼 노선 · 이 절차서를 받음)
 2. `python award-tracker/tools/award.py start` → 이번에 검색할 목록이 나와요. 목록이 비어 있으면 4장으로.
 3. Claude in Chrome: `tabs_context_mcp` → 새 탭 → 에어프랑스 열기
-   - 주소: ❓ (예: `https://wwws.airfrance.co.kr/` — 가르칠 때 정하고 `settings.airfrance_url` 에도 적어요)
+   - 주소: `https://wwws.airfrance.co.kr/en` (영어 화면, `settings.airfrance_url` 과 같음)
    - `wait search`
-4. 쿠키 · 알림 배너가 있으면: ❓ (어떤 버튼으로 닫는지)
-5. 로그인 확인: ❓ (로그인됐다는 단서, 예: 오른쪽 위에 이름 / Flying Blue 마일 표시)
+4. 쿠키 · 알림 배너가 있으면: 쿠키 배너가 뜨면 **모두 승인 스위치를 켜고 닫아요** (사용자 지시, 6장 참고. 2026-11-24 에는 이미 승인돼 있어 안 뜸). 위쪽 "Situation in the Near and Middle East" 안내 띠는 **닫지 않아도 돼요**.
+5. 로그인 확인: 오른쪽 위에 이름 "SANGSOO SHIM" + 등급 배지 "EXPLORER", 검색 칸 스위치 글자에 보유 마일("Book with my 992 Miles")이 보이면 로그인된 상태
 
 ## 2. 캘린더 검색 — 목록의 항목마다
 
 항목 예: `3. TYO→SEL 이코노미 2027-02 직항·경유 모두 [sel-tyo-20270201 · 오는 편 · 기간 2027-02-01~2027-02-28]`
 
-- **도시 코드로 검색**: SEL(서울: 인천·김포), TYO(도쿄: 나리타·하네다), OSA(오사카·고베: 간사이·이타미·고베). 출발지 · 도착지 칸에 코드를 넣고 목록에서 **"모든 공항"(도시 전체)** 항목을 골라요 ❓ (가르칠 때 화면 이름 확인)
+- **도시 코드로 검색**: SEL(서울: 인천·김포), TYO(도쿄: 나리타·하네다), OSA(오사카·고베: 간사이·이타미·고베). 출발지 · 도착지 칸에 코드를 넣으면 목록에 도시 항목(예: "Seoul, Korea, Republic of / All airports  SEL")과 그 아래 ↳ 공항(GMP, ICN)이 나와요. **공항이 아니라 도시 코드 항목(All airports)을 골라요.** "Popular destinations" 와 "All destinations" 양쪽에 같은 도시 항목이 있으면 "All destinations" 쪽을 골라요.
 - **직항 · 경유 모두**: 항목에 "직항·경유 모두"라고 나오면 직항 필터를 켜지 않아요. "직항만"이면 직항 필터를 켜요 ❓ (필터 위치)
 - 목표 마일이 없는 노선은 `save` 가 그 달에서 마일이 가장 적은 날을 상세 확인 날짜로 추천해요.
 
+> **홈 화면은 지난 검색값을 기억해요.** 다시 들어오면 마일 스위치가 이미 켜져 있고 One-way · From · To 도 남아 있을 수 있어요. **스위치가 이미 켜져 있으면 누르지 않아요**(누르면 꺼짐). 2-1~2-6 은 화면 값이 항목과 다를 때만 바꿔요.
+
 | # | 이 화면인지 확인하는 단서 | 할 일 (버튼 이름 · 위치) | 기다림 | 됐는지 확인 |
 |---|---|---|---|---|
-| 2-1 | ❓ | "마일리지로 예약" 선택 ❓ | click | ❓ |
-| 2-2 | ❓ | 편도 선택 ❓ | click | ❓ |
-| 2-3 | ❓ | 출발지 칸에 항목의 출발 코드(예: SEL) 입력 → 목록에서 "모든 공항" 항목 선택 ❓ | click (입력 후 · 선택 후 각각) | ❓ |
-| 2-4 | ❓ | 도착지 칸에 도착 코드(예: TYO) 입력 → 목록에서 "모든 공항" 항목 선택 ❓ | click (각각) | ❓ |
-| 2-5 | ❓ | **날짜는 비워 둠** (캘린더가 나오게) ❓ | — | ❓ |
-| 2-6 | ❓ | 인원 1명 · 좌석 등급(이코노미/비즈니스) ❓ | click | ❓ |
-| 2-7 | ❓ | 검색 버튼 ❓ | **search** | 캘린더가 보임 ❓ |
-| 2-8 | ❓ | 항목의 달로 이동 ❓ | search | 그 달 날짜가 보임 |
-| 2-9 | — | 기간 안 날짜의 마일을 페이지 글자로 읽기 ❓ (좌석 없음 표시 ❓) | — | 날짜 수가 맞는지 |
+| 2-1 | 첫 화면을 조금 내리면 흰 검색 칸("Round trip" · "Economy" · From · To · Travel dates · Passengers · "Search flights")이 보임 | **가장 먼저** 검색 칸 왼쪽 아래 스위치 **"Book with my ○○○ Miles"** 켜기 (find 로 switch "Book with my" 찾아 scroll_to 후 클릭) | click | 스위치가 짙은 파랑으로 바뀌고 동그라미가 오른쪽으로 감 |
+| 2-2 | 스위치가 켜진 검색 칸, 왼쪽 위 드롭다운에 "Round trip" | "Round trip" 드롭다운(combobox "Trip") 누르기 → click → 열린 목록("Round trip" / "One-way")에서 **"One-way"** 누르기 | click (여는 것 · 고르는 것 각각) | 드롭다운 글자가 "One-way", 날짜 칸 이름이 "Travel dates" → "Departure date" 로 바뀜 |
+| 2-3 | "One-way" 로 바뀐 검색 칸, 맨 왼쪽 빈 칸 "From" | "From" 칸 누르기 → click → 출발 코드(예: `SEL`) 입력 → click → 목록 "All destinations" 아래 도시 항목("Seoul, Korea, Republic of / All airports  SEL", ↳ GMP · ICN 위에 있는 것) 누르기 (find 의 option "From Seoul, Korea…") | click (누른 뒤 · 입력 후 · 선택 후 각각) | 목록이 닫히고 From 칸에 "Seoul  SEL" |
+| 2-4 | From 칸에 "Seoul  SEL", 그 오른쪽(⇄ 버튼 옆) 빈 칸 "To" | "To" 칸 누르기 → click → 도착 코드(예: `TYO`) 입력 → click → 목록 맨 위 도시 항목("Tokyo, Japan / All airports  TYO", ↳ Haneda HND · Narita Airport NRT 위에 있는 것) 누르기 (find 의 option "To Tokyo, Japan…"). 이때는 "Popular/All destinations" 구분 없이 도시 항목 하나만 나옴 | click (각각) | 목록이 닫히고 To 칸에 "Tokyo  TYO" |
+| 2-5 | From · To 가 채워진 검색 칸 | **"Departure date" 칸은 누르지 않고 비워 둠** (비운 채 검색하면 캘린더가 나옴) | — | 날짜 칸 글자가 그대로 "Departure date" |
+| 2-6 | 검색 칸 "Passengers 1 adult", 등급 드롭다운("One-way" 오른쪽) | 인원은 기본 "1 adult" 그대로. 등급은 **"Economy" 그대로 둠**. 비즈니스 검색은 하지 않아요 (2026-11-24 사용자: 등급 바꾸기는 진행하지 않음) | — | "1 adult" · "Economy" |
+| 2-7 | 검색 칸이 다 채워짐 (날짜만 빈 칸) | 검색 칸 오른쪽 아래 파란 버튼 **"Search flights"** | **search** | 주소가 `…/search/open-dates/0`, 탭 제목 "Departure date selection", 글자 "Departure date / From Seoul to Tokyo, Economy" 와 달 띠(October · November · December · January …, 달마다 "8,500 Miles" 같은 그 달 최저 마일) + 달력. 처음엔 이번 달 또는 다음 가능한 달이 열려 있음 |
+| 2-8 | 캘린더 화면, 달력 위 달 띠 (‹ October · November · December · January · February … ›) | 달 띠에서 **항목의 달 칸을 직접 누름** (예: "February", find 의 button "Display fares for February"). 띠에 그 달이 안 보이면 오른쪽 "›"("Display fares for next month")로 넘김 | search | 달력 제목이 "2027 February", 그 달 칸이 빨간 밑줄 + "from" 표시 |
+| 2-9 | 달력 제목 "2027 February" | get_page_text 로 읽기: (달 띠의 "from …" 값은 실제 최저와 다를 수 있으니 날짜 칸 값만 써요 — TYO→SEL 2월은 띠 9,500 인데 날짜엔 8,500 있음. 달력 앞뒤에 다른 달 날짜(예: 26~31 Oct)가 회색으로 붙으면 빼요) "2027 February / Mo Tu We Th Fr Sa Su" 아래로 날짜 숫자가 줄마다 나오고, 좌석이 있으면 바로 다음 줄에 "8,500 Miles". **숫자 뒤에 Miles 줄이 없으면 좌석 없음(`null`)**. 화면에서도 좌석 없는 날은 숫자만 있음. 확인용으로 find 의 날짜 버튼 이름("15 Feb 2027 Lowest fare is 8,500 Miles", 좌석 없음은 "3 Feb 2027" 만)도 같음. 초록 글자 날 = 그 달 최저 | — | 날짜 수가 그 달 일수와 같음 (2월 28일). 달력 끝 "Lowest fare" 이후 글자는 무시 |
 | 2-10 | — | 읽은 값을 5장 형식으로 `save` | — | "✓ 저장" 확인 |
 
+- **다음 검색 (3-5 "← Back" 으로 검색 칸에 돌아온 뒤)**: 처음 주소로 다시 가지 않아요. 검색 칸에서 바꿀 것만 바꿔요.
+  - 방향만 반대면(예: SEL→TYO 다음 TYO→SEL): From · To 사이 **⇄ 버튼**("Swap departure and arrival airports") 누르기 → click → From "Tokyo TYO" · To "Seoul SEL" 확인. 다른 도시면 2-3 · 2-4 처럼 다시 입력.
+  - **날짜 비우기**: "Departure date" 칸(예: "Feb 15") 누르기 → click → 달력 창 오른쪽 아래 **"Clear dates"** → click → `Escape` 키로 달력 창 닫기 ("Confirm" 은 누르지 않음) → click → 날짜 칸 글자가 "Departure date" 로 돌아옴.
+  - 그다음 2-7 "Search flights" 부터.
 - 같은 노선 · 같은 등급의 다음 달이면 2-8 부터만 해도 되는지 ❓
 - `save` 결과에 **상세 확인 추천** 날짜가 나오면 3장, 아니면 `wait between` 후 다음 항목.
 
-## 3. 상세 확인 — `save` 가 추천한 날짜만 (노선당 최대 `max_details_per_route` 개)
+## 3. 상세 확인
+
+**어느 날짜를 여나 (서울↔도쿄 기준, 2026-11-24 사용자 지시)**: 캘린더에 **9,500 Miles 이하(8,500 · 9,000 · 9,500)** 가 적힌 날짜만 열어요. 그 밖의 날짜는 캘린더 값만 저장하고 상세는 보지 않아요. (`save` 가 추천하는 날짜는 참고용 — 위 기준과 다르면 위 기준을 따라요. 다른 노선은 그 노선의 캘린더 최저 마일 날짜만 열어요 ❓ 노선별 최저 마일 확인 필요)
 
 | # | 이 화면인지 확인하는 단서 | 할 일 | 기다림 | 됐는지 확인 |
 |---|---|---|---|---|
-| 3-1 | 캘린더 화면 | 추천 날짜 누르기 ❓ | search | 그 날짜의 편 목록 ❓ |
-| 3-2 | ❓ | 편마다 편명 · 출발/도착 공항 · 시각 · 경유 횟수와 경유지 · 마일 읽기 ❓ (직항 · 경유 모두, 노선이 "직항만"이면 직항만) | — | |
-| 3-3 | ❓ | 세금 · 유류할증료가 보이는 곳까지 ❓ (**결제 단계 전에서 멈춤**) | search | 금액이 보임 ❓ |
-| 3-4 | — | 5장 형식(`source: detail`)으로 `save` | — | "✓ 저장" |
-| 3-5 | ❓ | 캘린더로 돌아가기 ❓ | search | 캘린더가 보임 |
+| 3-1 | 캘린더 화면 | 달력에서 추천 날짜 칸 누르기 (find 의 button "15 Feb 2027 Lowest fare is …") | search | 탭 제목 "Flight 1", 주소 `…/search/flights/0`, 위에 "Miles balance" · 날짜 띠, 아래 "Direct flights (n)" 편 목록 |
+| 3-2 | 편 목록 화면 | get_page_text 로 편마다 읽기: 출발 시각 · 출발 공항 / "Direct" 또는 경유 · 걸리는 시간 / 도착 시각 · 도착 공항 / "Economy" 칸과 "Business" 칸의 마일. 항목 등급 칸이 **"Not available for this flight" 인 편은 빼고**, 마일이 있는 편만 적어요 ("Lowest fare" 표시 = 그날 최저). 항공사 이름(예: KOREAN AIR)은 `operated_by`. **편명은 확인하지 않아도 돼요** ("Details" 를 열지 않음, 사용자 지시) | — | 목록 위 "Direct flights (n)" 의 n 과 읽은 편 수가 같음 |
+| 3-3 | 편 목록 화면 위 날짜 띠 | **더 들어가지 않아요.** 날짜 띠에서 그 날짜 칸의 "8,500 Miles / +USD 17.90" 의 USD 금액을 세금으로 씀 (사용자: 이 정도면 충분). 요금을 고르거나 "trip overview" 로 가지 않음 | — | 그 날짜 칸에 "+USD …" 가 보임 |
+| 3-3b | 편 목록 화면 | **남은 좌석**: 상세를 연 날짜의 **최저가 이코노미 편**(그날 캘린더 마일과 같은 편, 예: 2/15 19:35 GMP 출발)만 봐요. 그 편 이코노미 상자에 **빨간 글씨 "N seats left"** 가 있으면 그 숫자(`"1 seats left"` → `"seats": 1`, `"2 seats left"` → `"seats": 2`), 아무것도 없으면 `"seats": "2+"`. 커서를 올려도 "Price for 1 passenger" 만 나오니 hover 는 하지 않아도 돼요 (2026-11-24 사용자 지시) | — | 앱에 "남은 좌석 1석 / 2석 / 2+석" 으로 보임 |
+| 3-4 | — | 5장 형식(`source: detail`)으로 `save`. 세금은 `{"amount": 18, "currency": "USD"}` 처럼 **USD 로, 센트는 반올림**(도구가 정수만 받음). 편명 `no` 는 비워 둠 | — | "✓ 저장" |
+| 3-5 | 편 목록 화면 | 왼쪽 위 **"← Back"** 누르기. **캘린더가 아니라 검색 칸 화면으로 돌아가요** | search | 주소 `…/search/advanced`, 탭 제목 "Book a flight", 검색 칸에 이전 값(One-way · 등급 · From · To · 마일 스위치 켜짐)이 남아 있고 **Departure date 칸에 고른 날짜(예: "Feb 15")가 들어가 있음** |
 
 ## 4. 끝
 
@@ -106,7 +115,7 @@
 상세 (그 날짜에 본 편들. `miles` 를 빼면 편 중 가장 적은 마일을 써요. 직항은 `stops: 0`, 경유는 횟수와 경유지):
 ```json
 {"route_id": "sel-tyo-20270201", "direction": "out", "cabin": "economy", "source": "detail",
- "days": {"2027-02-04": {"tax": {"amount": 52300, "currency": "KRW"}, "seats": 2,
+ "days": {"2027-02-04": {"tax": {"amount": 52300, "currency": "KRW"}, "seats": "2+",
    "flights": [
      {"no": "KE2101", "from": "GMP", "to": "HND", "dep": "08:10", "arr": "10:20", "stops": 0, "miles": 10000, "tax": 52300},
      {"no": "MU5042", "from": "ICN", "to": "NRT", "dep": "08:30", "arr": "16:40", "stops": 1, "via": "PVG", "miles": 15000, "tax": 61300, "operated_by": "중국동방항공"}
@@ -117,13 +126,16 @@
 
 | 상황 | 알아보는 법 | 할 일 |
 |---|---|---|
-| 쿠키 동의 배너 | ❓ | ❓ |
+| 쿠키 동의 배너 | 페이지 위나 아래에 쿠키 동의 창이 뜸 | 모두 승인 스위치를 켜고 닫기 (사용자 지시 2026-11-24) |
 | 캘린더 대신 날짜 입력을 요구함 | ❓ | ❓ |
+| 캘린더 위 주황 안내 "Sorry, there are no flights available in the current month. You can view flights for the next available month below." | 검색 직후 캘린더 맨 위 | 무시하고 그대로 진행 (이번 달 좌석이 없어 다음 가능한 달을 보여 준다는 뜻) |
 | 노선이 없음 / 검색 결과 없음 | ❓ | 그 달 모든 날짜 `null` 로 save |
+| **검색 중 홈 화면으로 튕기며 "Something went wrong"** | 검색 · 날짜 선택 뒤 갑자기 첫 화면으로 돌아오고 "Something went wrong" 류의 안내 | 멈추지 않고 `wait search` 후 그 항목을 **이어서 재검색** (검색 칸 값 확인 → 2-7 부터). 같은 항목에서 3번 연속이면 0장 "멈추는 때" (2026-11-24 사용자 지시) |
+| **캘린더가 비어 있음 (서버 렉)** | 달 띠의 그 달 칸에는 "from 9,500 Miles" 처럼 마일이 있는데, 달력 날짜 칸에는 마일이 하나도 없음 (날짜 버튼 이름에 "Lowest fare is" 가 없음, "Lowest fare" 범례도 없음) | **`null` 로 save 하지 않아요.** `wait search` 한 번 더 기다려도 그대로면 → 처음 주소(`https://wwws.airfrance.co.kr/en`)로 가서 → `wait search` → 2-1(마일 스위치)부터 다시. 두 번 다시 해도 비면 0장 "멈추는 때" (2026-11-24 TYO→SEL 2월에서 만남) |
 | 대한항공 편이 안 보임 | ❓ | ❓ |
 
 ## 가르친 기록
 
 | 날짜 | 바뀐 내용 |
 |---|---|
-| (아직 없음) | |
+| 2026-11-24 | 처음 가르침 (SEL↔TYO 이코노미 2월). 시작 주소 `/en`, 마일 스위치 → One-way → 도시 코드(All airports) → 날짜 비우고 "Search flights" → 달 띠에서 달 선택 → 페이지 글자로 마일 읽기. 상세: 날짜 칸 → 편 목록, 세금은 날짜 띠 USD, 편명 안 봄, 남은 좌석은 빨간 "N seats left" 없으면 2+. "← Back" 은 검색 칸으로 감, 날짜는 "Clear dates" 로 비움, ⇄ 로 방향 바꿈. 비즈니스 검색 안 함. 상세는 9,500 이하 날짜만(노선당 15회). 예외: 쿠키 모두 승인, 캘린더 빔(렉) → 홈에서 재검색, "Something went wrong" → 재검색 |
