@@ -5,9 +5,9 @@
   "from": "SEL",
   "to": "TYO",
   "start": "2027-02-01",
-  "end": "2027-11-14",
+  "end": "2027-02-28",
   "return_start": "2027-02-01",
-  "return_end": "2027-11-14",
+  "return_end": "2027-02-28",
   "cabins": [
    "economy",
    "business"

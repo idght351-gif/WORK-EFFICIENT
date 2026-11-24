@@ -1,6 +1,6 @@
 {
  "sample": false,
- "updated_at": "2026-11-24T20:33:01+09:00",
+ "updated_at": "2026-11-24T20:41:28+09:00",
  "settings": {
   "max_searches_per_run": 8,
   "max_details_per_route": 3,
@@ -35,9 +35,9 @@
    "from": "SEL",
    "to": "TYO",
    "start": "2027-02-01",
-   "end": "2027-11-14",
+   "end": "2027-02-28",
    "return_start": "2027-02-01",
-   "return_end": "2027-11-14",
+   "return_end": "2027-02-28",
    "cabins": [
     "economy",
     "business"
@@ -92,9 +92,9 @@
    "from": "SEL",
    "to": "OSA",
    "start": "2027-02-01",
-   "end": "2027-11-14",
+   "end": "2027-02-28",
    "return_start": "2027-02-01",
-   "return_end": "2027-11-14",
+   "return_end": "2027-02-28",
    "cabins": [
     "economy",
     "business"
