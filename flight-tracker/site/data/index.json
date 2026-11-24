@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-11-25T06:59:13+09:00",
+  "updated_at": "2026-11-25T07:29:53+09:00",
   "routes": [
     {
       "id": "icn-cts-20270629",
@@ -12,19 +12,20 @@
       "alert_below": null,
       "status": "active",
       "summary": {
-        "current": 624656,
-        "current_date": "2026-11-24",
-        "prev": 624681,
-        "min": 624656,
+        "current": 622970,
+        "current_date": "2026-11-25",
+        "prev": 624656,
+        "min": 622970,
         "max": 624681,
-        "avg": 624668,
-        "days": 2
+        "avg": 624102,
+        "days": 3
       },
       "next_check": "2026-11-26T06:30+09:00",
       "last_check": "2027-06-29T06:30+09:00",
       "spark": [
         624681,
-        624656
+        624656,
+        622970
       ]
     },
     {
@@ -65,33 +66,66 @@
       "alert_below": null,
       "status": "active",
       "summary": {
-        "current": 602800,
-        "current_date": "2026-11-24",
-        "prev": 599900,
+        "current": 602100,
+        "current_date": "2026-11-25",
+        "prev": 602800,
         "min": 599900,
         "max": 602800,
-        "avg": 601350,
-        "days": 2
+        "avg": 601600,
+        "days": 3
       },
       "next_check": "2026-11-26T06:30+09:00",
       "last_check": "2027-06-26T06:30+09:00",
       "spark": [
         599900,
-        602800
+        602800,
+        602100
       ]
+    },
+    {
+      "id": "icn-ukb-gmp-20270226",
+      "name": "인천 → 고베 / 간사이 → 김포",
+      "from": "ICN",
+      "to": "GMP",
+      "date": "2027-02-26",
+      "return_date": null,
+      "legs": [
+        {
+          "from": "ICN",
+          "to": "UKB",
+          "date": "2027-02-26"
+        },
+        {
+          "from": "KIX",
+          "to": "GMP",
+          "date": "2027-03-01"
+        }
+      ],
+      "alert_below": null,
+      "status": "active",
+      "summary": {
+        "current": null,
+        "min": null,
+        "max": null,
+        "avg": null,
+        "prev": null
+      },
+      "next_check": "2026-11-26T06:30+09:00",
+      "last_check": "2027-02-26T06:30+09:00",
+      "spark": []
     }
   ],
   "quota": {
     "plan_name": "Free Plan",
     "searches_per_month": 250,
-    "plan_searches_left": 220,
+    "plan_searches_left": 212,
     "extra_credits": 0,
-    "total_searches_left": 220,
-    "this_month_usage": 30,
+    "total_searches_left": 212,
+    "this_month_usage": 38,
     "plan_renewal_date": "2026-12-23",
     "account_rate_limit_per_hour": 250,
-    "daily_usage": 6,
-    "checked_at": "2026-11-25T06:59:13+09:00"
+    "daily_usage": 8,
+    "checked_at": "2026-11-25T07:29:53+09:00"
   },
   "schedule_kst": [
     "06:30"

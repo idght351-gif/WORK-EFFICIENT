@@ -108,6 +108,21 @@ def build_multi_params(route: dict, api_key: str) -> dict:
     }
 
 
+def describe_options(data: dict, route: dict, window: tuple[str | None, str | None]) -> str:
+    """검색 결과 수 / 경유 조건 통과 수 / 시간대까지 통과 수."""
+    items = (data.get("best_flights") or []) + (data.get("other_flights") or [])
+    max_stops = route.get("max_stops")
+    after, before = parse_hm(window[0] or "00:00"), parse_hm(window[1] or "24:00")
+    stops_ok = [it for it in items if it.get("flights") and (max_stops is None or len(it["flights"]) - 1 <= max_stops)]
+
+    def dep_ok(it):
+        try:
+            return after <= parse_hm(it["flights"][0]["departure_airport"]["time"].split(" ")[1]) <= before
+        except (KeyError, IndexError, ValueError):
+            return False
+    return f"검색 결과 {len(items)}개 · 경유 조건 통과 {len(stops_ok)}개 · 시간대까지 통과 {sum(map(dep_ok, stops_ok))}개"
+
+
 def check_multi(route: dict, api_key: str) -> tuple[dict | None, dict, str | None]:
     """다구간: 1구간 검색 → 고른 편의 departure_token 으로 다음 구간 검색 … 마지막 구간 가격 = 전체 여정 총액.
     구간마다 검색 1회를 씁니다."""
@@ -126,7 +141,9 @@ def check_multi(route: dict, api_key: str) -> tuple[dict | None, dict, str | Non
                 return None, insights, url  # 같은 날 환승 시간이 모자람
         best = pick_cheapest(data, route, window=(after, leg.get("depart_before")))
         if not best:
-            return None, insights, url  # 이 구간 조건에 맞는 편이 없음
+            # 어느 구간에서 왜 걸러졌는지 기록에 남김
+            raise RuntimeError(f"{i + 1}구간 {leg['from']}→{leg['to']} 조건에 맞는 편 없음 "
+                               f"({describe_options(data, route, (after, leg.get('depart_before')))})")
         best.update({"from": leg["from"].upper(), "to": leg["to"].upper(), "date": leg["date"]})
         picked.append(best)
         if i < len(route["legs"]) - 1 and not best.get("departure_token"):
