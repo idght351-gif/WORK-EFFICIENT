@@ -7,10 +7,39 @@ const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "
 const LEVEL = { low: ["good", "Google 기준 싼 편"], typical: ["", "Google 기준 보통"], high: ["bad", "Google 기준 비싼 편"] };
 const DOW = ["일", "월", "화", "수", "목", "금", "토"];
 
+// 여정을 [공항, 비행(날짜), 공항, (육로 등 끊김), 공항 …] 순서로 펼칩니다.
+// withReturn 이면 왕복의 돌아오는 편까지 넣습니다(상세 화면용).
+function pathSteps(r, withReturn = false) {
+  const legs = r.legs && r.legs.length
+    ? r.legs
+    : [{ from: r.from, to: r.to, date: r.date }].concat(withReturn && r.return_date ? [{ from: r.to, to: r.from, date: r.return_date }] : []);
+  const steps = [];
+  legs.forEach((l, i) => {
+    const from = l.from.toUpperCase(), to = l.to.toUpperCase();
+    if (i === 0) steps.push({ code: from });
+    else if (legs[i - 1].to.toUpperCase() !== from) steps.push({ gap: true }, { code: from });
+    steps.push({ date: l.date }, { code: to });
+  });
+  return steps;
+}
+
 function routePath(r) {
-  return r.legs && r.legs.length
-    ? r.legs.map((l) => l.from).concat(r.legs[r.legs.length - 1].to).map((c) => esc(c.toUpperCase())).join(" → ")
-    : `${esc(r.from)} → ${esc(r.to)}`;
+  return pathSteps(r).map((st) => (st.code ? esc(st.code) : st.gap ? "·" : "→")).join(" ");
+}
+
+// 상세 화면: 화살표(비행 구간)마다 아래에 날짜
+function pathWithDatesHTML(r) {
+  return `<div class="leg-path fit-line" data-min="10">${pathSteps(r, true).map((st) =>
+    st.code ? `<span class="lp"><b>${esc(st.code)}</b><i></i></span>`
+    : st.gap ? `<span class="lp gap"><b>·</b><i></i></span>`
+    : `<span class="lp arrow"><b>→</b><i>${md(st.date)}</i></span>`).join("")}</div>`;
+}
+
+// 날짜만: 다구간 "6/26 · 6/29 · 7/3 · 7/3", 왕복 "6/29(화) ~ 7/5", 편도 "6/29(화)"
+function dateLabel(r) {
+  if (r.legs && r.legs.length) return r.legs.map((l) => md(l.date)).join(" · ");
+  const d = new Date(r.date + "T00:00:00");
+  return `${md(r.date)}(${DOW[d.getDay()]})` + (r.return_date ? ` ~ ${md(r.return_date)}` : "");
 }
 
 function tripLabel(r) {
@@ -39,6 +68,26 @@ function deltaHTML(cur, prev) {
     : `<span class="up">▲ ${won(d)} (${pct}%)</span>`;
 }
 
+// 긴 공항 코드 경로를 한 줄로: 넘치면 글자를 조금씩 줄이고(최소 minPx), 그래도 넘치면 … 처리
+function fitOneLine(root = document, minPx = 12) {
+  root.querySelectorAll(".fit-line").forEach((el) => {
+    const min = +el.dataset.min || minPx;
+    const shrink = () => {
+      el.style.fontSize = "";
+      let size = parseFloat(getComputedStyle(el).fontSize);
+      while (el.scrollWidth > el.clientWidth && size > min) {
+        size -= 0.5;
+        el.style.fontSize = size + "px";
+      }
+    };
+    // 상세 경로: 아주 좁은 화면에서 그래도 넘치면 D-day 만 다음 줄로 내리고 다시 맞춤
+    const top = el.closest(".hero-top");
+    if (top) top.classList.remove("wrap");
+    shrink();
+    if (top && el.scrollWidth > el.clientWidth) { top.classList.add("wrap"); shrink(); }
+  });
+}
+
 // 위쪽 제목줄 오른쪽 자리: 목록에선 업데이트 시각, 상세에선 항공편 선택 상자
 function setTopRight(html) { document.getElementById("topright").innerHTML = html; }
 
@@ -64,6 +113,8 @@ async function renderList() {
     <a href="#add" class="btn secondary" style="margin-top:16px">+ 노선 추가하기</a>
     <div style="margin-top:24px">${quotaHTML(index.quota)}</div>`;
   routes.forEach((r) => { const el = document.getElementById("spark-" + r.id); if (el) sparkline(el, r.spark, r.alert_below); });
+  fitOneLine($app);
+  window.onresize = () => fitOneLine($app);
   routes.forEach((r) => {
     const el = document.getElementById("plan-" + r.id), p = checkPlan(r, r.status, index.schedule_kst);
     if (el) el.textContent = p ? `다음 조회 ${planLabel(p.next)}경` : "";
@@ -151,9 +202,9 @@ function cardHTML(r) {
   if (s.current != null && s.days > 1 && s.current === s.min) badges.push(`<span class="badge good">역대 최저가</span>`);
   return `
   <a class="card route-card" href="#${esc(r.id)}">
+    <div class="route-name fit-line">${routePath(r)}</div>
     <div>
-      <div class="route-name">${esc(r.name)}</div>
-      <div class="route-meta">${routePath(r)} · ${tripLabel(r)} · ${dday(r.date)}</div>
+      <div class="route-meta">${dday(r.date)}</div>
       <div class="badges">${badges.join("")}</div>
       <div class="route-plan muted small" id="plan-${esc(r.id)}"></div>
     </div>
@@ -210,21 +261,27 @@ function compareHTML(r) {
 
 // ------------------------------------------------------------ 상세
 // 상세 화면 위쪽: 목록으로 돌아가기 + 다른 추적 항공편으로 바로 이동하는 선택 상자
+// 선택 상자용 짧은 이름: 출발일 기준 "6월 26일 시작 여행"
+function tripTitle(r) {
+  const [, m, d] = r.date.split("-");
+  return `${+m}월 ${+d}일 시작 여행`;
+}
+
 function switcherHTML(current, routes) {
   const order = { active: 0, paused: 1, ended: 2 };
   const list = [...routes].sort((a, b) => (order[a.status] ?? 3) - (order[b.status] ?? 3) || a.date.localeCompare(b.date));
   return `<div class="switch-box">
       <button type="button" class="switch-btn" id="switch-btn" aria-haspopup="true" aria-expanded="false" aria-controls="switch-menu"
         aria-label="다른 추적 항공편 보기 (지금: ${esc(current.name)})">
-        <span class="switch-name">${esc(current.name)}</span>
+        <span class="switch-name">${tripTitle(current)}</span>
         <span class="switch-chev" aria-hidden="true">▾</span>
       </button>
       <div class="switch-menu" id="switch-menu" hidden>
         ${list.map((x) => {
           const on = x.id === current.id;
           return `<a class="switch-item${on ? " on" : ""}" href="#${esc(encodeURIComponent(x.id))}"${on ? ' aria-current="page"' : ""}>
-            <span class="n">${on ? "✓ " : ""}${esc(x.name)}${x.status !== "active" ? ` <span class="badge">${x.status === "ended" ? "종료" : "중지"}</span>` : ""}</span>
-            <span class="m">${tripLabel(x)}</span>
+            <span class="n">${on ? "✓ " : ""}${tripTitle(x)}${x.status !== "active" ? ` <span class="badge">${x.status === "ended" ? "종료" : "중지"}</span>` : ""}</span>
+            <span class="m">${routePath(x)}</span>
           </a>`; }).join("")}
       </div>
     </div>`;
@@ -270,8 +327,7 @@ async function renderDetail(id) {
   setTopRight(switcherHTML(r, routes));
   $app.innerHTML = `
     <section class="card">
-      <div class="hero-route">${esc(r.name)} · ${routePath(r)}</div>
-      <div class="hero-sub">${tripLabel(r)} · ${(r.adults || 1) > 1 ? `성인 ${r.adults}명 총액` : "1인 가격"} · ${dday(r.date)}</div>
+      <div class="hero-top">${pathWithDatesHTML(r)}<span class="hero-dday">${dday(r.date)}</span></div>
       <div class="hero-price num">${won(s.current)}</div>
       <div class="hero-delta num">${deltaHTML(s.current, s.prev)}${s.prev != null && s.current !== s.prev ? ` <span class="muted small">어제 대비</span>` : ""}</div>
       <div class="badges" style="margin-top:10px">${badges.join("")}</div>
@@ -342,7 +398,8 @@ async function renderDetail(id) {
   }));
   draw(0);
   bindSwitcher();
-  window.onresize = () => draw(+document.querySelector('.chip[aria-pressed="true"]').dataset.range);
+  fitOneLine($app);
+  window.onresize = () => { draw(+document.querySelector('.chip[aria-pressed="true"]').dataset.range); fitOneLine($app); };
 }
 
 function timeRange(a, b) {

@@ -78,7 +78,12 @@ jobs:
             for i in 1 2 3; do git pull --rebase && git push && break; sleep 5; done
           fi
 
+      - name: 배포 버전 표시 (휴대폰에 남은 옛 파일 대신 새 파일을 받게 함)
+        if: always()
+        run: sed -i "s/__BUILD__/${GITHUB_SHA::7}/g" flight-tracker/site/index.html
+
       # GitHub Pages 는 저장소당 하나라서, 마일 좌석 추적 앱을 /award/ 아래에 함께 올립니다.
+      # (버전 표시를 먼저 한 뒤 합쳐야 합친 사이트에도 들어가요)
       - name: 사이트 합치기 (항공권 가격 추적 + 마일 좌석 추적)
         if: always()
         run: |
