@@ -1,12 +1,13 @@
 {
- "run_id": "2026-11-25T07:46:53+09:00",
+ "run_id": "2026-11-25T08:12:30+09:00",
  "status": "ok",
- "started_at": "2026-11-25T07:46:53+09:00",
- "finished_at": "2026-11-25T07:53:20+09:00",
+ "started_at": "2026-11-25T08:12:30+09:00",
+ "finished_at": "2026-11-25T08:16:48+09:00",
  "message": null,
- "searches": 1,
+ "searches": 2,
  "details": {
   "sel-osa-20270201": 1
  },
- "alerts": []
+ "alerts": [],
+ "mode": "refresh"
 }
