@@ -1,9 +1,9 @@
 {
- "sample": true,
- "updated_at": "2026-11-24T05:42:10+09:00",
+ "sample": false,
+ "updated_at": "2026-11-24T20:08:27+09:00",
  "settings": {
   "max_searches_per_run": 40,
-  "max_details_per_route": 4,
+  "max_details_per_route": 15,
   "run_at_kst": null,
   "wait_seconds": {
    "click": [
@@ -22,10 +22,10 @@
  },
  "runner": {
   "status": "ok",
-  "last_run_at": "2026-11-24T05:42:10+09:00",
+  "last_run_at": "2026-11-24T20:08:27+09:00",
   "next_run_at": null,
   "message": null,
-  "searches": 8,
+  "searches": 5,
   "max_searches": 40
  },
  "routes": [
@@ -49,42 +49,42 @@
    "summary": {
     "out": {
      "economy": {
-      "min": 10000,
-      "min_date": "2027-02-04",
-      "hit": 0,
-      "avail": 21,
-      "checked": 25,
-      "fresh": 12
-     },
-     "business": {
-      "min": 25000,
-      "min_date": "2027-02-08",
+      "min": 8500,
+      "min_date": "2027-02-15",
       "hit": 0,
       "avail": 17,
-      "checked": 25,
-      "fresh": 10
+      "checked": 28,
+      "fresh": 17
+     },
+     "business": {
+      "min": null,
+      "min_date": null,
+      "hit": 0,
+      "avail": 0,
+      "checked": 0,
+      "fresh": 0
      }
     },
     "back": {
      "economy": {
-      "min": 10000,
-      "min_date": "2027-02-03",
+      "min": 8500,
+      "min_date": "2027-02-16",
       "hit": 0,
-      "avail": 21,
-      "checked": 25,
-      "fresh": 8
+      "avail": 16,
+      "checked": 28,
+      "fresh": 16
      },
      "business": {
-      "min": 25000,
-      "min_date": "2027-02-12",
+      "min": null,
+      "min_date": null,
       "hit": 0,
-      "avail": 13,
-      "checked": 25,
-      "fresh": 6
+      "avail": 0,
+      "checked": 0,
+      "fresh": 0
      }
     }
    },
-   "last_checked_at": "2026-11-24T05:34:10+09:00"
+   "last_checked_at": "2026-11-24T20:07:56+09:00"
   },
   {
    "id": "sel-osa-20270201",
@@ -106,42 +106,42 @@
    "summary": {
     "out": {
      "economy": {
-      "min": 12500,
-      "min_date": "2027-02-07",
+      "min": null,
+      "min_date": null,
       "hit": 0,
-      "avail": 24,
-      "checked": 25,
-      "fresh": 12
+      "avail": 0,
+      "checked": 0,
+      "fresh": 0
      },
      "business": {
-      "min": 25000,
-      "min_date": "2027-02-04",
+      "min": null,
+      "min_date": null,
       "hit": 0,
-      "avail": 16,
-      "checked": 25,
-      "fresh": 7
+      "avail": 0,
+      "checked": 0,
+      "fresh": 0
      }
     },
     "back": {
      "economy": {
-      "min": 10000,
-      "min_date": "2027-02-12",
+      "min": null,
+      "min_date": null,
       "hit": 0,
-      "avail": 20,
-      "checked": 25,
-      "fresh": 10
+      "avail": 0,
+      "checked": 0,
+      "fresh": 0
      },
      "business": {
-      "min": 25000,
-      "min_date": "2027-02-02",
+      "min": null,
+      "min_date": null,
       "hit": 0,
-      "avail": 18,
-      "checked": 25,
-      "fresh": 11
+      "avail": 0,
+      "checked": 0,
+      "fresh": 0
      }
     }
    },
-   "last_checked_at": "2026-11-24T05:41:10+09:00"
+   "last_checked_at": null
   }
  ]
 }

@@ -1,0 +1,12 @@
+{
+ "run_id": "2026-11-24T19:21:45+09:00",
+ "status": "ok",
+ "started_at": "2026-11-24T19:21:45+09:00",
+ "finished_at": "2026-11-24T20:08:27+09:00",
+ "message": null,
+ "searches": 5,
+ "details": {
+  "sel-tyo-20270201": 3
+ },
+ "alerts": []
+}
