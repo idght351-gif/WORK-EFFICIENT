@@ -79,6 +79,16 @@ class SyncAndPlan(Base):
         planned, postponed = award.make_plan(self.P, s, routes)
         self.assertEqual((len(planned), len(postponed)), (3, 5))
 
+    def test_plan_open_months(self):
+        # 2026-11-25 + 355일 = 2027-11-15 → 6월 ~ 11월 (6개월) × 가는/오는 편, 이코노미만
+        self.write_routes([{**ROUTE, "cabins": ["economy"]}], search_open_months=True)
+        s, routes = award.sync(self.P)
+        planned, _ = award.make_plan(self.P, s, routes)
+        self.assertEqual(sorted({x["month"] for x in planned if x["direction"] == "out"}),
+                         ["2027-06", "2027-07", "2027-08", "2027-09", "2027-10", "2027-11"])
+        self.assertEqual(len(planned), 12)
+        self.assertEqual(max(x["period"][1] for x in planned), "2027-11-15")
+
     def test_bad_config(self):
         self.write_routes([{**ROUTE, "cabins": ["first"]}])
         with self.assertRaises(award.AwardError):
@@ -141,6 +151,15 @@ class Merge(Base):
                                            "2027-06-21": {"flights": [{"dep": "09:00", "miles": 15000}], "seats": 1}}, source="detail"))
         days = self.doc()["directions"]["out"]["days"]
         self.assertEqual((days["2027-06-20"]["economy"]["seats"], days["2027-06-21"]["economy"]["seats"]), ("2+", 1))
+
+    def test_detail_within_pct(self):
+        self.write_routes([{**ROUTE, "target_miles": None}], max_details_per_route=15, detail_within_pct=20)
+        award.sync(self.P)
+        out = "\n".join(award.save_items(self.P, self.cal({"2027-06-20": 8500, "2027-06-21": 10000, "2027-06-22": 10500, "2027-06-23": None})))
+        self.assertIn("상세 확인 추천", out)
+        self.assertIn("6/20", out)
+        self.assertIn("6/21", out)      # 10,000 ≤ 8,500 × 1.2 = 10,200
+        self.assertNotIn("6/22", out)   # 10,500 은 넘음
 
     def test_detail_budget(self):
         award.save_items(self.P, self.cal({"2027-06-20": 15000, "2027-06-21": 12500, "2027-06-22": 15000}, cabin="economy"))

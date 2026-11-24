@@ -35,10 +35,13 @@ DEFAULT_SETTINGS = {
     "airfrance_url": None,
     "max_searches_per_run": 40,
     "max_details_per_route": 4,
+    "detail_within_pct": 0,       # 목표 마일이 없을 때: 그 달 최저 마일 + 이 % 이내 날짜를 상세 확인 (0 = 최저만)
+    "search_open_months": False,  # True 면 노선 기간 끝을 무시하고, 시작 달부터 예약이 열린 달(오늘 + 355일)까지 모두 검색
     "wait_seconds": {"click": [8, 15], "search": [20, 35], "between": [40, 80]},
     "run_at_kst": None,
 }
 FRESH = timedelta(hours=48)
+BOOKABLE_DAYS = 355  # 발권은 보통 약 1년 전부터 열림 (앱 site/app.js 와 같은 값)
 
 
 class AwardError(Exception):
@@ -161,6 +164,10 @@ def load_config(P: Paths):
         if r["id"] in seen:
             raise AwardError(f"routes.json 에 같은 id 가 두 번 있어요: {r['id']}")
         seen.add(r["id"])
+    if s.get("search_open_months"):
+        horizon = (now().astimezone(KST).date() + timedelta(days=BOOKABLE_DAYS)).isoformat()
+        routes = [{**r, "end": max(r["end"], horizon),
+                   **({"return_end": max(r["return_end"], horizon)} if r.get("return_end") else {})} for r in routes]
     return s, routes
 
 
@@ -488,9 +495,10 @@ def save_items(P: Paths, items) -> list[str]:
                 cands = [d for d in found if days[d][cabin]["miles"] <= target
                          and (d in new_dates or not days[d][cabin].get("tax"))]
             else:
-                # 목표가 없으면: 이번에 본 날 중 마일이 가장 적은 날 (세금을 아직 모르는 날)
+                # 목표가 없으면: 이번에 본 날 중 최저 마일 + detail_within_pct % 이내인 날 (세금을 아직 모르는 날)
                 low = min(days[d][cabin]["miles"] for d in found)
-                cands = [d for d in found if days[d][cabin]["miles"] == low and not days[d][cabin].get("tax")]
+                limit = low * (100 + (settings.get("detail_within_pct") or 0)) / 100
+                cands = [d for d in found if days[d][cabin]["miles"] <= limit and not days[d][cabin].get("tax")]
             cands.sort(key=lambda d: (d not in new_dates, days[d][cabin]["miles"], d))
             if cands and left:
                 reports.append(f"  → 상세 확인 추천 (남은 {left}개): " + ", ".join(md(d) for d in cands[:left]))
