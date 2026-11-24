@@ -1,6 +1,6 @@
 {
  "sample": false,
- "updated_at": "2026-11-24T20:08:27+09:00",
+ "updated_at": "2026-11-24T20:15:22+09:00",
  "settings": {
   "max_searches_per_run": 40,
   "max_details_per_route": 15,
@@ -35,9 +35,9 @@
    "from": "SEL",
    "to": "TYO",
    "start": "2027-02-01",
-   "end": "2027-02-28",
+   "end": "2027-11-14",
    "return_start": "2027-02-01",
-   "return_end": "2027-02-28",
+   "return_end": "2027-11-14",
    "cabins": [
     "economy",
     "business"
@@ -57,12 +57,12 @@
       "fresh": 17
      },
      "business": {
-      "min": null,
-      "min_date": null,
+      "min": 21500,
+      "min_date": "2027-02-15",
       "hit": 0,
-      "avail": 0,
-      "checked": 0,
-      "fresh": 0
+      "avail": 1,
+      "checked": 1,
+      "fresh": 1
      }
     },
     "back": {
@@ -75,16 +75,16 @@
       "fresh": 16
      },
      "business": {
-      "min": null,
-      "min_date": null,
+      "min": 22500,
+      "min_date": "2027-02-16",
       "hit": 0,
-      "avail": 0,
-      "checked": 0,
-      "fresh": 0
+      "avail": 1,
+      "checked": 1,
+      "fresh": 1
      }
     }
    },
-   "last_checked_at": "2026-11-24T20:07:56+09:00"
+   "last_checked_at": "2026-11-24T20:15:22+09:00"
   },
   {
    "id": "sel-osa-20270201",
@@ -92,9 +92,9 @@
    "from": "SEL",
    "to": "OSA",
    "start": "2027-02-01",
-   "end": "2027-02-28",
+   "end": "2027-11-14",
    "return_start": "2027-02-01",
-   "return_end": "2027-02-28",
+   "return_end": "2027-11-14",
    "cabins": [
     "economy",
     "business"

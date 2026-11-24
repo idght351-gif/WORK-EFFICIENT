@@ -5,9 +5,9 @@
   "from": "SEL",
   "to": "TYO",
   "start": "2027-02-01",
-  "end": "2027-02-28",
+  "end": "2027-11-14",
   "return_start": "2027-02-01",
-  "return_end": "2027-02-28",
+  "return_end": "2027-11-14",
   "cabins": [
    "economy",
    "business"
@@ -17,7 +17,7 @@
   "adults": 1,
   "active": true
  },
- "updated_at": "2026-11-24T20:07:56+09:00",
+ "updated_at": "2026-11-24T20:15:22+09:00",
  "directions": {
   "out": {
    "from": "SEL",
@@ -151,6 +151,60 @@
        }
       ],
       "detail_checked_at": "2026-11-24T20:07:56+09:00"
+     },
+     "business": {
+      "miles": 21500,
+      "checked_at": "2026-11-24T20:15:22+09:00",
+      "source": "detail",
+      "first_seen": "2026-11-24T20:15:22+09:00",
+      "flights": [
+       {
+        "from": "ICN",
+        "to": "NRT",
+        "dep": "15:35",
+        "arr": "17:55",
+        "stops": 0,
+        "miles": 23500,
+        "operated_by": "대한항공"
+       },
+       {
+        "from": "GMP",
+        "to": "HND",
+        "dep": "15:50",
+        "arr": "17:50",
+        "stops": 0,
+        "miles": 21500,
+        "operated_by": "대한항공"
+       },
+       {
+        "from": "ICN",
+        "to": "NRT",
+        "dep": "18:00",
+        "arr": "20:20",
+        "stops": 0,
+        "miles": 23500,
+        "operated_by": "대한항공"
+       },
+       {
+        "from": "GMP",
+        "to": "HND",
+        "dep": "19:35",
+        "arr": "21:45",
+        "stops": 0,
+        "miles": 21500,
+        "operated_by": "대한항공"
+       },
+       {
+        "from": "ICN",
+        "to": "HND",
+        "dep": "21:30",
+        "arr": "23:25",
+        "stops": 0,
+        "miles": 22500,
+        "operated_by": "대한항공"
+       }
+      ],
+      "detail_checked_at": "2026-11-24T20:15:22+09:00"
      }
     },
     "2027-02-16": {
@@ -412,6 +466,33 @@
        }
       ],
       "detail_checked_at": "2026-11-24T20:07:50+09:00"
+     },
+     "business": {
+      "miles": 22500,
+      "checked_at": "2026-11-24T20:15:22+09:00",
+      "source": "detail",
+      "first_seen": "2026-11-24T20:15:22+09:00",
+      "flights": [
+       {
+        "from": "HND",
+        "to": "ICN",
+        "dep": "01:30",
+        "arr": "04:10",
+        "stops": 0,
+        "miles": 22500,
+        "operated_by": "대한항공"
+       },
+       {
+        "from": "NRT",
+        "to": "ICN",
+        "dep": "08:30",
+        "arr": "11:00",
+        "stops": 0,
+        "miles": 23500,
+        "operated_by": "대한항공"
+       }
+      ],
+      "detail_checked_at": "2026-11-24T20:15:22+09:00"
      }
     },
     "2027-02-17": {
