@@ -36,7 +36,8 @@ DEFAULT_SETTINGS = {
     "max_searches_per_run": 40,
     "max_details_per_route": 4,
     "detail_within_pct": 0,       # 목표 마일이 없을 때: 그 달 최저 마일 + 이 % 이내 날짜를 상세 확인 (0 = 최저만)
-    "search_open_months": False,  # True 면 노선 기간 끝을 무시하고, 시작 달부터 예약이 열린 달(오늘 + 355일)까지 모두 검색
+    "search_open_months": False,
+    "search_cabins": None,        # 예 ["economy"]: 캘린더 검색은 이 등급만. 다른 등급은 상세 확인 때 같은 편 목록에서 읽어 detail 로 저장  # True 면 노선 기간 끝을 무시하고, 시작 달부터 예약이 열린 달(오늘 + 355일)까지 모두 검색
     "wait_seconds": {"click": [8, 15], "search": [20, 35], "between": [40, 80]},
     "run_at_kst": None,
 }
@@ -289,7 +290,7 @@ def make_plan(P: Paths, settings: dict, routes: list):
                 continue
             a2 = max(a, today)
             for c in CABINS:
-                if c not in r["cabins"]:
+                if c not in r["cabins"] or (settings.get("search_cabins") and c not in settings["search_cabins"]):
                     continue
                 for m in months(a2, b):
                     # 그 달(기간 안)에서 가장 오래전에 확인한 때. 한 번도 안 본 날이 있으면 맨 앞.

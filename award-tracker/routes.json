@@ -5,6 +5,7 @@
     "max_details_per_route": 15,
     "detail_within_pct": 20,
     "search_open_months": true,
+    "search_cabins": ["economy"],
     "wait_seconds": { "click": [8, 15], "search": [20, 35], "between": [40, 80] }
   },
   "routes": [

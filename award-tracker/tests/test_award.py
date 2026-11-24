@@ -89,6 +89,17 @@ class SyncAndPlan(Base):
         self.assertEqual(len(planned), 12)
         self.assertEqual(max(x["period"][1] for x in planned), "2027-11-15")
 
+    def test_search_cabins_and_business_from_detail(self):
+        self.write_routes([ROUTE], search_cabins=["economy"])
+        s, routes = award.sync(self.P)
+        planned, _ = award.make_plan(self.P, s, routes)
+        self.assertEqual({x["cabin"] for x in planned}, {"economy"})
+        # 비즈니스는 캘린더 없이 상세에서 읽은 편만으로 저장
+        award.save_items(self.P, self.cal({"2027-06-20": {"seats": "2+", "flights": [
+            {"dep": "09:00", "miles": 23500}, {"dep": "13:00", "miles": 21500}]}}, cabin="business", source="detail"))
+        e = self.doc()["directions"]["out"]["days"]["2027-06-20"]["business"]
+        self.assertEqual((e["miles"], e["source"]), (21500, "detail"))
+
     def test_bad_config(self):
         self.write_routes([{**ROUTE, "cabins": ["first"]}])
         with self.assertRaises(award.AwardError):
