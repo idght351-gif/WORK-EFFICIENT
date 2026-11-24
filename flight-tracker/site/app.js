@@ -152,8 +152,8 @@ function cardHTML(r) {
   return `
   <a class="card route-card" href="#${esc(r.id)}">
     <div>
-      <div class="route-name">${esc(r.name)}</div>
-      <div class="route-meta">${routePath(r)} · ${tripLabel(r)} · ${dday(r.date)}</div>
+      <div class="route-name">${routePath(r)}</div>
+      <div class="route-meta">${dday(r.date)}</div>
       <div class="badges">${badges.join("")}</div>
       <div class="route-plan muted small" id="plan-${esc(r.id)}"></div>
     </div>
