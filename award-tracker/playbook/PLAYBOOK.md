@@ -51,7 +51,7 @@
 
 1. `git pull --autostash` (사용자가 휴대폰으로 바꾼 노선 · 이 절차서를 받음)
 2. `python award-tracker/tools/award.py start` → 이번에 검색할 목록이 나와요. 목록이 비어 있으면 4장으로.
-3. **일반 크롬 창에서 해요.** 시크릿 창은 시도했지만 Claude 탭이 일반 창에 열려서 쓸 수 없었어요 (2026-11-24). 조회 전에 사용자가 일반 크롬에서 에어프랑스에 **어른 계정으로 로그인**돼 있는지 확인해 둬요. 막혔던 적이 있으면 사용자가 에어프랑스 쿠키를 지우고 다시 로그인해요 (6장 "접속 차단").
+3. **에어프랑스 전용 크롬 프로필("마일 조회")에서 해요** (2026-11-24). 쿠키 · 로그인이 평소 크롬과 따로라 막혀도 평소 크롬에 영향이 없고, 로그인이 유지돼요. 연결된 크롬이 여럿이면 `list_connected_browsers` 결과를 보여 주고 **사용자에게 어느 쪽인지 물어** `select_browser` 해요 (마음대로 고르지 않음). 사람이 없고 고를 수 없으면 `finish error --message "브라우저 선택 필요"`. 시크릿 창은 Claude 탭이 열리지 않아 쓰지 않아요.
    Claude in Chrome: `tabs_context_mcp` → 새 탭 → 에어프랑스 열기
    - 주소: `https://wwws.airfrance.co.kr/en` (영어 화면, `settings.airfrance_url` 과 같음)
    - `wait search`
@@ -103,6 +103,7 @@
 | 3-3b | 편 목록 화면 | **남은 좌석**: 상세를 연 날짜의 **최저가 이코노미 편**(그날 캘린더 마일과 같은 편, 예: 2/15 19:35 GMP 출발)만 봐요. 그 편 이코노미 상자에 **빨간 글씨 "N seats left"** 가 있으면 그 숫자(`"1 seats left"` → `"seats": 1`, `"2 seats left"` → `"seats": 2`), 아무것도 없으면 `"seats": "2+"`. 커서를 올려도 "Price for 1 passenger" 만 나오니 hover 는 하지 않아도 돼요 (2026-11-24 사용자 지시) | — | 앱에 "남은 좌석 1석 / 2석 / 2+석" 으로 보임 |
 | 3-4b | 편 목록 화면 (같은 화면) | **비즈니스도 여기서 함께 읽어요** — 비즈니스는 따로 캘린더 검색을 하지 않아요 (`settings.search_cabins: ["economy"]`, 2026-11-24 사용자: 이코노미 최저가 날을 비즈니스 최저가 날로 보고, 그날 비즈니스 일정만 보여 주면 됨). 각 편의 "Business" 칸에 마일이 있는 편만 모아서 `"cabin": "business", "source": "detail"` 로 따로 `save`. 세금 · 남은 좌석은 비워 둠 (날짜 띠 세금은 이코노미 값) | — | "✓ 저장 … 비즈니스 … 상세" |
 | 3-4 | — | 5장 형식(`source: detail`)으로 `save`. 세금은 `{"amount": 18, "currency": "USD"}` 처럼 **USD 로, 센트는 반올림**(도구가 정수만 받음). 편명 `no` 는 비워 둠 | — | "✓ 저장" |
+| 3-1b | 편 목록 화면 | **같은 방향의 다음 추천 날짜는 Back 하지 말고 위 날짜 띠에서 바로 열어요** — 날짜 칸(tab "Display flights for departure on Wed 3 Feb")을 누르면 그날 편 목록으로 바뀜(search). 띠에 없으면 "Show flights for next 3 days"(click)로 넘긴 뒤 누름. 접속 수가 줄어요 (2026-11-24 SEL→OSA 에서 확인) | search | find 의 "Displaying flights departing on (그 날짜)" |
 | 3-5 | 편 목록 화면 | 왼쪽 위 **"← Back"** 누르기. **캘린더가 아니라 검색 칸 화면으로 돌아가요** | search | 주소 `…/search/advanced`, 탭 제목 "Book a flight", 검색 칸에 이전 값(One-way · 등급 · From · To · 마일 스위치 켜짐)이 남아 있고 **Departure date 칸에 고른 날짜(예: "Feb 15")가 들어가 있음** |
 
 ## 4. 끝
@@ -141,7 +142,7 @@
 | 캘린더 대신 날짜 입력을 요구함 | ❓ | ❓ |
 | 캘린더 위 주황 안내 "Sorry, there are no flights available in the current month. You can view flights for the next available month below." | 검색 직후 캘린더 맨 위 | 무시하고 그대로 진행 (이번 달 좌석이 없어 다음 가능한 달을 보여 준다는 뜻) |
 | 노선이 없음 / 검색 결과 없음 | ❓ | 그 달 모든 날짜 `null` 로 save |
-| **검색 중 홈 화면으로 튕기며 "Something went wrong"** | 검색 · 날짜 선택 뒤 갑자기 첫 화면으로 돌아오고 "Something went wrong" 류의 안내 | 멈추지 않고 `wait search` 후 그 항목을 **이어서 재검색** (검색 칸 값 확인 → 2-7 부터). 같은 항목에서 3번 연속이면 0장 "멈추는 때" (2026-11-24 사용자 지시) |
+| **검색 중 검색 칸으로 튕기며 "Sorry, something went wrong... Please try again."** | 검색 · 날짜 선택 뒤 갑자기 검색 칸 화면(`…/search/advanced?…`)으로 돌아오고 위에 이 글자. 날짜 칸엔 고르던 날짜(예: "Feb 11")가 들어가 있음 — 그대로 "Search flights" 하면 그 날짜 편 목록으로 바로 감 (2026-11-24 확인) | 멈추지 않고 `wait search` 후 그 항목을 **이어서 재검색** (검색 칸 값 확인 → 2-7 부터). 같은 항목에서 3번 연속이면 0장 "멈추는 때" (2026-11-24 사용자 지시) |
 | **캘린더가 비어 있음 (서버 렉)** | 달 띠의 그 달 칸에는 "from 9,500 Miles" 처럼 마일이 있는데, 달력 날짜 칸에는 마일이 없거나 날짜가 모두 회색(비활성) (날짜 버튼 이름에 "Lowest fare is" 가 없음) | **`null` 로 save 하지 않아요.** `wait search` 한 번 더 기다려도 그대로면 → `wait between` 두 번(약 3~5분) 쉬고 → 처음 주소(`https://wwws.airfrance.co.kr/en`)로 **한 번만** 가서 → `wait search` → 2-1 부터 다시. 그래도 비거나 홈이 오류 페이지면 바로 `finish challenge` (2026-11-24 TYO→SEL 2월은 재검색으로 풀림, SEL→OSA 2월은 재시도 중 접속 차단) |
 | **크롬 오류 페이지 / 접속 차단** | navigate 결과 "ended without loading a page", 스크린샷 · 글자 읽기가 "showing error page", 사용자 크롬에서도 안 열림, 로그인이 풀림 | 다시 시도하지 않음 → 탭 닫기 → `finish challenge --message "…"` → `publish` → 사용자에게 알림. 원인은 IP 보다 그 크롬의 쿠키 · 세션 쪽으로 보임 (2026-11-24 사용자 확인: 시크릿 창이나 쿠키 삭제 후에는 다시 열림). **쿠키 삭제 · 다시 로그인은 사용자가 직접** 해요 (Claude 는 브라우저 설정 · 비밀번호를 건드리지 않음). 사용자가 다시 로그인했다고 하면 그때 이어서 하되, 기다림을 줄이지 않아요. 쿠키를 지우면 쿠키 배너가 다시 뜨니 1-4 대로 모두 승인 |
 | **어린이 계정 안내** | "Search flights" 뒤 검색 칸 위 빨간 글씨 "Depending on their destination, children under 4 or 5 years old must be accompanied by an adult…", 화면이 넘어가지 않음 | 차단이 아니라 로그인한 계정이 어린이라서 생김. 승객 수를 바꾸지 말고 멈춤 → 사람이 있으면 어른 계정으로 다시 로그인을 부탁, 없으면 `finish login_required --message "어린이 계정으로 로그인됨"` |
@@ -157,3 +158,4 @@
 | 2026-11-24 | SEL→OSA 조회 중 접속 차단 → 무리하지 않기 기준: 한 번에 8개월 · 상세 노선당 3일, 기다림 늘림(10~20 / 30~45 / 90~150초), 하루 1번, 재시도는 한 번만, 오류 페이지면 바로 멈춤 |
 | 2026-11-24 | 조회 기준 다시 정함: 요청은 버튼 · 채팅으로만, 기간은 앱에서 정한 달만(한 방향 최대 8개월), 상세는 최저 +20% · 노선당 3일 |
 | 2026-11-24 | 시크릿 창 시도 → Claude 탭이 일반 창에 열려 실패, 일반 창 + 어른 계정 로그인으로 되돌림 |
+| 2026-11-24 | 전용 크롬 프로필 "마일 조회" 사용, 상세는 날짜 띠로 이동(3-1b), "Something went wrong" 은 날짜 든 채 재검색. SEL↔OSA 2월 첫 조회 성공 |
