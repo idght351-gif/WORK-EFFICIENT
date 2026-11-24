@@ -1,6 +1,6 @@
 {
  "sample": false,
- "updated_at": "2026-11-25T06:58:59+09:00",
+ "updated_at": "2026-11-25T07:53:20+09:00",
  "settings": {
   "max_searches_per_run": 4,
   "max_details_per_route": 8,
@@ -22,10 +22,10 @@
  },
  "runner": {
   "status": "ok",
-  "last_run_at": "2026-11-25T06:58:59+09:00",
+  "last_run_at": "2026-11-25T07:53:20+09:00",
   "next_run_at": null,
   "message": null,
-  "searches": 8,
+  "searches": 1,
   "max_searches": 4
  },
  "routes": [
@@ -107,7 +107,7 @@
      }
     }
    },
-   "last_checked_at": "2026-11-25T06:58:55+09:00"
+   "last_checked_at": "2026-11-25T07:53:16+09:00"
   }
  ]
 }
