@@ -210,21 +210,27 @@ function compareHTML(r) {
 
 // ------------------------------------------------------------ 상세
 // 상세 화면 위쪽: 목록으로 돌아가기 + 다른 추적 항공편으로 바로 이동하는 선택 상자
+// 선택 상자용 짧은 이름: 출발일 기준 "6월 26일 시작 여행"
+function tripTitle(r) {
+  const [, m, d] = r.date.split("-");
+  return `${+m}월 ${+d}일 시작 여행`;
+}
+
 function switcherHTML(current, routes) {
   const order = { active: 0, paused: 1, ended: 2 };
   const list = [...routes].sort((a, b) => (order[a.status] ?? 3) - (order[b.status] ?? 3) || a.date.localeCompare(b.date));
   return `<div class="switch-box">
       <button type="button" class="switch-btn" id="switch-btn" aria-haspopup="true" aria-expanded="false" aria-controls="switch-menu"
         aria-label="다른 추적 항공편 보기 (지금: ${esc(current.name)})">
-        <span class="switch-name">${routePath(current)}</span>
+        <span class="switch-name">${tripTitle(current)}</span>
         <span class="switch-chev" aria-hidden="true">▾</span>
       </button>
       <div class="switch-menu" id="switch-menu" hidden>
         ${list.map((x) => {
           const on = x.id === current.id;
           return `<a class="switch-item${on ? " on" : ""}" href="#${esc(encodeURIComponent(x.id))}"${on ? ' aria-current="page"' : ""}>
-            <span class="n">${on ? "✓ " : ""}${routePath(x)}${x.status !== "active" ? ` <span class="badge">${x.status === "ended" ? "종료" : "중지"}</span>` : ""}</span>
-            <span class="m">${tripLabel(x)}</span>
+            <span class="n">${on ? "✓ " : ""}${tripTitle(x)}${x.status !== "active" ? ` <span class="badge">${x.status === "ended" ? "종료" : "중지"}</span>` : ""}</span>
+            <span class="m">${routePath(x)}</span>
           </a>`; }).join("")}
       </div>
     </div>`;
