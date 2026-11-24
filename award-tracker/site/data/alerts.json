@@ -1,12 +1,10 @@
 {
- "run_id": "2026-11-24T22:44:52+09:00",
- "status": "ok",
- "started_at": "2026-11-24T22:44:52+09:00",
- "finished_at": "2026-11-24T23:01:43+09:00",
- "message": null,
- "searches": 8,
- "details": {
-  "sel-osa-20270201": 8
- },
+ "run_id": "2026-11-24T23:13:07+09:00",
+ "status": "challenge",
+ "started_at": "2026-11-24T23:13:07+09:00",
+ "finished_at": "2026-11-24T23:27:26+09:00",
+ "message": "검색 버튼 뒤 'We are unable to process your request right now. Please reload the page or try again later.' 가 10분 간격 2번 연속. 오늘은 멈춤",
+ "searches": 0,
+ "details": {},
  "alerts": []
 }

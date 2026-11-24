@@ -1,6 +1,6 @@
 {
  "sample": false,
- "updated_at": "2026-11-24T23:01:43+09:00",
+ "updated_at": "2026-11-24T23:27:26+09:00",
  "settings": {
   "max_searches_per_run": 8,
   "max_details_per_route": 8,
@@ -21,11 +21,11 @@
   }
  },
  "runner": {
-  "status": "ok",
-  "last_run_at": "2026-11-24T23:01:43+09:00",
+  "status": "challenge",
+  "last_run_at": "2026-11-24T23:27:26+09:00",
   "next_run_at": null,
-  "message": null,
-  "searches": 8,
+  "message": "검색 버튼 뒤 'We are unable to process your request right now. Please reload the page or try again later.' 가 10분 간격 2번 연속. 오늘은 멈춤",
+  "searches": 0,
   "max_searches": 8
  },
  "routes": [
