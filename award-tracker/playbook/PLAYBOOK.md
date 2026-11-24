@@ -149,6 +149,7 @@
 | **사이트 새 버전 안내창** | 화면 가운데 창 "A new version of our website is available. Refresh the page…" + 파란 버튼 "Refresh page" | "Refresh page" 를 누름(사이트 안 창이라 브라우저 알림창 아님) → `wait search`. 새로고침 뒤 검색 칸이 **직전 값으로 돌아가 있을 수 있으니** From · To · 날짜를 다시 확인하고 맞춰요 (2026-11-24 만남) |
 | **캘린더엔 마일이 있는데 편 목록에 이코노미 편이 없음** | 그 날짜 편 목록에서 이코노미 칸이 모두 "Not available for this flight" 이거나 편이 하나도 없음 (예: 사용자가 본 2/27) | **다시 검색하지 않아요.** 그 날짜를 캘린더 형식 `{"days": {"날짜": null}}` 로 save 해서 앱에 "좌석 없음(–)" 으로 고쳐 보여요. 다음 날짜로 넘어가요 (2026-11-24 사용자 지시) |
 | **날짜 띠에 마일 · 세금이 안 나옴** | 편 목록 위 날짜 띠가 날짜 이름만 보이고 "6,000 Miles / +USD …" 가 없음 (캘린더 값과 실제 최저가 다를 때 자주) | 기다리거나 다시 검색하지 않고 세금은 비운 채 save (`tax` 빼기). 다음 조회 때 다시 추천돼 세금을 채워요 |
+| **"We are unable to process your request right now. Please reload the page or try again later."** | "Search flights" 뒤 검색 칸 위 빨간 글씨, 캘린더로 넘어가지 않음. 하루에 상세를 20개 넘게 본 뒤 만남 (2026-11-24 23시) | 요청이 많다는 신호로 봐요. 10분 쉬고 첫 화면부터 **한 번만** 다시. 또 뜨면 그날은 멈춤 → `finish challenge --message "…"` → publish. 다음 날 이어서 |
 | 대한항공 편이 안 보임 | ❓ | ❓ |
 
 ## 가르친 기록
