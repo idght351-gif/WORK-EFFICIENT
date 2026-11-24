@@ -5,7 +5,7 @@ rem  Double-click this file (or its desktop shortcut) to start.
 rem  It runs only when you click it. Nothing runs on a schedule.
 rem ============================================================
 cd /d "%~dp0..\.."
-echo Before starting: open a Chrome Incognito window (Ctrl+Shift+N) and log in to Air France there.
+echo Before starting: make sure Chrome is logged in to Air France with an adult account.
 echo.
 echo [1/2] Getting the latest routes and playbook...
 git pull --autostash
