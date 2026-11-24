@@ -1,0 +1,1222 @@
+{
+ "route": {
+  "id": "sel-tyo-20270201",
+  "name": "서울 → 도쿄",
+  "from": "SEL",
+  "to": "TYO",
+  "start": "2027-02-01",
+  "end": "2027-02-28",
+  "return_start": "2027-02-01",
+  "return_end": "2027-02-28",
+  "cabins": [
+   "economy",
+   "business"
+  ],
+  "target_miles": null,
+  "nonstop": false,
+  "adults": 1,
+  "active": true
+ },
+ "updated_at": "2026-11-24T05:34:10+09:00",
+ "directions": {
+  "out": {
+   "from": "SEL",
+   "to": "TYO",
+   "days": {
+    "2027-02-01": {
+     "economy": {
+      "miles": 12500,
+      "checked_at": "2026-11-24T05:34:10+09:00",
+      "source": "calendar",
+      "first_seen": "2026-11-23T09:34:10+09:00"
+     },
+     "business": {
+      "miles": 45000,
+      "checked_at": "2026-11-24T05:34:10+09:00",
+      "source": "calendar",
+      "first_seen": "2026-11-23T09:34:10+09:00"
+     }
+    },
+    "2027-02-02": {
+     "economy": {
+      "miles": 12500,
+      "checked_at": "2026-11-24T05:34:10+09:00",
+      "source": "calendar",
+      "first_seen": "2026-11-11T17:34:10+09:00"
+     },
+     "business": {
+      "miles": null,
+      "checked_at": "2026-11-24T05:34:10+09:00"
+     }
+    },
+    "2027-02-03": {
+     "economy": {
+      "miles": 15000,
+      "checked_at": "2026-11-24T05:34:10+09:00",
+      "source": "calendar",
+      "first_seen": "2026-11-11T17:34:10+09:00"
+     },
+     "business": {
+      "miles": 45000,
+      "checked_at": "2026-11-24T05:34:10+09:00",
+      "source": "calendar",
+      "first_seen": "2026-11-22T23:34:10+09:00"
+     }
+    },
+    "2027-02-04": {
+     "economy": {
+      "miles": 10000,
+      "checked_at": "2026-11-24T05:34:10+09:00",
+      "source": "detail",
+      "first_seen": "2026-11-11T17:34:10+09:00",
+      "tax": {
+       "amount": 42200,
+       "currency": "KRW"
+      },
+      "flights": [
+       {
+        "no": "KE2101",
+        "from": "GMP",
+        "to": "HND",
+        "dep": "08:10",
+        "arr": "10:20",
+        "stops": 0,
+        "miles": 10000,
+        "tax": {
+         "amount": 42200,
+         "currency": "KRW"
+        }
+       },
+       {
+        "no": "KE703",
+        "from": "ICN",
+        "to": "NRT",
+        "dep": "09:00",
+        "arr": "11:25",
+        "stops": 0,
+        "miles": 10000,
+        "tax": {
+         "amount": 42200,
+         "currency": "KRW"
+        }
+       },
+       {
+        "no": "KE719",
+        "from": "ICN",
+        "to": "HND",
+        "dep": "13:40",
+        "arr": "15:55",
+        "stops": 0,
+        "miles": 10000,
+        "tax": {
+         "amount": 42200,
+         "currency": "KRW"
+        }
+       }
+      ],
+      "detail_checked_at": "2026-11-24T05:34:10+09:00",
+      "seats": 2
+     },
+     "business": {
+      "miles": null,
+      "checked_at": "2026-11-24T05:34:10+09:00"
+     }
+    },
+    "2027-02-05": {
+     "economy": {
+      "miles": 12500,
+      "checked_at": "2026-11-24T05:34:10+09:00",
+      "source": "calendar",
+      "first_seen": "2026-11-19T05:34:10+09:00"
+     },
+     "business": {
+      "miles": 45000,
+      "checked_at": "2026-11-24T05:34:10+09:00",
+      "source": "calendar",
+      "first_seen": "2026-11-24T03:34:10+09:00"
+     }
+    },
+    "2027-02-06": {
+     "economy": {
+      "miles": 10000,
+      "checked_at": "2026-11-24T05:34:10+09:00",
+      "source": "detail",
+      "first_seen": "2026-11-24T03:34:10+09:00",
+      "tax": {
+       "amount": 46600,
+       "currency": "KRW"
+      },
+      "flights": [
+       {
+        "no": "KE2101",
+        "from": "GMP",
+        "to": "HND",
+        "dep": "08:10",
+        "arr": "10:20",
+        "stops": 0,
+        "miles": 10000,
+        "tax": {
+         "amount": 46600,
+         "currency": "KRW"
+        }
+       },
+       {
+        "no": "MU5042",
+        "from": "ICN",
+        "to": "NRT",
+        "dep": "08:30",
+        "arr": "16:40",
+        "stops": 1,
+        "miles": 12500,
+        "tax": {
+         "amount": 55600,
+         "currency": "KRW"
+        },
+        "via": "PVG",
+        "operated_by": "중국동방항공"
+       },
+       {
+        "no": "KE703",
+        "from": "ICN",
+        "to": "NRT",
+        "dep": "09:00",
+        "arr": "11:25",
+        "stops": 0,
+        "miles": 15000,
+        "tax": {
+         "amount": 46600,
+         "currency": "KRW"
+        }
+       }
+      ],
+      "detail_checked_at": "2026-11-24T05:34:10+09:00"
+     },
+     "business": {
+      "miles": null,
+      "checked_at": "2026-11-24T05:34:10+09:00"
+     }
+    },
+    "2027-02-07": {
+     "economy": {
+      "miles": null,
+      "checked_at": "2026-11-24T05:34:10+09:00"
+     },
+     "business": {
+      "miles": 35000,
+      "checked_at": "2026-11-24T05:34:10+09:00",
+      "source": "calendar",
+      "first_seen": "2026-11-11T17:34:10+09:00",
+      "prev_miles": 55000
+     }
+    },
+    "2027-02-08": {
+     "economy": {
+      "miles": 10000,
+      "checked_at": "2026-11-24T05:34:10+09:00",
+      "source": "detail",
+      "first_seen": "2026-11-22T23:34:10+09:00",
+      "tax": {
+       "amount": 38000,
+       "currency": "KRW"
+      },
+      "flights": [
+       {
+        "no": "KE2101",
+        "from": "GMP",
+        "to": "HND",
+        "dep": "08:10",
+        "arr": "10:20",
+        "stops": 0,
+        "miles": 10000,
+        "tax": {
+         "amount": 38000,
+         "currency": "KRW"
+        }
+       },
+       {
+        "no": "MU5042",
+        "from": "ICN",
+        "to": "NRT",
+        "dep": "08:30",
+        "arr": "16:40",
+        "stops": 1,
+        "miles": 15000,
+        "tax": {
+         "amount": 47000,
+         "currency": "KRW"
+        },
+        "via": "PVG",
+        "operated_by": "중국동방항공"
+       },
+       {
+        "no": "KE719",
+        "from": "ICN",
+        "to": "HND",
+        "dep": "13:40",
+        "arr": "15:55",
+        "stops": 0,
+        "miles": 15000,
+        "tax": {
+         "amount": 38000,
+         "currency": "KRW"
+        }
+       }
+      ],
+      "detail_checked_at": "2026-11-24T05:34:10+09:00"
+     },
+     "business": {
+      "miles": 25000,
+      "checked_at": "2026-11-24T05:34:10+09:00",
+      "source": "detail",
+      "first_seen": "2026-11-19T05:34:10+09:00",
+      "tax": {
+       "amount": 60600,
+       "currency": "KRW"
+      },
+      "flights": [
+       {
+        "no": "KE2101",
+        "from": "GMP",
+        "to": "HND",
+        "dep": "08:10",
+        "arr": "10:20",
+        "stops": 0,
+        "miles": 25000,
+        "tax": {
+         "amount": 60600,
+         "currency": "KRW"
+        }
+       },
+       {
+        "no": "MU5042",
+        "from": "ICN",
+        "to": "NRT",
+        "dep": "08:30",
+        "arr": "16:40",
+        "stops": 1,
+        "miles": 27500,
+        "tax": {
+         "amount": 69600,
+         "currency": "KRW"
+        },
+        "via": "PVG",
+        "operated_by": "중국동방항공"
+       },
+       {
+        "no": "KE703",
+        "from": "ICN",
+        "to": "NRT",
+        "dep": "09:00",
+        "arr": "11:25",
+        "stops": 0,
+        "miles": 27500,
+        "tax": {
+         "amount": 60600,
+         "currency": "KRW"
+        }
+       }
+      ],
+      "detail_checked_at": "2026-11-24T05:34:10+09:00"
+     }
+    },
+    "2027-02-09": {
+     "economy": {
+      "miles": 15000,
+      "checked_at": "2026-11-24T05:34:10+09:00",
+      "source": "calendar",
+      "first_seen": "2026-11-24T03:34:10+09:00"
+     },
+     "business": {
+      "miles": null,
+      "checked_at": "2026-11-24T05:34:10+09:00"
+     }
+    },
+    "2027-02-10": {
+     "economy": {
+      "miles": 12500,
+      "checked_at": "2026-11-24T05:34:10+09:00",
+      "source": "calendar",
+      "first_seen": "2026-11-22T23:34:10+09:00",
+      "prev_miles": 15000
+     },
+     "business": {
+      "miles": 35000,
+      "checked_at": "2026-11-24T05:34:10+09:00",
+      "source": "calendar",
+      "first_seen": "2026-11-19T05:34:10+09:00"
+     }
+    },
+    "2027-02-11": {
+     "economy": {
+      "miles": 10000,
+      "checked_at": "2026-11-24T05:34:10+09:00",
+      "source": "calendar",
+      "first_seen": "2026-11-19T05:34:10+09:00"
+     },
+     "business": {
+      "miles": null,
+      "checked_at": "2026-11-24T05:34:10+09:00"
+     }
+    },
+    "2027-02-12": {
+     "economy": {
+      "miles": 20000,
+      "checked_at": "2026-11-24T05:34:10+09:00",
+      "source": "calendar",
+      "first_seen": "2026-11-22T23:34:10+09:00"
+     },
+     "business": {
+      "miles": 55000,
+      "checked_at": "2026-11-24T05:34:10+09:00",
+      "source": "calendar",
+      "first_seen": "2026-11-22T23:34:10+09:00"
+     }
+    },
+    "2027-02-13": {
+     "economy": {
+      "miles": 12500,
+      "checked_at": "2026-11-24T05:34:10+09:00",
+      "source": "calendar",
+      "first_seen": "2026-11-21T05:34:10+09:00"
+     },
+     "business": {
+      "miles": 45000,
+      "checked_at": "2026-11-24T05:34:10+09:00",
+      "source": "calendar",
+      "first_seen": "2026-11-19T05:34:10+09:00"
+     }
+    },
+    "2027-02-14": {
+     "economy": {
+      "miles": null,
+      "checked_at": "2026-11-24T05:34:10+09:00"
+     },
+     "business": {
+      "miles": null,
+      "checked_at": "2026-11-24T05:34:10+09:00"
+     }
+    },
+    "2027-02-15": {
+     "economy": {
+      "miles": 25000,
+      "checked_at": "2026-11-24T05:34:10+09:00",
+      "source": "calendar",
+      "first_seen": "2026-11-24T03:34:10+09:00"
+     },
+     "business": {
+      "miles": 30000,
+      "checked_at": "2026-11-24T05:34:10+09:00",
+      "source": "calendar",
+      "first_seen": "2026-11-19T05:34:10+09:00"
+     }
+    },
+    "2027-02-16": {
+     "economy": {
+      "miles": 12500,
+      "checked_at": "2026-11-24T05:34:10+09:00",
+      "source": "calendar",
+      "first_seen": "2026-11-24T03:34:10+09:00"
+     },
+     "business": {
+      "miles": 30000,
+      "checked_at": "2026-11-24T05:34:10+09:00",
+      "source": "calendar",
+      "first_seen": "2026-11-24T03:34:10+09:00"
+     }
+    },
+    "2027-02-17": {
+     "economy": {
+      "miles": 15000,
+      "checked_at": "2026-11-24T05:34:10+09:00",
+      "source": "calendar",
+      "first_seen": "2026-11-11T17:34:10+09:00"
+     },
+     "business": {
+      "miles": 35000,
+      "checked_at": "2026-11-24T05:34:10+09:00",
+      "source": "calendar",
+      "first_seen": "2026-11-24T03:34:10+09:00"
+     }
+    },
+    "2027-02-18": {
+     "economy": {
+      "miles": null,
+      "checked_at": "2026-11-24T05:34:10+09:00"
+     },
+     "business": {
+      "miles": 25000,
+      "checked_at": "2026-11-24T05:34:10+09:00",
+      "source": "detail",
+      "first_seen": "2026-11-24T03:34:10+09:00",
+      "prev_miles": 30000,
+      "tax": {
+       "amount": 56200,
+       "currency": "KRW"
+      },
+      "flights": [
+       {
+        "no": "KE2101",
+        "from": "GMP",
+        "to": "HND",
+        "dep": "08:10",
+        "arr": "10:20",
+        "stops": 0,
+        "miles": 25000,
+        "tax": {
+         "amount": 56200,
+         "currency": "KRW"
+        }
+       },
+       {
+        "no": "MU5042",
+        "from": "ICN",
+        "to": "NRT",
+        "dep": "08:30",
+        "arr": "16:40",
+        "stops": 1,
+        "miles": 30000,
+        "tax": {
+         "amount": 65200,
+         "currency": "KRW"
+        },
+        "via": "PVG",
+        "operated_by": "중국동방항공"
+       },
+       {
+        "no": "KE703",
+        "from": "ICN",
+        "to": "NRT",
+        "dep": "09:00",
+        "arr": "11:25",
+        "stops": 0,
+        "miles": 30000,
+        "tax": {
+         "amount": 56200,
+         "currency": "KRW"
+        }
+       }
+      ],
+      "detail_checked_at": "2026-11-24T05:34:10+09:00"
+     }
+    },
+    "2027-02-19": {
+     "economy": {
+      "miles": 15000,
+      "checked_at": "2026-11-24T05:34:10+09:00",
+      "source": "calendar",
+      "first_seen": "2026-11-23T09:34:10+09:00"
+     },
+     "business": {
+      "miles": null,
+      "checked_at": "2026-11-24T05:34:10+09:00"
+     }
+    },
+    "2027-02-20": {
+     "economy": {
+      "miles": 15000,
+      "checked_at": "2026-11-24T05:34:10+09:00",
+      "source": "calendar",
+      "first_seen": "2026-11-23T09:34:10+09:00",
+      "prev_miles": 10000
+     },
+     "business": {
+      "miles": 25000,
+      "checked_at": "2026-11-24T05:34:10+09:00",
+      "source": "detail",
+      "first_seen": "2026-11-21T05:34:10+09:00",
+      "prev_miles": 45000,
+      "tax": {
+       "amount": 56200,
+       "currency": "KRW"
+      },
+      "flights": [
+       {
+        "no": "KE2101",
+        "from": "GMP",
+        "to": "HND",
+        "dep": "08:10",
+        "arr": "10:20",
+        "stops": 0,
+        "miles": 25000,
+        "tax": {
+         "amount": 56200,
+         "currency": "KRW"
+        }
+       },
+       {
+        "no": "MU5042",
+        "from": "ICN",
+        "to": "NRT",
+        "dep": "08:30",
+        "arr": "16:40",
+        "stops": 1,
+        "miles": 30000,
+        "tax": {
+         "amount": 65200,
+         "currency": "KRW"
+        },
+        "via": "PVG",
+        "operated_by": "중국동방항공"
+       },
+       {
+        "no": "KE719",
+        "from": "ICN",
+        "to": "HND",
+        "dep": "13:40",
+        "arr": "15:55",
+        "stops": 0,
+        "miles": 30000,
+        "tax": {
+         "amount": 56200,
+         "currency": "KRW"
+        }
+       }
+      ],
+      "detail_checked_at": "2026-11-24T05:34:10+09:00"
+     }
+    },
+    "2027-02-21": {
+     "economy": {
+      "miles": 25000,
+      "checked_at": "2026-11-24T05:34:10+09:00",
+      "source": "calendar",
+      "first_seen": "2026-11-22T23:34:10+09:00",
+      "prev_miles": 12500
+     },
+     "business": {
+      "miles": 45000,
+      "checked_at": "2026-11-24T05:34:10+09:00",
+      "source": "calendar",
+      "first_seen": "2026-11-23T09:34:10+09:00"
+     }
+    },
+    "2027-02-22": {
+     "economy": {
+      "miles": 12500,
+      "checked_at": "2026-11-24T05:34:10+09:00",
+      "source": "calendar",
+      "first_seen": "2026-11-23T09:34:10+09:00"
+     },
+     "business": {
+      "miles": null,
+      "checked_at": "2026-11-24T05:34:10+09:00"
+     }
+    },
+    "2027-02-23": {
+     "economy": {
+      "miles": 15000,
+      "checked_at": "2026-11-24T05:34:10+09:00",
+      "source": "calendar",
+      "first_seen": "2026-11-11T17:34:10+09:00",
+      "prev_miles": 12500
+     },
+     "business": {
+      "miles": 30000,
+      "checked_at": "2026-11-24T05:34:10+09:00",
+      "source": "calendar",
+      "first_seen": "2026-11-22T23:34:10+09:00"
+     }
+    },
+    "2027-02-24": {
+     "economy": {
+      "miles": null,
+      "checked_at": "2026-11-24T05:34:10+09:00"
+     },
+     "business": {
+      "miles": 45000,
+      "checked_at": "2026-11-24T05:34:10+09:00",
+      "source": "calendar",
+      "first_seen": "2026-11-22T23:34:10+09:00"
+     }
+    },
+    "2027-02-25": {
+     "economy": {
+      "miles": 17500,
+      "checked_at": "2026-11-24T05:34:10+09:00",
+      "source": "calendar",
+      "first_seen": "2026-11-19T05:34:10+09:00",
+      "prev_miles": 12500
+     },
+     "business": {
+      "miles": 35000,
+      "checked_at": "2026-11-24T05:34:10+09:00",
+      "source": "calendar",
+      "first_seen": "2026-11-19T05:34:10+09:00",
+      "prev_miles": 45000
+     }
+    }
+   }
+  },
+  "back": {
+   "from": "TYO",
+   "to": "SEL",
+   "days": {
+    "2027-02-01": {
+     "economy": {
+      "miles": 12500,
+      "checked_at": "2026-11-24T05:34:10+09:00",
+      "source": "calendar",
+      "first_seen": "2026-11-21T05:34:10+09:00"
+     },
+     "business": {
+      "miles": null,
+      "checked_at": "2026-11-24T05:34:10+09:00"
+     }
+    },
+    "2027-02-02": {
+     "economy": {
+      "miles": 15000,
+      "checked_at": "2026-11-24T05:34:10+09:00",
+      "source": "calendar",
+      "first_seen": "2026-11-22T23:34:10+09:00"
+     },
+     "business": {
+      "miles": null,
+      "checked_at": "2026-11-24T05:34:10+09:00"
+     }
+    },
+    "2027-02-03": {
+     "economy": {
+      "miles": 10000,
+      "checked_at": "2026-11-24T05:34:10+09:00",
+      "source": "detail",
+      "first_seen": "2026-11-21T05:34:10+09:00",
+      "tax": {
+       "amount": 42200,
+       "currency": "KRW"
+      },
+      "flights": [
+       {
+        "no": "KE2102",
+        "from": "HND",
+        "to": "GMP",
+        "dep": "11:30",
+        "arr": "14:05",
+        "stops": 0,
+        "miles": 10000,
+        "tax": {
+         "amount": 42200,
+         "currency": "KRW"
+        }
+       },
+       {
+        "no": "KE704",
+        "from": "NRT",
+        "to": "ICN",
+        "dep": "12:50",
+        "arr": "15:30",
+        "stops": 0,
+        "miles": 12500,
+        "tax": {
+         "amount": 42200,
+         "currency": "KRW"
+        }
+       },
+       {
+        "no": "KE720",
+        "from": "HND",
+        "to": "ICN",
+        "dep": "17:00",
+        "arr": "19:40",
+        "stops": 0,
+        "miles": 12500,
+        "tax": {
+         "amount": 42200,
+         "currency": "KRW"
+        }
+       }
+      ],
+      "detail_checked_at": "2026-11-24T05:34:10+09:00"
+     },
+     "business": {
+      "miles": null,
+      "checked_at": "2026-11-24T05:34:10+09:00"
+     }
+    },
+    "2027-02-04": {
+     "economy": {
+      "miles": 12500,
+      "checked_at": "2026-11-24T05:34:10+09:00",
+      "source": "calendar",
+      "first_seen": "2026-11-19T05:34:10+09:00",
+      "prev_miles": 25000
+     },
+     "business": {
+      "miles": null,
+      "checked_at": "2026-11-24T05:34:10+09:00"
+     }
+    },
+    "2027-02-05": {
+     "economy": {
+      "miles": 25000,
+      "checked_at": "2026-11-24T05:34:10+09:00",
+      "source": "calendar",
+      "first_seen": "2026-11-24T03:34:10+09:00"
+     },
+     "business": {
+      "miles": 30000,
+      "checked_at": "2026-11-24T05:34:10+09:00",
+      "source": "calendar",
+      "first_seen": "2026-11-23T09:34:10+09:00"
+     }
+    },
+    "2027-02-06": {
+     "economy": {
+      "miles": null,
+      "checked_at": "2026-11-24T05:34:10+09:00"
+     },
+     "business": {
+      "miles": 45000,
+      "checked_at": "2026-11-24T05:34:10+09:00",
+      "source": "calendar",
+      "first_seen": "2026-11-11T17:34:10+09:00"
+     }
+    },
+    "2027-02-07": {
+     "economy": {
+      "miles": 17500,
+      "checked_at": "2026-11-24T05:34:10+09:00",
+      "source": "calendar",
+      "first_seen": "2026-11-11T17:34:10+09:00"
+     },
+     "business": {
+      "miles": null,
+      "checked_at": "2026-11-24T05:34:10+09:00"
+     }
+    },
+    "2027-02-08": {
+     "economy": {
+      "miles": 15000,
+      "checked_at": "2026-11-24T05:34:10+09:00",
+      "source": "calendar",
+      "first_seen": "2026-11-21T05:34:10+09:00"
+     },
+     "business": {
+      "miles": 35000,
+      "checked_at": "2026-11-24T05:34:10+09:00",
+      "source": "calendar",
+      "first_seen": "2026-11-22T23:34:10+09:00"
+     }
+    },
+    "2027-02-09": {
+     "economy": {
+      "miles": 15000,
+      "checked_at": "2026-11-24T05:34:10+09:00",
+      "source": "calendar",
+      "first_seen": "2026-11-11T17:34:10+09:00"
+     },
+     "business": {
+      "miles": 55000,
+      "checked_at": "2026-11-24T05:34:10+09:00",
+      "source": "calendar",
+      "first_seen": "2026-11-24T03:34:10+09:00"
+     }
+    },
+    "2027-02-10": {
+     "economy": {
+      "miles": 15000,
+      "checked_at": "2026-11-24T05:34:10+09:00",
+      "source": "calendar",
+      "first_seen": "2026-11-11T17:34:10+09:00"
+     },
+     "business": {
+      "miles": null,
+      "checked_at": "2026-11-24T05:34:10+09:00"
+     }
+    },
+    "2027-02-11": {
+     "economy": {
+      "miles": 17500,
+      "checked_at": "2026-11-24T05:34:10+09:00",
+      "source": "calendar",
+      "first_seen": "2026-11-23T09:34:10+09:00"
+     },
+     "business": {
+      "miles": null,
+      "checked_at": "2026-11-24T05:34:10+09:00"
+     }
+    },
+    "2027-02-12": {
+     "economy": {
+      "miles": null,
+      "checked_at": "2026-11-24T05:34:10+09:00"
+     },
+     "business": {
+      "miles": 25000,
+      "checked_at": "2026-11-24T05:34:10+09:00",
+      "source": "detail",
+      "first_seen": "2026-11-24T03:34:10+09:00",
+      "tax": {
+       "amount": 52000,
+       "currency": "KRW"
+      },
+      "flights": [
+       {
+        "no": "CI101",
+        "from": "NRT",
+        "to": "ICN",
+        "dep": "09:40",
+        "arr": "17:55",
+        "stops": 1,
+        "miles": 25000,
+        "tax": {
+         "amount": 61000,
+         "currency": "KRW"
+        },
+        "via": "TPE",
+        "operated_by": "중화항공"
+       },
+       {
+        "no": "KE2102",
+        "from": "HND",
+        "to": "GMP",
+        "dep": "11:30",
+        "arr": "14:05",
+        "stops": 0,
+        "miles": 27500,
+        "tax": {
+         "amount": 52000,
+         "currency": "KRW"
+        }
+       },
+       {
+        "no": "KE720",
+        "from": "HND",
+        "to": "ICN",
+        "dep": "17:00",
+        "arr": "19:40",
+        "stops": 0,
+        "miles": 30000,
+        "tax": {
+         "amount": 52000,
+         "currency": "KRW"
+        }
+       }
+      ],
+      "detail_checked_at": "2026-11-24T05:34:10+09:00",
+      "seats": 1
+     }
+    },
+    "2027-02-13": {
+     "economy": {
+      "miles": null,
+      "checked_at": "2026-11-24T05:34:10+09:00"
+     },
+     "business": {
+      "miles": 35000,
+      "checked_at": "2026-11-24T05:34:10+09:00",
+      "source": "calendar",
+      "first_seen": "2026-11-23T09:34:10+09:00"
+     }
+    },
+    "2027-02-14": {
+     "economy": {
+      "miles": null,
+      "checked_at": "2026-11-24T05:34:10+09:00"
+     },
+     "business": {
+      "miles": null,
+      "checked_at": "2026-11-24T05:34:10+09:00"
+     }
+    },
+    "2027-02-15": {
+     "economy": {
+      "miles": 12500,
+      "checked_at": "2026-11-24T05:34:10+09:00",
+      "source": "calendar",
+      "first_seen": "2026-11-23T09:34:10+09:00"
+     },
+     "business": {
+      "miles": null,
+      "checked_at": "2026-11-24T05:34:10+09:00"
+     }
+    },
+    "2027-02-16": {
+     "economy": {
+      "miles": 10000,
+      "checked_at": "2026-11-24T05:34:10+09:00",
+      "source": "detail",
+      "first_seen": "2026-11-19T05:34:10+09:00",
+      "tax": {
+       "amount": 46600,
+       "currency": "KRW"
+      },
+      "flights": [
+       {
+        "no": "CI101",
+        "from": "NRT",
+        "to": "ICN",
+        "dep": "09:40",
+        "arr": "17:55",
+        "stops": 1,
+        "miles": 10000,
+        "tax": {
+         "amount": 55600,
+         "currency": "KRW"
+        },
+        "via": "TPE",
+        "operated_by": "중화항공"
+       },
+       {
+        "no": "KE2102",
+        "from": "HND",
+        "to": "GMP",
+        "dep": "11:30",
+        "arr": "14:05",
+        "stops": 0,
+        "miles": 15000,
+        "tax": {
+         "amount": 46600,
+         "currency": "KRW"
+        }
+       },
+       {
+        "no": "KE720",
+        "from": "HND",
+        "to": "ICN",
+        "dep": "17:00",
+        "arr": "19:40",
+        "stops": 0,
+        "miles": 10000,
+        "tax": {
+         "amount": 46600,
+         "currency": "KRW"
+        }
+       }
+      ],
+      "detail_checked_at": "2026-11-24T05:34:10+09:00",
+      "seats": 2
+     },
+     "business": {
+      "miles": null,
+      "checked_at": "2026-11-24T05:34:10+09:00"
+     }
+    },
+    "2027-02-17": {
+     "economy": {
+      "miles": 25000,
+      "checked_at": "2026-11-24T05:34:10+09:00",
+      "source": "calendar",
+      "first_seen": "2026-11-11T17:34:10+09:00"
+     },
+     "business": {
+      "miles": 55000,
+      "checked_at": "2026-11-24T05:34:10+09:00",
+      "source": "calendar",
+      "first_seen": "2026-11-21T05:34:10+09:00",
+      "prev_miles": 35000
+     }
+    },
+    "2027-02-18": {
+     "economy": {
+      "miles": 12500,
+      "checked_at": "2026-11-24T05:34:10+09:00",
+      "source": "calendar",
+      "first_seen": "2026-11-22T23:34:10+09:00"
+     },
+     "business": {
+      "miles": 45000,
+      "checked_at": "2026-11-24T05:34:10+09:00",
+      "source": "calendar",
+      "first_seen": "2026-11-19T05:34:10+09:00"
+     }
+    },
+    "2027-02-19": {
+     "economy": {
+      "miles": 25000,
+      "checked_at": "2026-11-24T05:34:10+09:00",
+      "source": "calendar",
+      "first_seen": "2026-11-22T23:34:10+09:00"
+     },
+     "business": {
+      "miles": 25000,
+      "checked_at": "2026-11-24T05:34:10+09:00",
+      "source": "detail",
+      "first_seen": "2026-11-21T05:34:10+09:00",
+      "tax": {
+       "amount": 56200,
+       "currency": "KRW"
+      },
+      "flights": [
+       {
+        "no": "CI101",
+        "from": "NRT",
+        "to": "ICN",
+        "dep": "09:40",
+        "arr": "17:55",
+        "stops": 1,
+        "miles": 25000,
+        "tax": {
+         "amount": 65200,
+         "currency": "KRW"
+        },
+        "via": "TPE",
+        "operated_by": "중화항공"
+       },
+       {
+        "no": "KE2102",
+        "from": "HND",
+        "to": "GMP",
+        "dep": "11:30",
+        "arr": "14:05",
+        "stops": 0,
+        "miles": 27500,
+        "tax": {
+         "amount": 56200,
+         "currency": "KRW"
+        }
+       },
+       {
+        "no": "KE704",
+        "from": "NRT",
+        "to": "ICN",
+        "dep": "12:50",
+        "arr": "15:30",
+        "stops": 0,
+        "miles": 27500,
+        "tax": {
+         "amount": 56200,
+         "currency": "KRW"
+        }
+       }
+      ],
+      "detail_checked_at": "2026-11-24T05:34:10+09:00",
+      "seats": 1
+     }
+    },
+    "2027-02-20": {
+     "economy": {
+      "miles": 17500,
+      "checked_at": "2026-11-24T05:34:10+09:00",
+      "source": "calendar",
+      "first_seen": "2026-11-23T09:34:10+09:00",
+      "prev_miles": 20000
+     },
+     "business": {
+      "miles": null,
+      "checked_at": "2026-11-24T05:34:10+09:00"
+     }
+    },
+    "2027-02-21": {
+     "economy": {
+      "miles": 15000,
+      "checked_at": "2026-11-24T05:34:10+09:00",
+      "source": "calendar",
+      "first_seen": "2026-11-11T17:34:10+09:00"
+     },
+     "business": {
+      "miles": 35000,
+      "checked_at": "2026-11-24T05:34:10+09:00",
+      "source": "calendar",
+      "first_seen": "2026-11-11T17:34:10+09:00",
+      "prev_miles": 25000
+     }
+    },
+    "2027-02-22": {
+     "economy": {
+      "miles": 25000,
+      "checked_at": "2026-11-24T05:34:10+09:00",
+      "source": "calendar",
+      "first_seen": "2026-11-22T23:34:10+09:00",
+      "prev_miles": 15000
+     },
+     "business": {
+      "miles": 55000,
+      "checked_at": "2026-11-24T05:34:10+09:00",
+      "source": "calendar",
+      "first_seen": "2026-11-11T17:34:10+09:00"
+     }
+    },
+    "2027-02-23": {
+     "economy": {
+      "miles": 12500,
+      "checked_at": "2026-11-24T05:34:10+09:00",
+      "source": "calendar",
+      "first_seen": "2026-11-11T17:34:10+09:00"
+     },
+     "business": {
+      "miles": 35000,
+      "checked_at": "2026-11-24T05:34:10+09:00",
+      "source": "calendar",
+      "first_seen": "2026-11-24T03:34:10+09:00"
+     }
+    },
+    "2027-02-24": {
+     "economy": {
+      "miles": 15000,
+      "checked_at": "2026-11-24T05:34:10+09:00",
+      "source": "calendar",
+      "first_seen": "2026-11-11T17:34:10+09:00"
+     },
+     "business": {
+      "miles": null,
+      "checked_at": "2026-11-24T05:34:10+09:00"
+     }
+    },
+    "2027-02-25": {
+     "economy": {
+      "miles": 12500,
+      "checked_at": "2026-11-24T05:34:10+09:00",
+      "source": "calendar",
+      "first_seen": "2026-11-11T17:34:10+09:00"
+     },
+     "business": {
+      "miles": 25000,
+      "checked_at": "2026-11-24T05:34:10+09:00",
+      "source": "detail",
+      "first_seen": "2026-11-19T05:34:10+09:00",
+      "tax": {
+       "amount": 60600,
+       "currency": "KRW"
+      },
+      "flights": [
+       {
+        "no": "CI101",
+        "from": "NRT",
+        "to": "ICN",
+        "dep": "09:40",
+        "arr": "17:55",
+        "stops": 1,
+        "miles": 25000,
+        "tax": {
+         "amount": 69600,
+         "currency": "KRW"
+        },
+        "via": "TPE",
+        "operated_by": "중화항공"
+       },
+       {
+        "no": "KE704",
+        "from": "NRT",
+        "to": "ICN",
+        "dep": "12:50",
+        "arr": "15:30",
+        "stops": 0,
+        "miles": 25000,
+        "tax": {
+         "amount": 60600,
+         "currency": "KRW"
+        }
+       },
+       {
+        "no": "KE720",
+        "from": "HND",
+        "to": "ICN",
+        "dep": "17:00",
+        "arr": "19:40",
+        "stops": 0,
+        "miles": 30000,
+        "tax": {
+         "amount": 60600,
+         "currency": "KRW"
+        }
+       }
+      ],
+      "detail_checked_at": "2026-11-24T05:34:10+09:00",
+      "seats": 1
+     }
+    }
+   }
+  }
+ }
+}

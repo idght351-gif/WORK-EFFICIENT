@@ -1,0 +1,2 @@
+# Windows 버튼 파일은 Windows 줄바꿈으로 내려받음
+*.cmd text eol=crlf

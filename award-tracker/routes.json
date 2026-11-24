@@ -1,0 +1,40 @@
+{
+  "settings": {
+    "airfrance_url": null,
+    "max_searches_per_run": 40,
+    "max_details_per_route": 4,
+    "wait_seconds": { "click": [8, 15], "search": [20, 35], "between": [40, 80] }
+  },
+  "routes": [
+    {
+      "id": "sel-tyo-20270201",
+      "name": "서울 → 도쿄",
+      "from": "SEL",
+      "to": "TYO",
+      "start": "2027-02-01",
+      "end": "2027-02-28",
+      "return_start": "2027-02-01",
+      "return_end": "2027-02-28",
+      "cabins": ["economy", "business"],
+      "target_miles": null,
+      "nonstop": false,
+      "adults": 1,
+      "active": true
+    },
+    {
+      "id": "sel-osa-20270201",
+      "name": "서울 → 오사카·고베",
+      "from": "SEL",
+      "to": "OSA",
+      "start": "2027-02-01",
+      "end": "2027-02-28",
+      "return_start": "2027-02-01",
+      "return_end": "2027-02-28",
+      "cabins": ["economy", "business"],
+      "target_miles": null,
+      "nonstop": false,
+      "adults": 1,
+      "active": true
+    }
+  ]
+}

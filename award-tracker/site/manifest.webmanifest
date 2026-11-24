@@ -1,0 +1,16 @@
+{
+  "name": "마일 좌석 추적",
+  "short_name": "마일 좌석",
+  "description": "에어프랑스 Flying Blue 마일로 발권할 수 있는 스카이팀 한일 노선 좌석을 날짜별로 보여줘요",
+  "lang": "ko",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f3f4f6",
+  "theme_color": "#f3f4f6",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

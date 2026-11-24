@@ -16,6 +16,7 @@ on:
       - "flight-tracker/routes.json"
       - "flight-tracker/site/**"
       - "flight-tracker/tracker/**"
+      - "award-tracker/site/**"   # 마일 좌석 추적 앱 (같은 Pages 의 /award/ 에 함께 배포)
 
 permissions:
   contents: write
@@ -81,12 +82,21 @@ jobs:
         if: always()
         run: sed -i "s/__BUILD__/${GITHUB_SHA::7}/g" flight-tracker/site/index.html
 
+      # GitHub Pages 는 저장소당 하나라서, 마일 좌석 추적 앱을 /award/ 아래에 함께 올립니다.
+      # (버전 표시를 먼저 한 뒤 합쳐야 합친 사이트에도 들어가요)
+      - name: 사이트 합치기 (항공권 가격 추적 + 마일 좌석 추적)
+        if: always()
+        run: |
+          rm -rf _site && mkdir -p _site/award
+          cp -r flight-tracker/site/. _site/
+          cp -r award-tracker/site/. _site/award/
+
       - uses: actions/configure-pages@v5
         if: always()
       - uses: actions/upload-pages-artifact@v3
         if: always()
         with:
-          path: flight-tracker/site
+          path: _site
 
   deploy:
     needs: check

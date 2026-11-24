@@ -1,0 +1,147 @@
+{
+ "sample": true,
+ "updated_at": "2026-11-24T05:42:10+09:00",
+ "settings": {
+  "max_searches_per_run": 40,
+  "max_details_per_route": 4,
+  "run_at_kst": null,
+  "wait_seconds": {
+   "click": [
+    8,
+    15
+   ],
+   "search": [
+    20,
+    35
+   ],
+   "between": [
+    40,
+    80
+   ]
+  }
+ },
+ "runner": {
+  "status": "ok",
+  "last_run_at": "2026-11-24T05:42:10+09:00",
+  "next_run_at": null,
+  "message": null,
+  "searches": 8,
+  "max_searches": 40
+ },
+ "routes": [
+  {
+   "id": "sel-tyo-20270201",
+   "name": "서울 → 도쿄",
+   "from": "SEL",
+   "to": "TYO",
+   "start": "2027-02-01",
+   "end": "2027-02-28",
+   "return_start": "2027-02-01",
+   "return_end": "2027-02-28",
+   "cabins": [
+    "economy",
+    "business"
+   ],
+   "target_miles": null,
+   "nonstop": false,
+   "adults": 1,
+   "active": true,
+   "summary": {
+    "out": {
+     "economy": {
+      "min": 10000,
+      "min_date": "2027-02-04",
+      "hit": 0,
+      "avail": 21,
+      "checked": 25,
+      "fresh": 12
+     },
+     "business": {
+      "min": 25000,
+      "min_date": "2027-02-08",
+      "hit": 0,
+      "avail": 17,
+      "checked": 25,
+      "fresh": 10
+     }
+    },
+    "back": {
+     "economy": {
+      "min": 10000,
+      "min_date": "2027-02-03",
+      "hit": 0,
+      "avail": 21,
+      "checked": 25,
+      "fresh": 8
+     },
+     "business": {
+      "min": 25000,
+      "min_date": "2027-02-12",
+      "hit": 0,
+      "avail": 13,
+      "checked": 25,
+      "fresh": 6
+     }
+    }
+   },
+   "last_checked_at": "2026-11-24T05:34:10+09:00"
+  },
+  {
+   "id": "sel-osa-20270201",
+   "name": "서울 → 오사카·고베",
+   "from": "SEL",
+   "to": "OSA",
+   "start": "2027-02-01",
+   "end": "2027-02-28",
+   "return_start": "2027-02-01",
+   "return_end": "2027-02-28",
+   "cabins": [
+    "economy",
+    "business"
+   ],
+   "target_miles": null,
+   "nonstop": false,
+   "adults": 1,
+   "active": true,
+   "summary": {
+    "out": {
+     "economy": {
+      "min": 12500,
+      "min_date": "2027-02-07",
+      "hit": 0,
+      "avail": 24,
+      "checked": 25,
+      "fresh": 12
+     },
+     "business": {
+      "min": 25000,
+      "min_date": "2027-02-04",
+      "hit": 0,
+      "avail": 16,
+      "checked": 25,
+      "fresh": 7
+     }
+    },
+    "back": {
+     "economy": {
+      "min": 10000,
+      "min_date": "2027-02-12",
+      "hit": 0,
+      "avail": 20,
+      "checked": 25,
+      "fresh": 10
+     },
+     "business": {
+      "min": 25000,
+      "min_date": "2027-02-02",
+      "hit": 0,
+      "avail": 18,
+      "checked": 25,
+      "fresh": 11
+     }
+    }
+   },
+   "last_checked_at": "2026-11-24T05:41:10+09:00"
+  }
+ ]
+}
