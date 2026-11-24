@@ -209,3 +209,5 @@ ul.trips { list-style: none; margin: 0; padding: 0; }
 .trip:first-child { border-top: 0; }
 .trip-miles { text-align: right; flex: none; }
 .trip-miles .sub { font-size: 12px; color: var(--muted); }
+.trip-tag { margin-top: 4px; }
+.trip-more { margin: 4px 0 0; padding-top: 8px; border-top: 1px solid var(--line); }
