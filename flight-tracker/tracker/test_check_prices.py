@@ -296,6 +296,22 @@ class TestConnection(unittest.TestCase):
         finally:
             cp.fetch_serpapi = orig
         self.assertEqual(out["legs"][1]["flight_number"], "OK")
+
+    def test_reports_which_leg_failed(self):
+        import check_prices as cp
+        route = cp.normalize_route({"id": "x", "name": "x", "adults": 1, "max_stops": 0, "legs": [
+            {"from": "ICN", "to": "UKB", "date": "2027-02-26"}, {"from": "KIX", "to": "GMP", "date": "2027-03-01"}]})
+        pages = {None: {"other_flights": [mflight(100000, "2027-02-26", "09:00", "ICN", "UKB", "A", "t1")]},
+                 "t1": {"other_flights": [mflight(200000, "2027-03-01", "10:00", "KIX", "GMP", "B", stops=1)]}}
+        orig = cp.fetch_serpapi
+        cp.fetch_serpapi = lambda params, retries=3: pages[params.get("departure_token")]
+        try:
+            with self.assertRaises(RuntimeError) as ctx:
+                cp.check_route(route, "k")
+        finally:
+            cp.fetch_serpapi = orig
+        self.assertIn("2구간 KIX→GMP", str(ctx.exception))
+        self.assertIn("검색 결과 1개 · 경유 조건 통과 0개", str(ctx.exception))
         self.assertEqual(out["price"], 200000)
 
 
