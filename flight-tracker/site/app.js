@@ -13,6 +13,13 @@ function routePath(r) {
     : `${esc(r.from)} → ${esc(r.to)}`;
 }
 
+// 날짜만: 다구간 "6/26 · 6/29 · 7/3 · 7/3", 왕복 "6/29(화) ~ 7/5", 편도 "6/29(화)"
+function dateLabel(r) {
+  if (r.legs && r.legs.length) return r.legs.map((l) => md(l.date)).join(" · ");
+  const d = new Date(r.date + "T00:00:00");
+  return `${md(r.date)}(${DOW[d.getDay()]})` + (r.return_date ? ` ~ ${md(r.return_date)}` : "");
+}
+
 function tripLabel(r) {
   if (r.legs && r.legs.length) return `${r.legs.map((l) => md(l.date)).join(" · ")} 다구간`;
   const d = new Date(r.date + "T00:00:00");
@@ -291,7 +298,7 @@ async function renderDetail(id) {
   $app.innerHTML = `
     <section class="card">
       <div class="hero-route fit-line">${routePath(r)}</div>
-      <div class="hero-sub">${tripLabel(r)} · ${(r.adults || 1) > 1 ? `성인 ${r.adults}명 총액` : "1인 가격"} · ${dday(r.date)}</div>
+      <div class="hero-sub">${dateLabel(r)} (${dday(r.date)})</div>
       <div class="hero-price num">${won(s.current)}</div>
       <div class="hero-delta num">${deltaHTML(s.current, s.prev)}${s.prev != null && s.current !== s.prev ? ` <span class="muted small">어제 대비</span>` : ""}</div>
       <div class="badges" style="margin-top:10px">${badges.join("")}</div>
