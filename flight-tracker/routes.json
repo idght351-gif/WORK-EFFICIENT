@@ -73,7 +73,8 @@
       "travel_class": "economy",
       "max_stops": 0,
       "alert_below": null,
-      "active": true
+      "active": true,
+      "separate_tickets": true
     }
   ]
 }
