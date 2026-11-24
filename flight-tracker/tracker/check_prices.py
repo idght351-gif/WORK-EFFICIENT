@@ -420,6 +420,11 @@ def build_report(items: list[dict], quota: dict | None, now: datetime, site_url:
                  f"  추적 기간 최저 {won(sm['min'])} · 최고 {won(sm['max'])}"]
         if r.get("alert_below"):
             text.append(f"  목표가 {won(r['alert_below'])} " + ("도달" if e["price"] <= r["alert_below"] else "미도달"))
+        plan = it.get("plan") or {}
+        plan_txt = (f"다음 조회 {kst_label(plan.get('next_check'))}경 · 마지막 조회 {kst_label(plan.get('last_check'))}"
+                    if plan.get("next_check") else "")
+        if plan_txt:
+            text.append(f"  {plan_txt}")
         if it.get("flights_url"):
             text.append(f"  Google 항공권: {it['flights_url']}")
         text += [f"  Kayak: {links['kayak']}", f"  Skyscanner: {links['skyscanner']}", ""]
@@ -440,6 +445,8 @@ def build_report(items: list[dict], quota: dict | None, now: datetime, site_url:
             + row('추적 기간', f"최저 {won(sm['min'])} · 최고 {won(sm['max'])}")
             + (row('목표가', f"{won(r['alert_below'])} " + ('도달' if e['price'] <= r['alert_below'] else '미도달'))
                if r.get('alert_below') else "")
+            + (row('다음 조회', f"{kst_label(plan.get('next_check'))}경 · 마지막 {kst_label(plan.get('last_check'))}")
+               if plan.get("next_check") else "")
             + "</table><div style='margin-top:12px'>"
             + (btn(it["flights_url"], "Google 항공권") if it.get("flights_url") else "")
             + btn(links["kayak"], "Kayak 비교") + btn(links["skyscanner"], "Skyscanner 비교") + "</div></div>")
@@ -472,6 +479,47 @@ def send_report(items: list[dict], quota: dict | None, now: datetime) -> None:
     msg.add_alternative(html, subtype="html")
     _smtp_send(msg, user, pw)
     print(f"✉ 정기 리포트 발송 → {to}")
+
+
+# ---------------------------------------------------------------- 조회 일정
+
+WEEKDAYS = "월화수목금토일"
+
+
+def schedule_times() -> list[str]:
+    """워크플로의 예약 시각(한국시간). cron 과 맞춰 SCHEDULE_KST 에 "06:30,18:30" 처럼 넣습니다."""
+    raw = os.environ.get("SCHEDULE_KST") or "06:30"
+    return sorted({t.strip() for t in raw.split(",") if t.strip()}, key=parse_hm)
+
+
+def check_plan(route: dict, status: str, now: datetime, times: list[str]) -> dict:
+    """다음 조회 예정 시각과 마지막 조회 예정 시각. 출발일 당일까지 조회하고 그 뒤로는 멈춥니다."""
+    if status != "active" or not times:
+        return {"next_check": None, "last_check": None}
+    last_day = date.fromisoformat(route["date"])
+    at = lambda d, t: datetime(d.year, d.month, d.day, parse_hm(t) // 60, parse_hm(t) % 60, tzinfo=KST)  # noqa: E731
+    nxt = None
+    for offset in range(2):
+        day = (now + timedelta(days=offset)).date()
+        nxt = next((at(day, t) for t in times if at(day, t) > now), None)
+        if nxt:
+            break
+    if nxt and nxt.date() > last_day:
+        nxt = None
+    return {"next_check": nxt.isoformat(timespec="minutes") if nxt else None,
+            "last_check": at(last_day, times[-1]).isoformat(timespec="minutes")}
+
+
+def should_skip_scheduled(last_scheduled_date: str | None, today: str) -> bool:
+    """GitHub 예약 실행은 빠지기도 해서 같은 날 여러 번 예약해 두고, 그날 이미 성공했으면 나머지는 건너뜁니다."""
+    return last_scheduled_date == today
+
+
+def kst_label(iso: str | None) -> str:
+    if not iso:
+        return "-"
+    d = datetime.fromisoformat(iso)
+    return f"{d.month}/{d.day}({WEEKDAYS[d.weekday()]}) {d:%H:%M}"
 
 
 # ---------------------------------------------------------------- 비교 사이트 링크
@@ -575,9 +623,15 @@ def run(dry_run: bool = False) -> int:
     routes = [normalize_route(r) for r in load_json(ROUTES_FILE, {"routes": []})["routes"]]
     now = now_kst()
     today = now.date().isoformat()
+    prev_index = load_json(DATA_DIR / "index.json", {})
+    scheduled = os.environ.get("RUN_EVENT") == "schedule"
+    if scheduled and should_skip_scheduled(prev_index.get("last_scheduled_date"), today):
+        print(f"오늘({today}) 예약 조회를 이미 마쳤습니다. 재시도용 예약 실행이라 건너뜁니다.")
+        return 0
     index = []
     failures = 0
     report_items = []
+    times = schedule_times()
 
     for route in routes:
         rid = route["id"]
@@ -608,6 +662,7 @@ def run(dry_run: bool = False) -> int:
             summary = summarize(history)
             report_items.append({
                 "route": route, "summary": summary, "prev_price": prev_price,
+                "plan": check_plan(route, status, now, times),
                 "entry": {**(result or {}), "price": result["price"] if result else None,
                           "error": error or (None if result else "조건에 맞는 항공편 없음")},
                 "flights_url": doc.get("google_flights_url"),
@@ -627,16 +682,17 @@ def run(dry_run: bool = False) -> int:
         doc["history"] = history
         doc["summary"] = summarize(history)
         doc["updated_at"] = now.isoformat(timespec="seconds")
+        doc.update(check_plan(route, status, now, times))
+        doc["schedule_kst"] = times
         save_json(path, doc)
         index.append({
             "id": rid, "name": route["name"], "from": route["from"], "to": route["to"],
             "date": route["date"], "return_date": route.get("return_date"), "legs": route.get("legs"),
             "alert_below": route.get("alert_below"), "status": status,
-            "summary": doc["summary"],
+            "summary": doc["summary"], "next_check": doc["next_check"], "last_check": doc["last_check"],
             "spark": [h["price"] for h in history if h.get("price") is not None][-30:],
         })
 
-    prev_index = load_json(DATA_DIR / "index.json", {})
     runs_per_day = int(os.environ.get("RUNS_PER_DAY") or 1)
     daily_usage = runs_per_day * sum(searches_per_check(r) for r, i in zip(routes, index) if i["status"] == "active")
     fetched, qerr = None, None
@@ -652,7 +708,8 @@ def run(dry_run: bool = False) -> int:
     quota = build_quota(fetched, prev_index.get("quota"), daily_usage, now.isoformat(timespec="seconds"), qerr)
 
     save_json(DATA_DIR / "index.json", {"updated_at": now.isoformat(timespec="seconds"), "routes": index,
-                                        "quota": quota})
+                                        "quota": quota, "schedule_kst": times,
+                                        "last_scheduled_date": today if scheduled else prev_index.get("last_scheduled_date")})
 
     if report_items and os.environ.get("SEND_REPORT", "").lower() == "true":
         try:

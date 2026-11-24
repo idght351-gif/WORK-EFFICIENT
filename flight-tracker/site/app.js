@@ -57,11 +57,41 @@ async function renderList() {
 
   $app.innerHTML = `
     ${quotaHTML(index.quota)}
-    <h2 class="section-title" style="margin-top:8px">추적 중인 항공권</h2>
+    <div class="quota-head" style="margin-top:8px"><h2 class="section-title">추적 중인 항공권</h2><span class="muted small">조회 ${scheduleText(index.schedule_kst)}</span></div>
     ${routes.length ? routes.map(cardHTML).join("") :
       `<div class="card empty"><p>아직 추적 중인 노선이 없어요.</p><p class="muted small">routes.json 에 노선을 추가하면 다음 실행부터 기록돼요.</p></div>`}
     <a href="#add" class="btn secondary" style="margin-top:16px">+ 노선 추가하기</a>`;
   routes.forEach((r) => { const el = document.getElementById("spark-" + r.id); if (el) sparkline(el, r.spark, r.alert_below); });
+  routes.forEach((r) => {
+    const el = document.getElementById("plan-" + r.id), p = checkPlan(r, r.status, index.schedule_kst);
+    if (el) el.textContent = p ? `다음 조회 ${planLabel(p.next)}경 · 마지막 ${planLabel(p.last, false)}` : "";
+  });
+}
+
+// ------------------------------------------------------------ 조회 일정
+// 예약 시각(한국시간)과 출발일로, 보는 시점 기준 다음 조회와 마지막 조회를 계산합니다.
+function kstNow() { return new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Seoul" })); }
+function checkPlan(r, status, times) {
+  times = (times && times.length ? times : ["06:30"]).slice().sort();
+  if (status && status !== "active") return null;
+  const now = kstNow();
+  const at = (d, t) => { const x = new Date(d); const [h, m] = t.split(":"); x.setHours(+h, +m, 0, 0); return x; };
+  let next = null;
+  for (let off = 0; off < 2 && !next; off++) {
+    const day = new Date(now); day.setDate(day.getDate() + off);
+    next = times.map((t) => at(day, t)).find((x) => x > now) || null;
+  }
+  const lastDay = new Date(r.date + "T00:00:00");
+  const last = at(lastDay, times[times.length - 1]);
+  if (next && next > last) next = null;
+  return next ? { next, last } : null;
+}
+function planLabel(d, withTime = true) {
+  const s = `${d.getMonth() + 1}/${d.getDate()}(${DOW[d.getDay()]})`;
+  return withTime ? `${s} ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}` : s;
+}
+function scheduleText(times) {
+  return `매일 ${(times && times.length ? times : ["06:30"]).join(" · ")}`;
 }
 
 // ------------------------------------------------------------ SerpApi 잔여 검색 수
@@ -123,6 +153,7 @@ function cardHTML(r) {
       <div class="route-name">${esc(r.name)}</div>
       <div class="route-meta">${routePath(r)} · ${tripLabel(r)} · ${dday(r.date)}</div>
       <div class="badges">${badges.join("")}</div>
+      <div class="route-plan muted small" id="plan-${esc(r.id)}"></div>
     </div>
     <div>
       <div class="route-price num">${won(s.current)}</div>
@@ -246,6 +277,10 @@ async function renderDetail(id) {
         ? r.legs.map((l, i) => `<div class="info-row"><span>${i + 1}구간 ${md(l.date)} ${esc(l.from)}→${esc(l.to)}</span><span>${timeRange(l.depart_after, l.depart_before)}</span></div>`).join("")
         : `<div class="info-row"><span>가는 편 출발</span><span>${timeRange(r.depart_after, r.depart_before)}</span></div>`}
       ${r.return_date ? `<div class="info-row"><span>오는 편 출발</span><span>${timeRange(r.return_after, r.return_before)}</span></div>` : ""}
+      ${(() => { const p = checkPlan(r, doc.status, doc.schedule_kst); return `
+      <div class="info-row"><span>조회 일정</span><span>${scheduleText(doc.schedule_kst)}<div class="sub muted small">빠지면 07:10 · 07:50 에 다시 시도</div></span></div>
+      <div class="info-row"><span>다음 조회</span><span>${p ? `${planLabel(p.next)}경` : "조회 끝"}</span></div>
+      <div class="info-row"><span>마지막 조회</span><span>${p ? `${planLabel(p.last)} (출발일)` : "-"}</span></div>`; })()}
       <div class="info-row"><span>인원</span><span>성인 ${r.adults || 1}명</span></div>
       <div class="info-row"><span>알림 목표가</span><span class="num">${r.alert_below ? won(r.alert_below) + " 이하" : "설정 안 함"}</span></div>
       <div class="info-row"><span>좌석</span><span>${{ economy: "일반석", premium_economy: "프리미엄 일반석", business: "비즈니스", first: "일등석" }[r.travel_class] || "일반석"}</span></div>
