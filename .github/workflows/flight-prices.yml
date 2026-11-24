@@ -77,6 +77,10 @@ jobs:
             for i in 1 2 3; do git pull --rebase && git push && break; sleep 5; done
           fi
 
+      - name: 배포 버전 표시 (휴대폰에 남은 옛 파일 대신 새 파일을 받게 함)
+        if: always()
+        run: sed -i "s/__BUILD__/${GITHUB_SHA::7}/g" flight-tracker/site/index.html
+
       - uses: actions/configure-pages@v5
         if: always()
       - uses: actions/upload-pages-artifact@v3
