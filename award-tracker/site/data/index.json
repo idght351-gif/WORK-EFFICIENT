@@ -1,8 +1,8 @@
 {
  "sample": false,
- "updated_at": "2026-11-24T23:27:26+09:00",
+ "updated_at": "2026-11-24T23:38:31+09:00",
  "settings": {
-  "max_searches_per_run": 8,
+  "max_searches_per_run": 4,
   "max_details_per_route": 8,
   "run_at_kst": null,
   "wait_seconds": {
