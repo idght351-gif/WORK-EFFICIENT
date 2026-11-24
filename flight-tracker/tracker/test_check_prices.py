@@ -296,6 +296,7 @@ class TestConnection(unittest.TestCase):
         finally:
             cp.fetch_serpapi = orig
         self.assertEqual(out["legs"][1]["flight_number"], "OK")
+        self.assertEqual(out["price"], 200000)
 
     def test_reports_which_leg_failed(self):
         import check_prices as cp
@@ -312,7 +313,6 @@ class TestConnection(unittest.TestCase):
             cp.fetch_serpapi = orig
         self.assertIn("2구간 KIX→GMP", str(ctx.exception))
         self.assertIn("검색 결과 1개 · 경유 조건 통과 0개", str(ctx.exception))
-        self.assertEqual(out["price"], 200000)
 
 
 class TestCheckPlan(unittest.TestCase):
