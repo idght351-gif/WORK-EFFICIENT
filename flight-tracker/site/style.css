@@ -200,5 +200,3 @@ pre.snippet { background: var(--bg); border-radius: 12px; padding: 12px; font-si
 .switch-item.on { background: var(--accent-wash); }
 .switch-item .n { display: block; font-weight: 700; font-size: 14px; }
 .switch-item .m { display: block; font-size: 12px; color: var(--muted); }
-.switch-all { display: block; padding: 12px; font-size: 14px; font-weight: 600; color: var(--accent); border-top: 1px solid var(--line); }
-.switch-all + .switch-all { border-top: 0; padding-top: 4px; }

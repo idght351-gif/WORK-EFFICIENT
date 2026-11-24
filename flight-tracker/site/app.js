@@ -226,8 +226,6 @@ function switcherHTML(current, routes) {
             <span class="n">${on ? "✓ " : ""}${esc(x.name)}${x.status !== "active" ? ` <span class="badge">${x.status === "ended" ? "종료" : "중지"}</span>` : ""}</span>
             <span class="m">${tripLabel(x)}</span>
           </a>`; }).join("")}
-        <a class="switch-all" href="#">전체 목록으로 ›</a>
-        <a class="switch-all" href="#add">+ 노선 추가하기</a>
       </div>
     </div>`;
 }
