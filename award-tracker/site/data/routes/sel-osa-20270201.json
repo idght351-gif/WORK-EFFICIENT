@@ -16,7 +16,7 @@
   "adults": 1,
   "active": true
  },
- "updated_at": "2026-11-25T00:32:09+09:00",
+ "updated_at": "2026-11-25T01:06:02+09:00",
  "directions": {
   "out": {
    "from": "SEL",
@@ -1195,10 +1195,63 @@
     },
     "2027-03-08": {
      "economy": {
-      "miles": 6500,
-      "checked_at": "2026-11-24T22:17:33+09:00",
-      "source": "calendar",
-      "first_seen": "2026-11-24T22:17:33+09:00"
+      "miles": 6000,
+      "checked_at": "2026-11-25T00:45:55+09:00",
+      "source": "detail",
+      "first_seen": "2026-11-24T22:17:33+09:00",
+      "prev_miles": 6500,
+      "seats": "2+",
+      "flights": [
+       {
+        "from": "ICN",
+        "to": "KIX",
+        "dep": "07:20",
+        "arr": "09:15",
+        "stops": 0,
+        "miles": 6500
+       },
+       {
+        "from": "ICN",
+        "to": "UKB",
+        "dep": "11:55",
+        "arr": "14:00",
+        "stops": 0,
+        "miles": 6000
+       },
+       {
+        "from": "ICN",
+        "to": "KIX",
+        "dep": "16:40",
+        "arr": "18:30",
+        "stops": 0,
+        "miles": 6500
+       },
+       {
+        "from": "GMP",
+        "to": "KIX",
+        "dep": "17:20",
+        "arr": "19:00",
+        "stops": 0,
+        "miles": 6000
+       },
+       {
+        "from": "ICN",
+        "to": "KIX",
+        "dep": "18:45",
+        "arr": "20:35",
+        "stops": 0,
+        "miles": 6500
+       },
+       {
+        "from": "ICN",
+        "to": "KIX",
+        "dep": "21:00",
+        "arr": "22:45",
+        "stops": 0,
+        "miles": 6500
+       }
+      ],
+      "detail_checked_at": "2026-11-25T00:45:55+09:00"
      }
     },
     "2027-03-09": {
@@ -1448,18 +1501,180 @@
     },
     "2027-03-15": {
      "economy": {
-      "miles": 6500,
-      "checked_at": "2026-11-24T22:17:33+09:00",
-      "source": "calendar",
-      "first_seen": "2026-11-24T22:17:33+09:00"
+      "miles": 6000,
+      "checked_at": "2026-11-25T00:47:45+09:00",
+      "source": "detail",
+      "first_seen": "2026-11-24T22:17:33+09:00",
+      "prev_miles": 6500,
+      "seats": "2+",
+      "flights": [
+       {
+        "from": "ICN",
+        "to": "KIX",
+        "dep": "07:20",
+        "arr": "09:15",
+        "stops": 0,
+        "miles": 6500
+       },
+       {
+        "from": "GMP",
+        "to": "KIX",
+        "dep": "07:55",
+        "arr": "09:45",
+        "stops": 0,
+        "miles": 6000
+       },
+       {
+        "from": "ICN",
+        "to": "UKB",
+        "dep": "08:25",
+        "arr": "10:10",
+        "stops": 0,
+        "miles": 6000
+       },
+       {
+        "from": "ICN",
+        "to": "KIX",
+        "dep": "11:05",
+        "arr": "12:50",
+        "stops": 0,
+        "miles": 6500
+       },
+       {
+        "from": "ICN",
+        "to": "UKB",
+        "dep": "11:55",
+        "arr": "14:00",
+        "stops": 0,
+        "miles": 6000
+       },
+       {
+        "from": "ICN",
+        "to": "UKB",
+        "dep": "15:50",
+        "arr": "17:40",
+        "stops": 0,
+        "miles": 6000
+       },
+       {
+        "from": "ICN",
+        "to": "KIX",
+        "dep": "16:40",
+        "arr": "18:30",
+        "stops": 0,
+        "miles": 6500
+       },
+       {
+        "from": "GMP",
+        "to": "KIX",
+        "dep": "17:20",
+        "arr": "19:00",
+        "stops": 0,
+        "miles": 6000
+       },
+       {
+        "from": "ICN",
+        "to": "KIX",
+        "dep": "18:45",
+        "arr": "20:35",
+        "stops": 0,
+        "miles": 6500
+       },
+       {
+        "from": "ICN",
+        "to": "KIX",
+        "dep": "21:00",
+        "arr": "22:45",
+        "stops": 0,
+        "miles": 6500
+       }
+      ],
+      "detail_checked_at": "2026-11-25T00:47:45+09:00"
      }
     },
     "2027-03-16": {
      "economy": {
-      "miles": 6500,
-      "checked_at": "2026-11-24T22:17:33+09:00",
-      "source": "calendar",
-      "first_seen": "2026-11-24T22:17:33+09:00"
+      "miles": 6000,
+      "checked_at": "2026-11-25T00:54:09+09:00",
+      "source": "detail",
+      "first_seen": "2026-11-24T22:17:33+09:00",
+      "prev_miles": 6500,
+      "seats": "2+",
+      "flights": [
+       {
+        "from": "ICN",
+        "to": "KIX",
+        "dep": "07:20",
+        "arr": "09:15",
+        "stops": 0,
+        "miles": 6500
+       },
+       {
+        "from": "GMP",
+        "to": "KIX",
+        "dep": "07:55",
+        "arr": "09:45",
+        "stops": 0,
+        "miles": 6000
+       },
+       {
+        "from": "ICN",
+        "to": "UKB",
+        "dep": "08:25",
+        "arr": "10:10",
+        "stops": 0,
+        "miles": 6000
+       },
+       {
+        "from": "ICN",
+        "to": "KIX",
+        "dep": "08:50",
+        "arr": "10:45",
+        "stops": 0,
+        "miles": 6500
+       },
+       {
+        "from": "ICN",
+        "to": "UKB",
+        "dep": "11:55",
+        "arr": "14:00",
+        "stops": 0,
+        "miles": 6000
+       },
+       {
+        "from": "ICN",
+        "to": "UKB",
+        "dep": "15:50",
+        "arr": "17:40",
+        "stops": 0,
+        "miles": 6000
+       },
+       {
+        "from": "ICN",
+        "to": "KIX",
+        "dep": "16:40",
+        "arr": "18:30",
+        "stops": 0,
+        "miles": 6500
+       },
+       {
+        "from": "GMP",
+        "to": "KIX",
+        "dep": "17:20",
+        "arr": "19:00",
+        "stops": 0,
+        "miles": 6000
+       },
+       {
+        "from": "ICN",
+        "to": "KIX",
+        "dep": "18:45",
+        "arr": "20:35",
+        "stops": 0,
+        "miles": 6500
+       }
+      ],
+      "detail_checked_at": "2026-11-25T00:54:09+09:00"
      }
     },
     "2027-03-17": {
@@ -1544,10 +1759,55 @@
     },
     "2027-03-18": {
      "economy": {
-      "miles": 6500,
-      "checked_at": "2026-11-24T22:17:33+09:00",
-      "source": "calendar",
-      "first_seen": "2026-11-24T22:17:33+09:00"
+      "miles": 6000,
+      "checked_at": "2026-11-25T00:55:13+09:00",
+      "source": "detail",
+      "first_seen": "2026-11-24T22:17:33+09:00",
+      "prev_miles": 6500,
+      "seats": "2+",
+      "flights": [
+       {
+        "from": "ICN",
+        "to": "KIX",
+        "dep": "07:20",
+        "arr": "09:15",
+        "stops": 0,
+        "miles": 6500
+       },
+       {
+        "from": "ICN",
+        "to": "UKB",
+        "dep": "08:25",
+        "arr": "10:10",
+        "stops": 0,
+        "miles": 6000
+       },
+       {
+        "from": "GMP",
+        "to": "KIX",
+        "dep": "17:20",
+        "arr": "19:00",
+        "stops": 0,
+        "miles": 6000
+       },
+       {
+        "from": "ICN",
+        "to": "KIX",
+        "dep": "18:45",
+        "arr": "20:35",
+        "stops": 0,
+        "miles": 6500
+       },
+       {
+        "from": "ICN",
+        "to": "KIX",
+        "dep": "21:00",
+        "arr": "22:45",
+        "stops": 0,
+        "miles": 6500
+       }
+      ],
+      "detail_checked_at": "2026-11-25T00:55:13+09:00"
      }
     },
     "2027-03-19": {
@@ -1573,26 +1833,161 @@
     },
     "2027-03-22": {
      "economy": {
-      "miles": 6500,
-      "checked_at": "2026-11-24T22:17:33+09:00",
-      "source": "calendar",
-      "first_seen": "2026-11-24T22:17:33+09:00"
+      "miles": 6000,
+      "checked_at": "2026-11-25T00:59:52+09:00",
+      "source": "detail",
+      "first_seen": "2026-11-24T22:17:33+09:00",
+      "prev_miles": 6500,
+      "seats": "2+",
+      "flights": [
+       {
+        "from": "ICN",
+        "to": "KIX",
+        "dep": "07:20",
+        "arr": "09:15",
+        "stops": 0,
+        "miles": 6500
+       },
+       {
+        "from": "GMP",
+        "to": "KIX",
+        "dep": "07:55",
+        "arr": "09:45",
+        "stops": 0,
+        "miles": 6000
+       },
+       {
+        "from": "ICN",
+        "to": "UKB",
+        "dep": "11:55",
+        "arr": "14:00",
+        "stops": 0,
+        "miles": 6000
+       },
+       {
+        "from": "ICN",
+        "to": "KIX",
+        "dep": "16:40",
+        "arr": "18:30",
+        "stops": 0,
+        "miles": 6500
+       },
+       {
+        "from": "GMP",
+        "to": "KIX",
+        "dep": "17:20",
+        "arr": "19:00",
+        "stops": 0,
+        "miles": 6000
+       }
+      ],
+      "detail_checked_at": "2026-11-25T00:59:52+09:00"
      }
     },
     "2027-03-23": {
      "economy": {
-      "miles": 6500,
-      "checked_at": "2026-11-24T22:17:33+09:00",
-      "source": "calendar",
-      "first_seen": "2026-11-24T22:17:33+09:00"
+      "miles": 6000,
+      "checked_at": "2026-11-25T01:00:57+09:00",
+      "source": "detail",
+      "first_seen": "2026-11-24T22:17:33+09:00",
+      "prev_miles": 6500,
+      "seats": "2+",
+      "flights": [
+       {
+        "from": "ICN",
+        "to": "KIX",
+        "dep": "07:20",
+        "arr": "09:15",
+        "stops": 0,
+        "miles": 6500
+       },
+       {
+        "from": "GMP",
+        "to": "KIX",
+        "dep": "07:55",
+        "arr": "09:45",
+        "stops": 0,
+        "miles": 6000
+       },
+       {
+        "from": "GMP",
+        "to": "KIX",
+        "dep": "17:20",
+        "arr": "19:00",
+        "stops": 0,
+        "miles": 6000
+       },
+       {
+        "from": "ICN",
+        "to": "KIX",
+        "dep": "21:00",
+        "arr": "22:45",
+        "stops": 0,
+        "miles": 6500
+       }
+      ],
+      "detail_checked_at": "2026-11-25T01:00:57+09:00"
      }
     },
     "2027-03-24": {
      "economy": {
-      "miles": 6500,
-      "checked_at": "2026-11-24T22:17:33+09:00",
-      "source": "calendar",
-      "first_seen": "2026-11-24T22:17:33+09:00"
+      "miles": 6000,
+      "checked_at": "2026-11-25T01:01:54+09:00",
+      "source": "detail",
+      "first_seen": "2026-11-24T22:17:33+09:00",
+      "prev_miles": 6500,
+      "seats": "2+",
+      "flights": [
+       {
+        "from": "ICN",
+        "to": "KIX",
+        "dep": "07:20",
+        "arr": "09:15",
+        "stops": 0,
+        "miles": 6500
+       },
+       {
+        "from": "GMP",
+        "to": "KIX",
+        "dep": "07:55",
+        "arr": "09:45",
+        "stops": 0,
+        "miles": 6000
+       },
+       {
+        "from": "ICN",
+        "to": "UKB",
+        "dep": "11:55",
+        "arr": "14:00",
+        "stops": 0,
+        "miles": 6000
+       },
+       {
+        "from": "ICN",
+        "to": "KIX",
+        "dep": "16:40",
+        "arr": "18:30",
+        "stops": 0,
+        "miles": 6500
+       },
+       {
+        "from": "GMP",
+        "to": "KIX",
+        "dep": "17:20",
+        "arr": "19:00",
+        "stops": 0,
+        "miles": 6000
+       },
+       {
+        "from": "ICN",
+        "to": "KIX",
+        "dep": "21:00",
+        "arr": "22:45",
+        "stops": 0,
+        "miles": 6500
+       }
+      ],
+      "detail_checked_at": "2026-11-25T01:01:54+09:00"
      }
     },
     "2027-03-25": {
@@ -1700,9 +2095,25 @@
     "2027-03-31": {
      "economy": {
       "miles": 6500,
-      "checked_at": "2026-11-24T22:17:33+09:00",
-      "source": "calendar",
-      "first_seen": "2026-11-24T22:17:33+09:00"
+      "checked_at": "2026-11-25T01:06:02+09:00",
+      "source": "detail",
+      "first_seen": "2026-11-24T22:17:33+09:00",
+      "tax": {
+       "amount": 18,
+       "currency": "USD"
+      },
+      "seats": "2+",
+      "flights": [
+       {
+        "from": "ICN",
+        "to": "KIX",
+        "dep": "16:40",
+        "arr": "18:30",
+        "stops": 0,
+        "miles": 6500
+       }
+      ],
+      "detail_checked_at": "2026-11-25T01:06:02+09:00"
      }
     }
    }
