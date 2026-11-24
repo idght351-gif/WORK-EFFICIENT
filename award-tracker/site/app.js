@@ -64,6 +64,14 @@ function dayState(e, target) {
   if (!e || e.miles == null) return "none";
   return target && e.miles <= target ? "hit" : "avail";
 }
+// 목표가 없을 때 초록: 기간 최저 + LOW_PCT% 이내 (추천 일정 · 상세 확인 범위와 같은 값)
+const LOW_PCT = 20;
+// 상세 확인 단계: done 세금까지 확인 · part 편 목록만 보고 세금은 못 읽음(하다 만 것) · null 캘린더 값만
+function detailState(e) {
+  if (!e || e.miles == null) return null;
+  if (e.tax) return "done";
+  return e.source === "detail" || e.detail_checked_at || (e.flights && e.flights.length) ? "part" : null;
+}
 const FRESH_MS = 48 * 3600 * 1000;
 function isFresh(e, ref) {
   return !!(e && e.miles != null && e.first_seen && new Date(ref || Date.now()) - new Date(e.first_seen) <= FRESH_MS);
@@ -105,11 +113,14 @@ function monthHTML(days, cabin, y, m, a, b, target, selected, ref, min) {
     if (iso < a || iso > b) { cells += `<div class="day out" aria-hidden="true"><span class="d">${d}</span></div>`; continue; }
     const e = days[iso] ? days[iso][cabin] : undefined;
     let st = dayState(e, target);
-    if (!target && st === "avail" && e.miles === min) st = "hit";   // 목표가 없으면 기간 최저 = 초록
+    // 목표가 없으면 기간 최저 + LOW_PCT% 이내 = 초록 ("최저" 글자는 진짜 최저에만)
+    if (!target && st === "avail" && min != null && e.miles <= min * (100 + LOW_PCT) / 100) st = "hit";
     const label = st === "unk" ? "" : st === "none" ? "–" : kMiles(e.miles);
-    const aria = `${m + 1}월 ${d}일 ${st === "unk" ? "조회 전" : st === "none" ? "좌석 없음" : `${num(e.miles)}마일`}`;
+    const ds = detailState(e);
+    const dsText = ds === "done" ? ", 상세 확인" : ds === "part" ? ", 상세 일부 확인" : "";
+    const aria = `${m + 1}월 ${d}일 ${st === "unk" ? "조회 전" : st === "none" ? "좌석 없음" : `${num(e.miles)}마일${dsText}`}`;
     const isMin = (st === "hit" || st === "avail") && e.miles === min;
-    cells += `<button type="button" class="day ${st}${isMin ? " min" : ""}" data-date="${iso}" aria-pressed="${iso === selected}" aria-label="${aria}"><span class="d">${d}</span><span class="m">${label}</span>${isFresh(e, ref) ? `<i class="dot"></i>` : ""}</button>`;
+    cells += `<button type="button" class="day ${st}${isMin ? " min" : ""}" data-date="${iso}" aria-pressed="${iso === selected}" aria-label="${aria}"><span class="d">${d}</span><span class="m">${label}</span>${ds ? `<i class="ds ${ds}" aria-hidden="true"></i>` : ""}${isFresh(e, ref) ? `<i class="dot"></i>` : ""}</button>`;
   }
   return `<div class="cal-grid">${cells}</div>`;
 }
@@ -157,7 +168,8 @@ function dayHTML(iso, cabin, e, target, from, to, ref) {
       ${e.seats != null ? `<div class="info-row"><span>남은 좌석</span><span>${typeof e.seats === "string" ? e.seats : num(e.seats)}석</span></div>` : ""}
       ${change ? `<div class="info-row"><span>지난 조회 대비</span><span>${change}</span></div>` : ""}
       ${e.first_seen ? `<div class="info-row"><span>처음 본 때</span><span>${stamp(e.first_seen)}</span></div>` : ""}
-      <div class="info-row"><span>확인</span><span>${e.source === "detail" ? "편 상세까지 확인"
+      <div class="info-row"><span>확인</span><span>${detailState(e) === "done" ? "편 상세까지 확인"
+        : detailState(e) === "part" ? `상세 일부만 확인 · 세금은 아직 못 읽었어요${e.detail_checked_at ? ` (${stamp(e.detail_checked_at)})` : ""}`
         : e.detail_checked_at ? `캘린더 값 · 세금은 ${stamp(e.detail_checked_at)} 상세 확인 때 값` : "캘린더 값 · 세금은 상세 확인 때"}<br><span class="muted small">${stamp(e.checked_at)}</span></span></div>
       ${flightsHTML(e.flights)}`;
   }
@@ -172,7 +184,7 @@ function dayHTML(iso, cabin, e, target, from, to, ref) {
 // 조회된 날짜만 써요. 방향마다 기간 최저 마일 + TRIP_PCT% 이내인 날끼리 n박으로 짝지어요.
 // 순서는 주말에 얼마나 가까운지로 정해요: 토요일 출발 · 일요일 도착(0) → 금 출발 · 월 도착(1) → 목 · 화(2) …
 // 같은 거리면 출발 쪽(금)을 도착 쪽(월)보다 먼저, 그다음은 마일이 적은 순이에요. 최대 TRIP_MAX 개만 보여줘요.
-const TRIP_PCT = 20;
+const TRIP_PCT = LOW_PCT;
 const TRIP_NIGHTS = [2, 3, 4, 5, 6, 7];
 const TRIP_MAX = 8;
 const goGap = (iso) => (6 - parseDate(iso).getDay()) % 7;  // 토 0, 금 1, 목 2 … 일 6 (토요일에서 앞으로 며칠)
@@ -354,8 +366,9 @@ async function renderMain(want) {
     document.getElementById("next").disabled = i >= list.length - 1;
     document.getElementById("cal").innerHTML = monthHTML(days, st.cabin, y, m - 1, a, b, t, st.day, doc.updated_at, min);
     document.getElementById("legend").innerHTML =
-      (t ? `<span><i class="hit"></i>${num(t)} 이하</span><span><i class="avail"></i>${num(t)} 초과</span>` : `<span><i class="hit"></i>기간 최저</span><span><i class="avail"></i>좌석 있음</span>`)
-      + `<span>– 좌석 없음</span><span><i class="unk"></i>조회 전</span><span><i class="dot"></i> 새로 열림</span>`;
+      (t ? `<span><i class="hit"></i>${num(t)} 이하</span><span><i class="avail"></i>${num(t)} 초과</span>` : `<span><i class="hit"></i>최저 +${LOW_PCT}% 이내</span><span><i class="avail"></i>좌석 있음</span>`)
+      + `<span>– 좌석 없음</span><span><i class="unk"></i>조회 전</span><span><i class="dot"></i> 새로 열림</span>`
+      + `<span><i class="ds done"></i>상세 확인</span><span><i class="ds part"></i>상세 일부</span>`;
     document.getElementById("daybox").innerHTML = st.day
       ? dayHTML(st.day, st.cabin, days[st.day] ? days[st.day][st.cabin] : undefined, t, back ? r.to : r.from, back ? r.from : r.to, doc.updated_at)
       : "";
