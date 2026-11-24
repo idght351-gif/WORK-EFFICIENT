@@ -39,6 +39,21 @@ function stamp(ts) {
 }
 function kstToday() { return isoOf(kst(Date.now())); }
 function addDays(iso, n) { const d = parseDate(iso); d.setDate(d.getDate() + n); return isoOf(d); }
+// 한국 공휴일 (대체공휴일 · 선거일 포함). 추천 일정의 평일 계산에서 빼요. 2028년 이후는 발표되면 덧붙여요.
+// 2026년부터 노동절(5/1) · 제헌절(7/17)도 공휴일이고 대체공휴일 대상이에요.
+const KR_HOLIDAYS = new Set([
+  "2026-12-25",
+  // 2027 (우주항공청 2027년 월력요항 기준)
+  "2027-01-01", "2027-02-06", "2027-02-07", "2027-02-08", "2027-02-09", "2027-03-01", "2027-05-01", "2027-05-03",
+  "2027-05-05", "2027-05-13", "2027-06-06", "2027-07-17", "2027-07-19", "2027-08-15", "2027-08-16",
+  "2027-09-14", "2027-09-15", "2027-09-16", "2027-10-03", "2027-10-04", "2027-10-09", "2027-10-11",
+  "2027-12-25", "2027-12-27",
+  // 2028 (아직 월력요항 발표 전, 음력 · 선거일 기준 예상)
+  "2028-01-01", "2028-01-26", "2028-01-27", "2028-01-28", "2028-03-01", "2028-04-12", "2028-05-01", "2028-05-02",
+  "2028-05-05", "2028-06-06", "2028-07-17", "2028-08-15", "2028-10-02", "2028-10-03", "2028-10-04", "2028-10-05",
+  "2028-10-09", "2028-12-25",
+]);
+const isOffDay = (iso) => { const w = parseDate(iso).getDay(); return w === 0 || w === 6 || KR_HOLIDAYS.has(iso); };
 const periodText = (a, b) => `${mdDow(a)} ~ ${mdDow(b)}`;
 function monthsBetween(a, b) {
   const out = [];
@@ -183,24 +198,27 @@ function dayHTML(iso, cabin, e, target, from, to, ref) {
 // ------------------------------------------------------------ 추천 일정 (왕복 노선)
 // 조회된 날짜만 써요. 방향마다 기간 최저 마일 + TRIP_PCT% 이내인 날끼리 n박으로 짝지어요.
 // 가는 편 · 오는 편 모두 상세(편 목록)까지 확인한 날만 추천해요. 기준 최저 마일은 캘린더 값까지 포함해요.
-// 여행 기간(출발일~귀국일)에 든 평일이 TRIP_WEEKDAYS 일 이하인 일정만 추천해요 (2박 1일 · 3박 2일 · 4박 3일 · 5박 4일).
-// 이 조건이면 늘 토 · 일을 다 포함해요. 그 안에서 주말에 얼마나 가까운지로 순서를 정해요.
-//   거리: 출발은 토 0 · 금 1 · 목 2 …, 귀국은 일 0 · 월 1 · 화 2 … (TRIP_NEAR 일 이내면 "가깝다")
-//   1) 출발 · 귀국 둘 다 가까운 일정 → 하나만 가까운 일정 (둘 다 멀면 평일 위주라 빼요)
-//   2) 더 가까운 쪽의 거리 (토 출발 · 일 귀국이 먼저)  3) 같으면 출발 쪽이 가까운 일정 먼저
-//   4) 다른 쪽도 가까운 순  5) 마일 적은 순.  최대 TRIP_MAX 개만 보여줘요.
+// 여행 기간(출발일~귀국일)에 든 평일(주말 · 공휴일 제외)이 TRIP_WEEKDAYS 일 이하인 일정만 추천해요
+// (2박 1일 · 3박 2일 · 4박 3일 · 5박 4일). 그 안에서 쉬는 날에 얼마나 가까운지로 순서를 정해요.
+//   거리: 출발일부터 첫 쉬는 날 전까지의 평일 수 (토 0 · 금 1 · 목 2 …),
+//         마지막 쉬는 날 다음부터 귀국일까지의 평일 수 (일 0 · 월 1 · 화 2 …). TRIP_NEAR 일 이내면 "가깝다".
+//   예) 2/26(금)~3/1(월) 은 3/1 이 공휴일이라 평일 1일 · 귀국 쪽 거리 0 이에요.
+//   1) 출발 · 귀국 둘 다 가까운 일정 → 하나만 가까운 일정 (둘 다 멀면 빼요)
+//   2) 더 가까운 쪽의 거리  3) 같으면 출발 쪽이 가까운 일정 먼저  4) 다른 쪽도 가까운 순  5) 마일 적은 순.
+//   최대 TRIP_MAX 개만 보여줘요.
 const TRIP_PCT = LOW_PCT;
 const TRIP_NIGHTS = [2, 3, 4, 5]; // 6박 이상은 평일 상한(4일)을 늘 넘어서 빼요
 const TRIP_MAX = 8;
 const TRIP_NEAR = 2;
 const TRIP_WEEKDAYS = (nights) => Math.min(nights - 1, 4);
 function tripRank(go, nights) {
-  const g = (6 - parseDate(go).getDay()) % 7;   // 출발일 → 그 주 토요일까지 며칠 (토 0, 금 1, 목 2 …)
-  const b = g + 1;                                // 그 토요일 다음 일요일까지 며칠
-  if (b > nights) return null;                    // 귀국 전에 토 · 일을 다 못 지내면 제외
-  const r = nights - b;                           // 그 일요일 → 귀국일까지 며칠 (일 0, 월 1, 화 2 …)
-  if (nights + 1 - 2 > TRIP_WEEKDAYS(nights)) return null;  // 평일이 상한보다 많으면 제외 (주말 이틀 뺀 나머지)
+  const days = Array.from({ length: nights + 1 }, (_, i) => addDays(go, i));
+  const off = days.map(isOffDay);
+  if (off.filter((x) => !x).length > TRIP_WEEKDAYS(nights)) return null;  // 평일이 상한보다 많으면 제외
+  const g = off.indexOf(true);                 // 출발 쪽: 첫 쉬는 날 전까지의 평일 수
+  const r = nights - off.lastIndexOf(true);    // 귀국 쪽: 마지막 쉬는 날 뒤의 평일 수
   const far = (g > TRIP_NEAR ? 1 : 0) + (r > TRIP_NEAR ? 1 : 0);
+  if (far === 2) return null;
   return { far, gap: Math.min(g, r), side: g <= r ? 0 : 1, other: Math.max(g, r) };
 }
 function tripPlans(dirs, r, cabin, nights) {
@@ -253,7 +271,7 @@ function tripHTML(dirs, r, cabin, nights) {
     const best = Math.min(...plans.map((p) => p.total));
     const shown = plans.slice(0, TRIP_MAX);
     const more = plans.length > shown.length
-      ? `<p class="muted small trip-more">주말에 가까운 ${shown.length}개만 보여줘요 (전체 ${plans.length}개)</p>` : "";
+      ? `<p class="muted small trip-more">쉬는 날에 가까운 ${shown.length}개만 보여줘요 (전체 ${plans.length}개)</p>` : "";
     body = `<ul class="trips">${shown.map((p) => {
       const tax = [p.eo.tax, p.eb.tax].every((t) => t && t.currency === (p.eo.tax || {}).currency)
         ? money({ amount: p.eo.tax.amount + p.eb.tax.amount, currency: p.eo.tax.currency }) : null;
@@ -270,7 +288,7 @@ function tripHTML(dirs, r, cabin, nights) {
     <section class="card" id="trip-card">
       <div class="dd-head"><h3 class="section-title">추천 일정</h3>
         <label class="trip-pick">박수 <select id="nights">${opts}</select></label></div>
-      <p class="muted small trip-note">평일 ${TRIP_WEEKDAYS(nights)}일 이하 일정 중 주말에 가까운 순 · 상세까지 확인한 날 중 방향별 최저 마일 +${TRIP_PCT}% 이내 (가는 편 ${out.limit != null ? `${num(Math.floor(out.limit))} 이하` : "-"} · 오는 편 ${back.limit != null ? `${num(Math.floor(back.limit))} 이하` : "-"})</p>
+      <p class="muted small trip-note">평일(주말 · 공휴일 제외) ${TRIP_WEEKDAYS(nights)}일 이하 일정 중 쉬는 날에 가까운 순 · 상세까지 확인한 날 중 방향별 최저 마일 +${TRIP_PCT}% 이내 (가는 편 ${out.limit != null ? `${num(Math.floor(out.limit))} 이하` : "-"} · 오는 편 ${back.limit != null ? `${num(Math.floor(back.limit))} 이하` : "-"})</p>
       ${body}
     </section>`;
 }
