@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-11-24T20:08:37+09:00",
+  "updated_at": "2026-11-24T20:15:50+09:00",
   "routes": [
     {
       "id": "icn-cts-20270629",
@@ -91,7 +91,7 @@
     "plan_renewal_date": "2026-12-23",
     "account_rate_limit_per_hour": 250,
     "daily_usage": 6,
-    "checked_at": "2026-11-24T20:08:37+09:00"
+    "checked_at": "2026-11-24T20:15:50+09:00"
   },
   "schedule_kst": [
     "06:30"
