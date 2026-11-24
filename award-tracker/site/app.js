@@ -162,7 +162,15 @@ function flightsHTML(fs) {
     </table>`;
 }
 
-function dayHTML(iso, cabin, e, target, from, to, ref) {
+// 이 날짜 다시 조회: 요청 문장을 만들어 복사해요. 사용자가 Claude 대화창(집 PC 세션)에 보내면
+// PC 의 Claude 가 refresh 명령으로 그 날짜만 다시 조회해요 (PLAYBOOK 7장). 앱이 PC 를 직접 부르지는 않아요.
+const DIR_NAME = { out: "가는 편", back: "오는 편" };
+function refreshText(rid, dir, iso, from, to) {
+  return `마일 좌석 다시 조회: ${routeTitle(from, to)} ${DIR_NAME[dir]} ${mdDow(iso)}\n`
+    + `python award-tracker/tools/award.py refresh ${rid} ${dir} ${iso}`;
+}
+
+function dayHTML(iso, cabin, e, target, from, to, ref, rid, dir) {
   const d = parseDate(iso);
   const title = `${d.getMonth() + 1}월 ${d.getDate()}일 (${DOW[d.getDay()]}) · ${CABIN[cabin]}`;
   let body;
@@ -194,6 +202,9 @@ function dayHTML(iso, cabin, e, target, from, to, ref) {
     <section class="card" id="day-card">
       <div class="dd-head"><h3 class="section-title">${title}</h3><span class="muted small">${esc(from)} → ${esc(to)}</span></div>
       ${body}
+      ${rid && iso >= kstToday() ? `<div class="refresh">
+        <button class="btn line" id="refresh-btn" type="button" data-text="${esc(refreshText(rid, dir, iso, from, to))}">↻ 이 날짜 다시 조회</button>
+        <div id="refresh-out" hidden></div></div>` : ""}
     </section>`;
 }
 
@@ -397,7 +408,7 @@ async function renderMain(want) {
       + `<span>– 좌석 없음</span><span><i class="unk"></i>조회 전</span><span><i class="dot"></i> 새로 열림</span>`
       + `<span><i class="ds done"></i>상세 확인</span><span><i class="ds part"></i>상세 일부</span>`;
     document.getElementById("daybox").innerHTML = st.day
-      ? dayHTML(st.day, st.cabin, days[st.day] ? days[st.day][st.cabin] : undefined, t, back ? r.to : r.from, back ? r.from : r.to, doc.updated_at)
+      ? dayHTML(st.day, st.cabin, days[st.day] ? days[st.day][st.cabin] : undefined, t, back ? r.to : r.from, back ? r.from : r.to, doc.updated_at, r.id, back ? "back" : "out")
       : "";
     document.getElementById("tripbox").innerHTML = round ? tripHTML(dirs, r, st.cabin, st.nights) : "";
   };
@@ -419,6 +430,18 @@ async function renderMain(want) {
   const step = (k) => { const list = monthList(); const i = list.indexOf(st.month) + k; if (i >= 0 && i < list.length) { st.month = list[i]; st.day = null; draw(); } };
   document.getElementById("tripbox").onchange = (ev) => {
     if (ev.target.id === "nights") { st.nights = Number(ev.target.value); draw(); }
+  };
+  document.getElementById("daybox").onclick = async (ev) => {
+    const b = ev.target.closest("#refresh-btn");
+    if (!b) return;
+    const text = b.dataset.text;
+    const out = document.getElementById("refresh-out");
+    let copied = false;
+    try { await navigator.clipboard.writeText(text); copied = true; } catch {}
+    out.innerHTML = `<pre class="snippet">${esc(text)}</pre>
+      <p class="muted small refresh-note">${copied ? "<b>복사했어요.</b> " : "위 글자를 길게 눌러 복사해 주세요. "}휴대폰의 Claude 대화창(집 PC에 연결된 대화)에 붙여 넣어 보내면, PC가 이 날짜만 다시 조회해요. 천천히 클릭하느라 5~10분쯤 걸리고, 끝나면 앱에 반영돼요.</p>`;
+    out.hidden = false;
+    b.textContent = copied ? "복사됨 ✓ 대화창에 붙여 넣어 주세요" : "↻ 이 날짜 다시 조회";
   };
   document.getElementById("prev").onclick = () => step(-1);
   document.getElementById("next").onclick = () => step(1);

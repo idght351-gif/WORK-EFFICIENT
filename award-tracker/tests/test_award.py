@@ -4,6 +4,7 @@ import os
 import sys
 import tempfile
 import unittest
+import unittest.mock
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "tools"))
@@ -287,6 +288,49 @@ class CityCodesNoTarget(Base):
         self.assertEqual((e["flights"][0]["from"], e["flights"][0]["to"], e["flights"][0]["stops"]), ("GMP", "HND", 0))
         self.assertEqual((e["flights"][1]["stops"], e["flights"][1]["via"]), (1, "PVG"))
         self.assertEqual(e["tax"], {"amount": 61200, "currency": "KRW"})
+
+
+
+class Refresh(Base):
+    def test_refresh_starts_short_run_for_one_date(self):
+        x = award.refresh_start(self.P, "icn-nrt-20270620", "back", ["2027-07-01"])
+        self.assertEqual((x["from"], x["to"], x["dates"], x["months"]), ("NRT", "ICN", ["2027-07-01"], ["2027-07"]))
+        self.assertEqual(self.index()["runner"]["status"], "running")
+        self.assertEqual(json.loads(self.P.alerts.read_text(encoding="utf-8"))["mode"], "refresh")
+        # 저장 · 끝은 평소 조회와 같음
+        award.save_items(self.P, self.cal({"2027-07-01": 14000}, direction="back"))
+        run = award.finish(self.P, "ok")
+        self.assertEqual(run["searches"], 1)
+        self.assertEqual(self.doc()["directions"]["back"]["days"]["2027-07-01"]["economy"]["miles"], 14000)
+
+    def test_refresh_ignores_recent_check(self):
+        # 방금 본 날짜도 사용자가 요청하면 다시 조회해요
+        award.save_items(self.P, self.cal({"2027-06-21": 20000}))
+        x = award.refresh_start(self.P, "icn-nrt-20270620", "out", ["2027-06-21", "2027-06-21"])
+        self.assertEqual(x["dates"], ["2027-06-21"])
+
+    def test_refresh_errors(self):
+        bad = [
+            ("nope", "out", ["2027-06-21"]),                       # 없는 노선
+            ("gmp-hnd-x", "back", ["2027-06-21"]),                 # 오는 편 없는 노선
+            ("icn-nrt-20270620", "out", ["2027-07-10"]),           # 기간 밖
+            ("icn-nrt-20270620", "out", ["2027-6-21"]),            # 날짜 형식
+            ("icn-nrt-20270620", "out", ["2027-06-20", "2027-06-21", "2027-06-22", "2027-06-23"]),  # 4일
+        ]
+        for args in bad:
+            with self.assertRaises(award.AwardError, msg=args):
+                award.refresh_start(self.P, *args)
+        self.set_now("2027-06-25T09:00:00+09:00")
+        with self.assertRaises(award.AwardError):
+            award.refresh_start(self.P, "icn-nrt-20270620", "out", ["2027-06-21"])  # 지난 날짜
+
+    def test_refresh_cli(self):
+        import contextlib, io
+        out = io.StringIO()
+        with contextlib.redirect_stdout(out), unittest.mock.patch.object(award, "default_paths", return_value=self.P):
+            code = award.main(["refresh", "icn-nrt-20270620", "out", "2027-06-21"])
+        self.assertEqual(code, 0)
+        self.assertIn("날짜 다시 조회 (사용자 요청): ICN→NRT 이코노미 직항만 6/21", out.getvalue())
 
 
 if __name__ == "__main__":

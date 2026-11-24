@@ -574,6 +574,53 @@ def start(P: Paths):
     return settings, planned, postponed, skipped, pending_details(P, settings, routes)
 
 
+REFRESH_MAX_DATES = 3  # 검색 한 번에 날짜 띠 이동 3번까지 (PLAYBOOK 3-1c)
+
+
+def refresh_start(P: Paths, route_id: str, direction: str, dates: list[str]) -> dict:
+    """휴대폰 앱에서 요청한 날짜만 다시 조회하는 짧은 조회를 시작해요 (20시간 건너뛰기 · 상세 횟수 제한과 상관없이)."""
+    settings, routes = sync(P)
+    r = next((x for x in routes if x["id"] == route_id), None)
+    if not r:
+        raise AwardError(f"routes.json 에 없는 노선이에요: {route_id}")
+    sp = {x[0]: x for x in spans(r)}
+    if direction not in sp:
+        raise AwardError(f"{route_id} 에는 '{direction}' 방향이 없어요 (out / back)")
+    _k, f, t, a, b = sp[direction]
+    today = now().astimezone(KST).date().isoformat()
+    dates = sorted(set(dates))
+    for d in dates:
+        try:
+            date.fromisoformat(d)
+        except ValueError:
+            raise AwardError(f"날짜 형식이 이상해요: {d} (예: 2027-03-01)") from None
+        if not (a <= d <= b):
+            raise AwardError(f"{md(d)} 는 {DIRS[direction]} 기간({a}~{b}) 밖이에요")
+        if d < today:
+            raise AwardError(f"{md(d)} 는 이미 지난 날짜예요")
+    if not dates:
+        raise AwardError("다시 조회할 날짜가 없어요")
+    if len(dates) > REFRESH_MAX_DATES:
+        raise AwardError(f"한 번에 {REFRESH_MAX_DATES}일까지 다시 조회해요 (검색 한 번에 날짜 띠 이동 3번까지)")
+    cabins = [c for c in r["cabins"] if not settings.get("search_cabins") or c in settings["search_cabins"]]
+    run = {**new_run(), "mode": "refresh"}
+    write_json(P.alerts, run)
+    old = read_json(P.index, {}) or {}
+    runner = {**(old.get("runner") or {}), "status": "running", "started_at": ts(now()), "message": None}
+    build_index(P, settings, routes, runner)
+    return {"route_id": route_id, "direction": direction, "from": f, "to": t, "cabins": cabins,
+            "nonstop": bool(r.get("nonstop")), "dates": dates, "months": sorted({d[:7] for d in dates})}
+
+
+def print_refresh(x: dict) -> None:
+    days = ", ".join(md(d) for d in x["dates"])
+    for c in x["cabins"]:
+        print(f"날짜 다시 조회 (사용자 요청): {x['from']}→{x['to']} {CABINS[c]} {'직항만' if x['nonstop'] else '직항·경유 모두'} "
+              f"{days}  [{x['route_id']} · {DIRS[x['direction']]}]")
+    print("순서: 2-1~2-7 검색 → 2-8 달(" + ", ".join(x["months"]) + ") → 2-9 그 날짜 캘린더 값만 save"
+          " → 3-1 날짜 → 3-2~3-4 상세 save (다음 날짜는 3-1b 날짜 띠) → 4장")
+
+
 def finish(P: Paths, status: str, message: str | None = None) -> dict:
     if status not in STATUSES:
         raise AwardError(f"상태는 {', '.join(STATUSES)} 중 하나예요")
@@ -713,6 +760,10 @@ def main(argv=None) -> int:
     f.add_argument("status", choices=list(STATUSES))
     f.add_argument("--message")
     sub.add_parser("publish")
+    rf = sub.add_parser("refresh", help="휴대폰 앱에서 요청한 날짜만 다시 조회 시작")
+    rf.add_argument("route_id")
+    rf.add_argument("direction", choices=list(DIRS))
+    rf.add_argument("dates", nargs="+", help="예: 2027-03-01")
     a = sub.add_parser("send-alerts")
     a.add_argument("--dry-run", action="store_true")
     args = ap.parse_args(argv)
@@ -746,6 +797,8 @@ def main(argv=None) -> int:
                 print("\n".join(lines).rstrip())
         elif args.cmd == "publish":
             print(publish(P))
+        elif args.cmd == "refresh":
+            print_refresh(refresh_start(P, args.route_id, args.direction, args.dates))
         elif args.cmd == "send-alerts":
             print(send_alerts(P, args.dry_run))
     except AwardError as e:
