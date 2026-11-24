@@ -107,6 +107,21 @@ class SyncAndPlan(Base):
         self.write_routes([{**ROUTE, "start": "2027-02-01", "end": "2027-09-30", "return_start": "2027-02-01", "return_end": "2027-09-30"}])
         award.sync(self.P)
 
+    def test_skip_fresh_and_pending_details(self):
+        self.write_routes([{**ROUTE, "cabins": ["economy"], "target_miles": None}], skip_fresh_hours=20, detail_within_pct=20, max_details_per_route=8)
+        s, routes = award.sync(self.P)
+        award.save_items(self.P, self.cal({f"2027-06-{d}": (8500 if d in (21, 22) else 9000 if d == 23 else 20000) for d in range(20, 31)}))
+        skipped = []
+        planned, _ = award.make_plan(self.P, s, routes, skipped)
+        self.assertEqual([(x["direction"], x["month"]) for x in skipped], [("out", "2027-06")])
+        self.assertNotIn(("out", "2027-06"), [(x["direction"], x["month"]) for x in planned])
+        self.set_now("2026-11-26T05:41:00+09:00")   # 24시간 뒤엔 다시 검색
+        self.assertIn(("out", "2027-06"), [(x["direction"], x["month"]) for x in award.make_plan(self.P, s, routes)[0]])
+        det = award.pending_details(self.P, s, routes)
+        self.assertEqual(det[0]["dates"], ["2027-06-21", "2027-06-22", "2027-06-23"])
+        award.save_items(self.P, self.cal({"2027-06-21": {"flights": [{"dep": "09:00", "miles": 8500}], "tax": 18}}, source="detail"))
+        self.assertEqual(award.pending_details(self.P, s, routes)[0]["dates"], ["2027-06-22", "2027-06-23"])
+
     def test_bad_config(self):
         self.write_routes([{**ROUTE, "cabins": ["first"]}])
         with self.assertRaises(award.AwardError):

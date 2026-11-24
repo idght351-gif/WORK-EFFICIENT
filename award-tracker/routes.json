@@ -1,11 +1,12 @@
 {
   "settings": {
     "airfrance_url": "https://wwws.airfrance.co.kr/en",
-    "max_searches_per_run": 8,
+    "max_searches_per_run": 4,
     "max_details_per_route": 8,
     "detail_within_pct": 20,
     "search_open_months": false,
     "search_cabins": ["economy"],
+    "skip_fresh_hours": 20,
     "wait_seconds": { "click": [10, 20], "search": [30, 45], "between": [90, 150] }
   },
   "routes": [

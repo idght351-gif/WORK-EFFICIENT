@@ -37,7 +37,8 @@ DEFAULT_SETTINGS = {
     "max_details_per_route": 4,
     "detail_within_pct": 0,       # 목표 마일이 없을 때: 그 달 최저 마일 + 이 % 이내 날짜를 상세 확인 (0 = 최저만)
     "search_open_months": False,
-    "search_cabins": None,        # 예 ["economy"]: 캘린더 검색은 이 등급만. 다른 등급은 상세 확인 때 같은 편 목록에서 읽어 detail 로 저장  # True 면 노선 기간 끝을 무시하고, 시작 달부터 예약이 열린 달(오늘 + 355일)까지 모두 검색
+    "search_cabins": None,
+    "skip_fresh_hours": 0,        # 이 시간 안에 이미 다 본 달은 다시 검색하지 않음 (0 = 끔). 멈췄다 다시 시작해도 중복 없이 이어서        # 예 ["economy"]: 캘린더 검색은 이 등급만. 다른 등급은 상세 확인 때 같은 편 목록에서 읽어 detail 로 저장  # True 면 노선 기간 끝을 무시하고, 시작 달부터 예약이 열린 달(오늘 + 355일)까지 모두 검색
     "wait_seconds": {"click": [8, 15], "search": [20, 35], "between": [40, 80]},
     "run_at_kst": None,
 }
@@ -282,8 +283,9 @@ def sync(P: Paths):
 
 
 # ------------------------------------------------------------ 이번 조회 목록
-def make_plan(P: Paths, settings: dict, routes: list):
+def make_plan(P: Paths, settings: dict, routes: list, skipped: list | None = None):
     today = now().astimezone(KST).date().isoformat()
+    fresh_since = ts(now() - timedelta(hours=settings.get("skip_fresh_hours") or 0)) if settings.get("skip_fresh_hours") else None
     items = []
     for order, r in enumerate(routes):
         if r.get("active") is False:
@@ -308,17 +310,51 @@ def make_plan(P: Paths, settings: dict, routes: list):
                             break
                         last = e["checked_at"] if not last else min(last, e["checked_at"])
                         d += timedelta(days=1)
-                    items.append({
+                    item = {
                         "route_id": r["id"], "name": r.get("name") or f"{r['from']} → {r['to']}",
                         "direction": key, "from": f, "to": t, "cabin": c, "month": m,
                         "period": [lo, hi], "nonstop": bool(r.get("nonstop")), "_last": last, "_order": order,
-                    })
+                    }
+                    if fresh_since and last and last >= fresh_since:
+                        if skipped is not None:
+                            skipped.append(item)
+                        continue
+                    items.append(item)
     items.sort(key=lambda x: (x["_last"], x["_order"]))
     for x in items:
         x.pop("_order")
         x["last_checked"] = x.pop("_last") or None
     limit = settings["max_searches_per_run"]
     return items[:limit], items[limit:]
+
+
+def pending_details(P: Paths, settings: dict, routes: list) -> list[dict]:
+    """이미 캘린더로 본 날 중 상세를 아직 안 본 날 (그 달 최저 + detail_within_pct % 이내). 노선당 max_details_per_route 개까지."""
+    pct = settings.get("detail_within_pct") or 0
+    today = now().astimezone(KST).date().isoformat()
+    out = []
+    for r in routes:
+        if r.get("active") is False:
+            continue
+        doc = load_doc(P, r)
+        left = settings["max_details_per_route"]
+        for key, f, t, a, b in spans(r):
+            for c in r["cabins"]:
+                if settings.get("search_cabins") and c not in settings["search_cabins"]:
+                    continue
+                for m in months(max(a, today), b) if b >= today else []:
+                    got = {d: v[c] for d, v in doc["directions"][key]["days"].items()
+                           if d.startswith(m) and a <= d <= b and d >= today and v.get(c) and v[c].get("miles") is not None}
+                    if not got or left <= 0:
+                        continue
+                    low = min(e["miles"] for e in got.values())
+                    dates = sorted((d for d, e in got.items()
+                                    if e["miles"] <= low * (100 + pct) / 100 and e.get("source") != "detail" and not e.get("tax")),
+                                   key=lambda d: (got[d]["miles"], d))[:left]
+                    if dates:
+                        left -= len(dates)
+                        out.append({"route_id": r["id"], "direction": key, "from": f, "to": t, "cabin": c, "month": m, "dates": sorted(dates)})
+    return out
 
 
 def minutes_estimate(settings: dict, n: int) -> int:
@@ -328,9 +364,17 @@ def minutes_estimate(settings: dict, n: int) -> int:
     return round(n * per / 60)
 
 
-def print_plan(settings: dict, planned: list, postponed: list) -> None:
+def print_plan(settings: dict, planned: list, postponed: list, skipped: list | None = None, details: list | None = None) -> None:
+    if skipped:
+        print(f"최근 {settings.get('skip_fresh_hours')}시간 안에 이미 본 달 {len(skipped)}개는 건너뛰어요: "
+              + ", ".join(f"{x['from']}→{x['to']} {x['month']}" for x in skipped))
+    if details:
+        print("상세 확인 남은 날짜 (캘린더 → 달 → 날짜, 같은 방향은 날짜 띠로):")
+        for x in details:
+            print(f"  · {x['from']}→{x['to']} {x['month']} [{x['route_id']} · {DIRS[x['direction']]}]: "
+                  + ", ".join(md(d) for d in x["dates"]))
     if not planned:
-        print("이번에 검색할 것이 없어요 (켜 둔 노선이 없거나 기간이 모두 지났어요).")
+        print("이번에 새로 검색할 달은 없어요." if (skipped or details) else "이번에 검색할 것이 없어요 (켜 둔 노선이 없거나 기간이 모두 지났어요).")
         return
     print(f"이번 조회: 캘린더 검색 {len(planned)}회 · 예상 약 {minutes_estimate(settings, len(planned))}분 (상세 확인 제외)")
     for i, x in enumerate(planned, 1):
@@ -525,8 +569,9 @@ def start(P: Paths):
     old = read_json(P.index, {}) or {}
     runner = {**(old.get("runner") or {}), "status": "running", "started_at": ts(now()), "message": None}
     build_index(P, settings, routes, runner)
-    planned, postponed = make_plan(P, settings, routes)
-    return settings, planned, postponed
+    skipped = []
+    planned, postponed = make_plan(P, settings, routes, skipped)
+    return settings, planned, postponed, skipped, pending_details(P, settings, routes)
 
 
 def finish(P: Paths, status: str, message: str | None = None) -> dict:
@@ -674,11 +719,12 @@ def main(argv=None) -> int:
     P = default_paths()
     try:
         if args.cmd == "start":
-            settings, planned, postponed = start(P)
-            print_plan(settings, planned, postponed)
+            print_plan(*start(P))
         elif args.cmd == "plan":
             settings, routes = load_config(P)
-            print_plan(settings, *make_plan(P, settings, routes))
+            skipped = []
+            planned, postponed = make_plan(P, settings, routes, skipped)
+            print_plan(settings, planned, postponed, skipped, pending_details(P, settings, routes))
         elif args.cmd == "sync":
             _s, routes = sync(P)
             print(f"노선 {len(routes)}개를 앱 데이터에 반영했어요.")
