@@ -593,6 +593,41 @@ async function renderEdit(id) {
   renderAdd(doc.route);
 }
 
+// ------------------------------------------------------------ 노선 이름 자동 만들기
+// 한국 공항은 공항 이름(인천 · 김포 …), 해외는 도시 이름(하네다 · 나리타 → 도쿄)으로 씁니다.
+const KR_AIRPORTS = { ICN: "인천", GMP: "김포", PUS: "부산", CJU: "제주", TAE: "대구", CJJ: "청주", KWJ: "광주", MWX: "무안", RSU: "여수", USN: "울산", YNY: "양양", KPO: "포항", HIN: "사천", WJU: "원주", KUV: "군산" };
+const CITY = {
+  HND: "도쿄", NRT: "도쿄", KIX: "오사카", ITM: "오사카", UKB: "고베", NGO: "나고야", FUK: "후쿠오카", CTS: "삿포로", AKJ: "아사히카와",
+  OKA: "오키나와", KOJ: "가고시마", KMJ: "구마모토", HIJ: "히로시마", SDJ: "센다이", KMQ: "고마쓰", TAK: "다카마쓰", MYJ: "마쓰야마",
+  OKJ: "오카야마", FSZ: "시즈오카", KIJ: "니가타", HKD: "하코다테", OIT: "오이타", NGS: "나가사키", KKJ: "기타큐슈", TOY: "도야마",
+  YGJ: "요나고", AOJ: "아오모리", AXT: "아키타", KCZ: "고치", UBJ: "우베", MMY: "미야코지마", ISG: "이시가키", OBO: "오비히로", KUH: "구시로", MMB: "메만베쓰",
+  TPE: "타이베이", TSA: "타이베이", KHH: "가오슝", RMQ: "타이중", HKG: "홍콩", MFM: "마카오", PVG: "상하이", SHA: "상하이", PEK: "베이징", PKX: "베이징",
+  TAO: "칭다오", CAN: "광저우", SZX: "선전", DLC: "다롄", SHE: "선양", YNJ: "옌지", CGQ: "창춘", HRB: "하얼빈",
+  BKK: "방콕", DMK: "방콕", HKT: "푸껫", CNX: "치앙마이", SGN: "호찌민", HAN: "하노이", DAD: "다낭", CXR: "나트랑", PQC: "푸꾸옥", DLI: "달랏",
+  MNL: "마닐라", CEB: "세부", CRK: "클라크", MPH: "보라카이", SIN: "싱가포르", KUL: "쿠알라룸푸르", BKI: "코타키나발루", PEN: "페낭",
+  DPS: "발리", CGK: "자카르타", VTE: "비엔티안", PNH: "프놈펜", REP: "시엠레아프", ULN: "울란바토르", GUM: "괌", SPN: "사이판",
+  HNL: "호놀룰루", LAX: "로스앤젤레스", SFO: "샌프란시스코", SEA: "시애틀", JFK: "뉴욕", EWR: "뉴욕", LAS: "라스베이거스", YVR: "밴쿠버", YYZ: "토론토",
+  SYD: "시드니", MEL: "멜버른", BNE: "브리즈번", AKL: "오클랜드", CDG: "파리", LHR: "런던", FRA: "프랑크푸르트", MUC: "뮌헨", FCO: "로마",
+  MXP: "밀라노", BCN: "바르셀로나", MAD: "마드리드", AMS: "암스테르담", IST: "이스탄불", DXB: "두바이", PRG: "프라하", VIE: "빈", ZRH: "취리히",
+};
+const placeName = (code) => { const c = (code || "").toUpperCase(); return KR_AIRPORTS[c] || CITY[c] || c; };
+
+// 왕복·편도: "인천 → 삿포로" / 다구간: "김포 → 도쿄 · 삿포로 · 아사히카와" (들르는 해외 도시, 중복 없이)
+function autoName(trip, simple, legs) {
+  if (trip !== "multi") return simple.from && simple.to ? `${placeName(simple.from)} → ${placeName(simple.to)}` : "";
+  const ok = legs.filter((l) => l.from && l.to);
+  if (!ok.length) return "";
+  const start = ok[0].from.toUpperCase();
+  const stops = [];
+  ok.forEach((l) => [l.from, l.to].forEach((c) => {
+    const code = c.toUpperCase();
+    if (code === start || KR_AIRPORTS[code]) return;
+    const name = placeName(code);
+    if (!stops.includes(name)) stops.push(name);
+  }));
+  return stops.length ? `${placeName(start)} → ${stops.join(" · ")}` : `${placeName(start)} → ${placeName(ok[ok.length - 1].to)}`;
+}
+
 function renderAdd(edit) {
   const info = repoInfo();
   const editUrl = info ? `https://github.com/${info.owner}/${info.repo}/edit/main/flight-tracker/routes.json` : null;
@@ -621,7 +656,7 @@ function renderAdd(edit) {
           <label><input type="radio" name="trip" value="multi"><span>다구간</span></label>
         </div>
         <div class="form">
-          <label class="full">이름<input name="name" value="서울 → 오사카"></label>
+          <label class="full">이름 <span class="muted" style="font-weight:500">· 공항을 고르면 자동으로 채워져요</span><input name="name" value=""></label>
         </div>
         <div class="form" id="simple">
           <label>출발 공항 코드<input name="from" value="ICN" maxlength="3"></label>
@@ -708,7 +743,27 @@ function renderAdd(edit) {
     setTrip("round");
   }
 
+  // 이름: 사용자가 직접 고치기 전까지는 공항에 맞춰 자동으로 채움
+  const nameInput = f.elements["name"];
+  let nameTouched = false;
+  const readLegs = () => [...$legs.querySelectorAll(".leg")].map((el) => ({
+    from: el.querySelector("[data-k=from]").value.trim(), to: el.querySelector("[data-k=to]").value.trim() }));
+  const fillName = () => {
+    if (nameTouched) return;
+    const v = Object.fromEntries(new FormData(f));
+    const auto = autoName(v.trip, { from: v.from, to: v.to }, readLegs());
+    if (auto) nameInput.value = auto;
+  };
+  nameInput.addEventListener("input", () => { nameTouched = nameInput.value.trim() !== ""; });
+  // 기존 노선: 이름이 원래 자동 형식과 다르면(직접 지은 이름) 그대로 둠
+  if (edit) {
+    const v = Object.fromEntries(new FormData(f));
+    const auto = autoName(v.trip, { from: v.from, to: v.to }, readLegs());
+    nameTouched = !!edit.name && edit.name !== auto;
+  }
+
   const update = () => {
+    fillName();
     const v = Object.fromEntries(new FormData(f));
     const common = {
       adults: +v.adults || 1, travel_class: v.travel_class, max_stops: v.max_stops === "" ? null : +v.max_stops,
