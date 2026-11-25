@@ -403,5 +403,19 @@ class TestChangedRoutes(unittest.TestCase):
             cp.subprocess.run = orig
 
 
+class TestMultiAirport(unittest.TestCase):
+    def test_params_and_links(self):
+        import check_prices as cp
+        r = {"from": "ICN,GMP", "to": "KIX, UKB", "date": "2027-02-27", "return_date": None,
+             "adults": 1, "travel_class": "economy", "max_stops": 0}
+        p = cp.build_params(r, "k")
+        self.assertEqual((p["departure_id"], p["arrival_id"], p["type"]), ("ICN,GMP", "KIX,UKB", 2))
+        links = compare_links(r)
+        self.assertEqual(links["kayak"], "https://www.kayak.co.kr/flights/SEL-OSA/2027-02-27?sort=price_a&fs=stops%3D0")
+        self.assertIn("/transport/flights/sela/osaa/270227/", links["skyscanner"])
+        self.assertEqual(cp.site_codes("ICN"), ("ICN", "icn"))
+        self.assertEqual(cp.site_codes("ICN,CJU"), ("ICN", "icn"))
+
+
 if __name__ == "__main__":
     unittest.main()
