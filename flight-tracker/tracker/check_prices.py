@@ -742,6 +742,7 @@ def run(dry_run: bool = False) -> int:
             "alert_below": route.get("alert_below"), "status": status,
             "summary": doc["summary"], "next_check": doc["next_check"], "last_check": doc["last_check"],
             "spark": [h["price"] for h in history if h.get("price") is not None][-30:],
+            "spark_dates": [h["date"] for h in history if h.get("price") is not None][-30:],
         })
 
     runs_per_day = int(os.environ.get("RUNS_PER_DAY") or 1)
