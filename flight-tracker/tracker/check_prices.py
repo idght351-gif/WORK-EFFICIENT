@@ -192,8 +192,8 @@ def check_multi(route: dict, api_key: str) -> tuple[dict | None, dict, str | Non
 def build_params(route: dict, api_key: str) -> dict:
     params = {
         "engine": "google_flights",
-        "departure_id": route["from"],
-        "arrival_id": route["to"],
+        "departure_id": route["from"].replace(" ", "").upper(),  # "ICN,GMP" 처럼 여러 공항 가능
+        "arrival_id": route["to"].replace(" ", "").upper(),
         "outbound_date": route["date"],
         "type": 1 if route.get("return_date") else 2,
         "currency": "KRW",
@@ -268,6 +268,8 @@ def pick_cheapest(data: dict, route: dict, leg: str = "depart",
                 "stops": len(legs) - 1,
                 "duration_min": item.get("total_duration"),
                 "departure_token": item.get("departure_token"),
+                "dep_airport": legs[0].get("departure_airport", {}).get("id"),
+                "arr_airport": legs[-1].get("arrival_airport", {}).get("id"),
             }
     return best
 
@@ -378,7 +380,8 @@ def flight_lines(e: dict) -> list[tuple[str, str]]:
                  f"{l['airline']} {l['flight_number']} {l['depart_time']} → {l['arrive_time']}{stops_text(l.get('stops'))}"
                  + (f" · {won(l['price'])}" if e.get("separate_tickets") and l.get("price") else ""))
                 for i, l in enumerate(e["legs"], 1)]
-    rows = [("가는 편", f"{e.get('airline')} {e.get('flight_number')} {e.get('depart_time')} → "
+    via = f"{e['dep_airport']}→{e['arr_airport']} " if e.get("dep_airport") and e.get("arr_airport") else ""
+    rows = [("가는 편", f"{via}{e.get('airline')} {e.get('flight_number')} {e.get('depart_time')} → "
                        f"{e.get('arrive_time')}{stops_text(e.get('stops'))}")]
     if e.get("return_airline"):
         rows.append(("오는 편", f"{e['return_airline']} {e['return_flight_number']} {e['return_depart_time']} → "
@@ -581,6 +584,29 @@ SKYSCANNER_CABIN = {"economy": "economy", "premium_economy": "premiumeconomy",
                     "business": "business", "first": "first"}
 
 
+# 공항을 여러 개("ICN,GMP") 지정한 경우 비교 사이트에는 도시 코드로 넘김 (Kayak / Skyscanner)
+METRO = [
+    ({"ICN", "GMP"}, "SEL", "sela"),
+    ({"KIX", "ITM", "UKB"}, "OSA", "osaa"),
+    ({"HND", "NRT"}, "TYO", "tyoa"),
+    ({"PVG", "SHA"}, "SHA", "csha"),
+    ({"PEK", "PKX"}, "BJS", "bjsa"),
+    ({"TPE", "TSA"}, "TPE", "tpet"),
+]
+
+
+def site_codes(codes: str) -> tuple[str, str]:
+    """"ICN,GMP" → ("SEL", "sela"). 하나면 그 공항, 묶을 도시가 없으면 첫 공항."""
+    items = [c.strip().upper() for c in codes.split(",") if c.strip()]
+    if len(items) <= 1:
+        c = items[0] if items else ""
+        return c, c.lower()
+    for members, kayak, sky in METRO:
+        if set(items) <= members:
+            return kayak, sky
+    return items[0], items[0].lower()
+
+
 def compare_links(route: dict) -> dict:
     """같은 노선·날짜·인원·좌석으로 Kayak / Skyscanner 검색 결과를 여는 주소.
     출발 시간대 조건은 두 사이트 주소로 지정할 수 없어서 각 사이트에서 직접 거릅니다."""
@@ -600,7 +626,7 @@ def compare_links(route: dict) -> dict:
         sky = "https://www.skyscanner.co.kr/transport/d/" + "/".join(
             f"{l['from'].lower()}/{l['date']}/{l['to'].lower()}" for l in legs) + "/" + query.replace("rtn=0", "rtn=2")
         return {"kayak": kayak, "skyscanner": sky}
-    org, dst = route["from"].upper(), route["to"].upper()
+    (org, sky_org), (dst, sky_dst) = site_codes(route["from"]), site_codes(route["to"])
     ret = route.get("return_date")
 
     kayak = f"https://www.kayak.co.kr/flights/{org}-{dst}/{route['date']}"
@@ -609,7 +635,7 @@ def compare_links(route: dict) -> dict:
     kayak += k_tail
 
     yymmdd = lambda iso: iso[2:4] + iso[5:7] + iso[8:10]  # noqa: E731
-    sky = f"https://www.skyscanner.co.kr/transport/flights/{org.lower()}/{dst.lower()}/{yymmdd(route['date'])}/"
+    sky = f"https://www.skyscanner.co.kr/transport/flights/{sky_org}/{sky_dst}/{yymmdd(route['date'])}/"
     if ret:
         sky += f"{yymmdd(ret)}/"
     sky += query

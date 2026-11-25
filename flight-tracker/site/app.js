@@ -15,7 +15,8 @@ function pathSteps(r, withReturn = false) {
     : [{ from: r.from, to: r.to, date: r.date }].concat(withReturn && r.return_date ? [{ from: r.to, to: r.from, date: r.return_date }] : []);
   const steps = [];
   legs.forEach((l, i) => {
-    const from = l.from.toUpperCase(), to = l.to.toUpperCase();
+    const fmt = (c) => c.toUpperCase().split(",").map((x) => x.trim()).filter(Boolean).join("/");
+    const from = fmt(l.from), to = fmt(l.to);
     if (i === 0) steps.push({ code: from });
     else if (legs[i - 1].to.toUpperCase() !== from) steps.push({ gap: true }, { code: from });
     steps.push({ date: l.date }, { code: to });
@@ -234,8 +235,18 @@ function sparkline(svg, data, target) {
 
 // ------------------------------------------------------------ 비교 사이트 링크
 // tracker/check_prices.py 의 compare_links 와 같은 규칙입니다.
+// 공항 여러 개("ICN,GMP")는 비교 사이트에 도시 코드로 넘김 (tracker/check_prices.py site_codes 와 같은 규칙)
+const METRO = [[["ICN", "GMP"], "SEL", "sela"], [["KIX", "ITM", "UKB"], "OSA", "osaa"], [["HND", "NRT"], "TYO", "tyoa"],
+  [["PVG", "SHA"], "SHA", "csha"], [["PEK", "PKX"], "BJS", "bjsa"], [["TPE", "TSA"], "TPE", "tpet"]];
+function siteCodes(codes) {
+  const items = (codes || "").toUpperCase().split(",").map((c) => c.trim()).filter(Boolean);
+  if (items.length <= 1) return [items[0] || "", (items[0] || "").toLowerCase()];
+  const m = METRO.find(([members]) => items.every((c) => members.includes(c)));
+  return m ? [m[1], m[2]] : [items[0], items[0].toLowerCase()];
+}
+
 function compareLinks(r) {
-  const org = (r.from || "").toUpperCase(), dst = (r.to || "").toUpperCase();
+  const [org, skyOrg] = siteCodes(r.from), [dst, skyDst] = siteCodes(r.to);
   const adults = +(r.adults || 1), ret = r.return_date, direct = r.max_stops === 0;
   const kc = { economy: "", premium_economy: "/premium", business: "/business", first: "/first" }[r.travel_class || "economy"] || "";
   const sc = { economy: "economy", premium_economy: "premiumeconomy", business: "business", first: "first" }[r.travel_class || "economy"] || "economy";
@@ -249,7 +260,7 @@ function compareLinks(r) {
   }
   let kayak = `https://www.kayak.co.kr/flights/${org}-${dst}/${r.date}` + (ret ? `/${ret}` : "") + kTail;
   const ymd = (iso) => iso.slice(2, 4) + iso.slice(5, 7) + iso.slice(8, 10);
-  let sky = `https://www.skyscanner.co.kr/transport/flights/${org.toLowerCase()}/${dst.toLowerCase()}/${ymd(r.date)}/` + (ret ? `${ymd(ret)}/` : "");
+  let sky = `https://www.skyscanner.co.kr/transport/flights/${skyOrg}/${skyDst}/${ymd(r.date)}/` + (ret ? `${ymd(ret)}/` : "");
   sky += "?" + new URLSearchParams({ adultsv2: adults, cabinclass: sc, rtn: ret ? 1 : 0, preferdirects: direct ? "true" : "false" });
   return { kayak, skyscanner: sky };
 }
@@ -415,6 +426,7 @@ function timeRange(a, b) {
 
 function legHTML(h, k, label) {
   const stops = h[k + "stops"];
+  if (!k && h.dep_airport && h.arr_airport) label = `${label}${esc(h.dep_airport)}→${esc(h.arr_airport)} `;
   return `<div>${label}${esc(h[k + "airline"])}</div><div class="sub">${esc(h[k + "flight_number"])} · ${esc(h[k + "depart_time"])}→${esc(h[k + "arrive_time"])}${stops === 0 ? " · 직항" : stops ? ` · 경유 ${stops}회` : ""}</div>`;
 }
 
@@ -613,7 +625,8 @@ const CITY = {
   SYD: "시드니", MEL: "멜버른", BNE: "브리즈번", AKL: "오클랜드", CDG: "파리", LHR: "런던", FRA: "프랑크푸르트", MUC: "뮌헨", FCO: "로마",
   MXP: "밀라노", BCN: "바르셀로나", MAD: "마드리드", AMS: "암스테르담", IST: "이스탄불", DXB: "두바이", PRG: "프라하", VIE: "빈", ZRH: "취리히",
 };
-const placeName = (code) => { const c = (code || "").toUpperCase(); return KR_AIRPORTS[c] || CITY[c] || c; };
+const placeName1 = (c) => KR_AIRPORTS[c] || CITY[c] || c;
+const placeName = (code) => [...new Set((code || "").toUpperCase().split(",").map((c) => c.trim()).filter(Boolean).map(placeName1))].join(" · ");
 
 // 왕복·편도: "인천 → 삿포로" / 다구간: "김포 → 도쿄 · 삿포로 · 아사히카와" (들르는 해외 도시, 중복 없이)
 function autoName(trip, simple, legs) {
@@ -638,8 +651,8 @@ function renderAdd(edit) {
     <div class="leg">
       <div class="leg-head"><b class="leg-no"></b><button type="button" class="link leg-del">삭제</button></div>
       <div class="form">
-        <label>출발 공항<input data-k="from" value="${esc(l.from || "")}" maxlength="3"></label>
-        <label>도착 공항<input data-k="to" value="${esc(l.to || "")}" maxlength="3"></label>
+        <label>출발 공항<input data-k="from" value="${esc(l.from || "")}" maxlength="23"></label>
+        <label>도착 공항<input data-k="to" value="${esc(l.to || "")}" maxlength="23"></label>
         <label class="full">날짜<input data-k="date" type="date" value="${esc(l.date || "")}"></label>
         <label>출발 (부터)<input data-k="depart_after" type="time" value="${esc(l.depart_after || "")}"></label>
         <label>출발 (까지)<input data-k="depart_before" type="time" value="${esc(l.depart_before === "24:00" ? "" : l.depart_before || "")}"></label>
@@ -662,8 +675,8 @@ function renderAdd(edit) {
           <label class="full">이름 <span class="muted" style="font-weight:500">· 공항을 고르면 자동으로 채워져요</span><input name="name" value=""></label>
         </div>
         <div class="form" id="simple">
-          <label>출발 공항 코드<input name="from" value="ICN" maxlength="3"></label>
-          <label>도착 공항 코드<input name="to" value="KIX" maxlength="3"></label>
+          <label>출발 공항 코드<input name="from" value="ICN" maxlength="23" placeholder="ICN 또는 ICN,GMP"></label>
+          <label>도착 공항 코드<input name="to" value="KIX" maxlength="23" placeholder="KIX 또는 KIX,UKB"></label>
           <label>가는 날<input name="date" type="date"></label>
           <label data-round>오는 날<input name="return_date" type="date"></label>
           <label>가는 편 출발 (부터)<input name="depart_after" type="time" value="08:00"></label>
@@ -852,13 +865,13 @@ function renderAdd(edit) {
     const bad = [];
     scope.forEach((root) => {
       const q = (k) => root.querySelector(multi ? `[data-k=${k}]` : `[name=${k}]`);
-      ["from", "to"].forEach((k) => { if (!/^[A-Za-z]{3}$/.test(q(k).value.trim())) bad.push(q(k)); });
+      ["from", "to"].forEach((k) => { if (!/^[A-Za-z]{3}(\s*,\s*[A-Za-z]{3})*$/.test(q(k).value.trim())) bad.push(q(k)); });
       if (!q("date").value) bad.push(q("date"));
     });
     if (!multi && body.return_date === null && f.querySelector("input[name=trip]:checked").value === "round") bad.push(f.elements.return_date);
     if (bad.length || (multi && body.legs.length < 2)) {
       bad.forEach((el) => el.classList.add("invalid"));
-      smsg.textContent = bad.some((el) => el.type === "date") ? "빨간 칸을 채워 주세요. (날짜가 비어 있어요)" : "빨간 칸을 확인해 주세요. 공항 코드는 영문 3글자예요.";
+      smsg.textContent = bad.some((el) => el.type === "date") ? "빨간 칸을 채워 주세요. (날짜가 비어 있어요)" : "빨간 칸을 확인해 주세요. 공항 코드는 영문 3글자예요. 여러 곳이면 쉼표로 (예: ICN,GMP)";
       (bad[0] || smsg).scrollIntoView({ behavior: "smooth", block: "center" });
       if (bad[0]) setTimeout(() => bad[0].focus({ preventScroll: true }), 300);
       return;
