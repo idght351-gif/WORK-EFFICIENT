@@ -723,6 +723,18 @@ function renderAdd(edit) {
       addLeg({ from: v.from, to: v.to, date: v.date, depart_after: v.depart_after, depart_before: v.depart_before });
       addLeg({ from: v.to, to: "", date: v.return_date || "" });
     }
+    if (trip !== "multi" && $legs.children.length) fillSimpleFromLegs(trip);
+  };
+  // 다구간에서 편도·왕복으로 바꿀 때: 빈 칸만 첫 구간(왕복이면 마지막 구간도) 값으로 채움
+  const fillSimpleFromLegs = (trip) => {
+    const rows = [...$legs.querySelectorAll(".leg")].map((el) => Object.fromEntries(
+      [...el.querySelectorAll("[data-k]")].map((i) => [i.dataset.k, i.value.trim()])));
+    if (!rows.length) return;
+    const first = rows[0], last = rows[rows.length - 1];
+    const put = (name, v) => { if (v && !f.elements[name].value) f.elements[name].value = v; };
+    put("from", first.from); put("to", first.to); put("date", first.date);
+    put("depart_after", first.depart_after); put("depart_before", first.depart_before);
+    if (trip === "round" && rows.length > 1) { put("return_date", last.date); put("return_after", last.depart_after); put("return_before", last.depart_before); }
   };
 
   if (edit) {
@@ -731,6 +743,7 @@ function renderAdd(edit) {
     f.max_stops.value = edit.max_stops == null ? "" : String(edit.max_stops);
     f.alert_below.value = edit.alert_below || "";
     if (edit.legs && edit.legs.length) {
+      ["from", "to", "date", "return_date", "depart_after", "depart_before", "return_after", "return_before"].forEach((k) => { f.elements[k].value = ""; });
       edit.legs.forEach(addLeg);
       setTrip("multi");
     } else {
@@ -751,18 +764,25 @@ function renderAdd(edit) {
   let nameTouched = false;
   const readLegs = () => [...$legs.querySelectorAll(".leg")].map((el) => ({
     from: el.querySelector("[data-k=from]").value.trim(), to: el.querySelector("[data-k=to]").value.trim() }));
+  // 지금 고른 여정·공항을 한 줄로 (처음 불러온 값과 달라졌는지 비교용)
+  const airportSig = () => {
+    const v = Object.fromEntries(new FormData(f));
+    return v.trip + "|" + (v.trip === "multi" ? readLegs().map((l) => `${l.from}-${l.to}`).join(",") : `${v.from}-${v.to}`).toUpperCase();
+  };
+  let keepFileName = false, initialSig = "";
   const fillName = () => {
     if (nameTouched) return;
+    if (keepFileName && airportSig() === initialSig) return;  // 직접 지은 이름: 공항을 바꾸기 전까지는 그대로
     const v = Object.fromEntries(new FormData(f));
     const auto = autoName(v.trip, { from: v.from, to: v.to }, readLegs());
     if (auto) nameInput.value = auto;
   };
   nameInput.addEventListener("input", () => { nameTouched = nameInput.value.trim() !== ""; });
-  // 기존 노선: 이름이 원래 자동 형식과 다르면(직접 지은 이름) 그대로 둠
+  // 기존 노선: 이름이 자동 형식과 다르면(직접 지은 이름) 공항이나 여정 종류를 바꾸기 전까지는 그대로 둠
   if (edit) {
     const v = Object.fromEntries(new FormData(f));
-    const auto = autoName(v.trip, { from: v.from, to: v.to }, readLegs());
-    nameTouched = !!edit.name && edit.name !== auto;
+    keepFileName = !!edit.name && edit.name !== autoName(v.trip, { from: v.from, to: v.to }, readLegs());
+    initialSig = airportSig();
   }
 
   const update = () => {
@@ -796,7 +816,7 @@ function renderAdd(edit) {
       };
     }
     // 화면에 없는 설정(구간별 편도 합산, 최소 환승 시간 등)은 그대로 유지
-    if (edit) for (const k of ["separate_tickets", "min_connection_min"]) if (edit[k] != null && body[k] == null) body[k] = edit[k];
+    if (edit && v.trip === "multi") for (const k of ["separate_tickets", "min_connection_min"]) if (edit[k] != null && body[k] == null) body[k] = edit[k];
     out.textContent = JSON.stringify(body, null, 2);
   };
 
@@ -818,6 +838,7 @@ function renderAdd(edit) {
 
   const saveBtn = document.getElementById("save"), delBtn = document.getElementById("del"), smsg = document.getElementById("save-msg");
   const fail = (err) => {
+    smsg.scrollIntoView({ behavior: "smooth", block: "center" });
     smsg.textContent = err.status === 401 ? "GitHub 연결이 끊겼어요(키 만료 등). 앱 설정에서 다시 연결해 주세요."
       : err.message && !err.status ? err.message : `저장하지 못했어요: ${err.message}`;
   };
@@ -825,8 +846,23 @@ function renderAdd(edit) {
   if (saveBtn) saveBtn.onclick = async () => {
     let body;
     try { body = JSON.parse(out.textContent); } catch { smsg.textContent = "입력값을 확인해 주세요."; return; }
-    const bad = (body.legs || [body]).some((l) => !/^[A-Za-z]{3}$/.test(l.from || "") || !/^[A-Za-z]{3}$/.test(l.to || "") || !l.date);
-    if (bad || (body.legs && body.legs.length < 2)) { smsg.textContent = "공항 코드(영문 3글자)와 날짜를 모두 채워 주세요."; return; }
+    f.querySelectorAll(".invalid").forEach((el) => el.classList.remove("invalid"));
+    const multi = !!body.legs;
+    const scope = multi ? [...$legs.querySelectorAll(".leg")] : [document.getElementById("simple")];
+    const bad = [];
+    scope.forEach((root) => {
+      const q = (k) => root.querySelector(multi ? `[data-k=${k}]` : `[name=${k}]`);
+      ["from", "to"].forEach((k) => { if (!/^[A-Za-z]{3}$/.test(q(k).value.trim())) bad.push(q(k)); });
+      if (!q("date").value) bad.push(q("date"));
+    });
+    if (!multi && body.return_date === null && f.querySelector("input[name=trip]:checked").value === "round") bad.push(f.elements.return_date);
+    if (bad.length || (multi && body.legs.length < 2)) {
+      bad.forEach((el) => el.classList.add("invalid"));
+      smsg.textContent = bad.some((el) => el.type === "date") ? "빨간 칸을 채워 주세요. (날짜가 비어 있어요)" : "빨간 칸을 확인해 주세요. 공항 코드는 영문 3글자예요.";
+      (bad[0] || smsg).scrollIntoView({ behavior: "smooth", block: "center" });
+      if (bad[0]) setTimeout(() => bad[0].focus({ preventScroll: true }), 300);
+      return;
+    }
     busy(true); smsg.textContent = "저장하는 중…";
     try {
       await saveRoutes((routes) => {
@@ -836,6 +872,7 @@ function renderAdd(edit) {
         return routes.concat({ ...body, id });
       }, `앱에서 노선 ${edit ? "수정" : "추가"}: ${body.name}`);
       smsg.textContent = "저장했어요 ✓ 1~2분 뒤 새 조건으로 조회한 가격이 반영돼요. 앱을 다시 열면 보여요.";
+      smsg.scrollIntoView({ behavior: "smooth", block: "center" });
       saveBtn.textContent = "저장됨 ✓";
     } catch (err) { fail(err); busy(false); }
   };
