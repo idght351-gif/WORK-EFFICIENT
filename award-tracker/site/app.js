@@ -82,6 +82,15 @@ function dayState(e, target) {
 // 목표가 없을 때 초록: 기간 최저 + LOW_PCT% 이내 (추천 일정 · 상세 확인 범위와 같은 값)
 const LOW_PCT = 20;
 // 상세 확인 단계: done 세금까지 확인 · part 편 목록만 보고 세금은 못 읽음(하다 만 것) · null 캘린더 값만
+const fewSeats = (e) => (e && e.miles != null && typeof e.seats === "number" ? e.seats : null);
+// 날짜 카드 마일 옆: 남은 좌석 (1석은 빨강, 2석 · 2+석(빨간 글씨 없음)은 회색)
+function seatBadge(e) {
+  if (!e || e.seats == null) return "";
+  const n = fewSeats(e);
+  return n === 1 ? `<span class="badge bad">1석</span>` : `<span class="badge">${n || String(e.seats)}석</span>`;
+}
+// 추천 일정 날짜 옆: 1석 빨강, 2석 · 2+석 회색 (좌석 수를 모르면 없음)
+const seatNote = (e) => (!e || e.seats == null ? "" : ` <em class="few${fewSeats(e) === 1 ? "" : " grey"}">${fewSeats(e) || String(e.seats)}석</em>`);
 function detailState(e) {
   if (!e || e.miles == null) return null;
   if (e.tax) return "done";
@@ -136,8 +145,9 @@ function monthHTML(days, cabin, y, m, a, b, target, selected, ref, min) {
     const ds = detailState(e);
     const dsText = ds === "done" ? ", 상세 확인" : ds === "part" ? ", 상세 일부 확인" : "";
     const aria = `${m + 1}월 ${d}일${KR_HOLIDAYS.has(iso) ? " 공휴일" : ""} ${st === "unk" ? "조회 전" : st === "none" ? "좌석 없음" : `${num(e.miles)}마일${dsText}`}`;
-    const isMin = (st === "hit" || st === "avail") && e.miles === min;
-    cells += `<button type="button" class="day ${st}${isMin ? " min" : ""}${red}" data-date="${iso}" aria-pressed="${iso === selected}" aria-label="${aria}"><span class="d">${d}</span><span class="m">${label}</span>${ds ? `<i class="ds ${ds}" aria-hidden="true"></i>` : ""}${isFresh(e, ref) ? `<i class="dot"></i>` : ""}</button>`;
+    const few = fewSeats(e);
+    const note = few ? `<em class="seat-chip">${few}석</em>` : "";   // 달력엔 "최저" 글자 없이 남은 좌석(1석 · 2석)만, 옅은 회색 칩
+    cells += `<button type="button" class="day ${st}${red}" data-date="${iso}" aria-pressed="${iso === selected}" aria-label="${aria}${few ? `, ${few}석 남음` : ""}"><span class="d">${d}</span><span class="m">${label}</span>${note ? `<span class="note">${note}</span>` : ""}${ds ? `<i class="ds ${ds}" aria-hidden="true"></i>` : ""}${isFresh(e, ref) ? `<i class="dot"></i>` : ""}</button>`;
   }
   return `<div class="cal-grid">${cells}</div>`;
 }
@@ -268,14 +278,13 @@ function dayHTML(iso, cabin, e, target, from, to, ref, rid, dir) {
     body = `
       <div class="dd-miles"><b class="num">${num(e.miles)}</b><span>마일</span>
         ${target && e.miles <= target ? `<span class="badge good">목표 이하</span>` : ""}
-        ${isFresh(e, ref) ? `<span class="badge info">새로 열림</span>` : ""}</div>
+        ${seatBadge(e)}</div>
       <div class="info-row"><span>추가 비용 (세금·유류할증료)</span><span>${tax ? `<b>${tax}</b>` : `<span class="muted">상세 확인 전</span>`}</span></div>
-      ${e.seats != null ? `<div class="info-row"><span>남은 좌석</span><span>${typeof e.seats === "string" ? e.seats : num(e.seats)}석</span></div>` : ""}
       ${change ? `<div class="info-row"><span>지난 조회 대비</span><span>${change}</span></div>` : ""}
       ${e.first_seen ? `<div class="info-row"><span>처음 본 때</span><span>${stamp(e.first_seen)}</span></div>` : ""}
-      <div class="info-row"><span>확인</span><span>${detailState(e) === "done" ? "편 상세까지 확인"
-        : detailState(e) === "part" ? `상세 일부만 확인 · 세금은 아직 못 읽었어요${e.detail_checked_at ? ` (${stamp(e.detail_checked_at)})` : ""}`
-        : e.detail_checked_at ? `캘린더 값 · 세금은 ${stamp(e.detail_checked_at)} 상세 확인 때 값` : "캘린더 값 · 세금은 상세 확인 때"}<br><span class="muted small">${stamp(e.checked_at)}</span></span></div>
+      <div class="info-row"><span>확인</span><span>${detailState(e) === "done" ? `${stamp(e.detail_checked_at || e.checked_at)} 상세 확인`
+        : detailState(e) === "part" ? `${stamp(e.detail_checked_at || e.checked_at)} 상세 일부 확인`
+        : `<span class="muted">상세 확인 전</span>`}</span></div>
       ${flightsHTML(e.flights)}`;
   }
   return `
@@ -366,7 +375,7 @@ function tripHTML(dirs, r, cabin, nights) {
     body = `<p class="muted small">추천 일정이 없습니다.</p>`;
   } else {
     // 가는 편은 왼쪽, 오는 편은 오른쪽. 마일 · 설명 글은 넣지 않아요 (모두 최저 마일 근처 일정이라).
-    const cell = (iso, e, a, b) => `<div class="trip-cell"><b>${mdDow(iso)}</b><div class="aps">${legAirports(e, a, b)}</div></div>`;
+    const cell = (iso, e, a, b) => `<div class="trip-cell"><b>${mdDow(iso)}</b>${seatNote(e)}<div class="aps">${legAirports(e, a, b)}</div></div>`;
     body = `<div class="trip-head"><span>가는 편</span><span>오는 편</span></div>
       <ul class="trips">${plans.slice(0, TRIP_MAX).map((p) => `<li class="trip">${cell(p.go, p.eo, r.from, r.to)}${cell(p.ret, p.eb, r.to, r.from)}</li>`).join("")}</ul>`;
   }
@@ -479,7 +488,7 @@ async function renderMain(want) {
     document.getElementById("cal").innerHTML = monthHTML(days, st.cabin, y, m - 1, a, b, t, st.day, doc.updated_at, min);
     document.getElementById("legend").innerHTML =
       (t ? `<span><i class="hit"></i>${num(t)} 이하</span><span><i class="avail"></i>${num(t)} 초과</span>` : `<span><i class="hit"></i>최저 +${LOW_PCT}% 이내</span><span><i class="avail"></i>좌석 있음</span>`)
-      + `<span>– 좌석 없음</span><span><i class="unk"></i>조회 전</span><span><i class="dot"></i> 새로 열림</span>`
+      + `<span>– 좌석 없음</span><span><i class="dot"></i> 새로 열림</span>`
       + `<span><i class="ds done"></i>상세 확인</span><span><i class="ds part"></i>상세 일부</span>`;
     document.getElementById("daybox").innerHTML = st.day
       ? dayHTML(st.day, st.cabin, days[st.day] ? days[st.day][st.cabin] : undefined, t, back ? r.to : r.from, back ? r.from : r.to, doc.updated_at, r.id, back ? "back" : "out")
