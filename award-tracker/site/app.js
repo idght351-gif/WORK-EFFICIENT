@@ -353,7 +353,7 @@ function legAirports(e, from, to) {
   const fs = (e.flights || []).filter((f) => f.from && f.to && f.miles === e.miles);
   const pairs = [...new Set(fs.map((f) => `${f.from}→${f.to}`))];
   if (!pairs.length) return `<span class="ap">${esc(from)}→${esc(to)}</span>`;
-  return pairs.map((x) => `<span class="ap">${esc(x)}</span>`).join(`<span class="muted"> · </span>`);
+  return pairs.map((x) => `<span class="ap">${esc(x)}</span>`).join("");
 }
 
 function tripHTML(dirs, r, cabin, nights) {
@@ -365,27 +365,15 @@ function tripHTML(dirs, r, cabin, nights) {
   } else if (!plans.length) {
     body = `<p class="muted small">추천 일정이 없습니다.</p>`;
   } else {
-    const best = Math.min(...plans.map((p) => p.total));
-    const shown = plans.slice(0, TRIP_MAX);
-    const more = plans.length > shown.length
-      ? `<p class="muted small trip-more">쉬는 날에 가까운 ${shown.length}개만 보여줘요 (전체 ${plans.length}개)</p>` : "";
-    body = `<ul class="trips">${shown.map((p) => {
-      const tax = [p.eo.tax, p.eb.tax].every((t) => t && t.currency === (p.eo.tax || {}).currency)
-        ? money({ amount: p.eo.tax.amount + p.eb.tax.amount, currency: p.eo.tax.currency }) : null;
-      return `<li class="trip">
-        <div class="trip-dates">
-          <div class="leg"><span class="leg-k">가는 편</span><b>${mdDow(p.go)}</b><div class="aps">${legAirports(p.eo, r.from, r.to)}</div></div>
-          <div class="leg"><span class="leg-k">오는 편</span><b>${mdDow(p.ret)}</b><div class="aps">${legAirports(p.eb, r.to, r.from)}</div></div></div>
-        <div class="trip-miles"><b class="num">${num(p.total)}</b>마일${p.total === best ? ` <span class="badge good">최저</span>` : ""}
-          ${tax ? `<div class="sub">세금 약 ${tax}</div>` : ""}</div>
-      </li>`;
-    }).join("")}</ul>${more}`;
+    // 가는 편은 왼쪽, 오는 편은 오른쪽. 마일 · 설명 글은 넣지 않아요 (모두 최저 마일 근처 일정이라).
+    const cell = (iso, e, a, b) => `<div class="trip-cell"><b>${mdDow(iso)}</b><div class="aps">${legAirports(e, a, b)}</div></div>`;
+    body = `<div class="trip-head"><span>가는 편</span><span>오는 편</span></div>
+      <ul class="trips">${plans.slice(0, TRIP_MAX).map((p) => `<li class="trip">${cell(p.go, p.eo, r.from, r.to)}${cell(p.ret, p.eb, r.to, r.from)}</li>`).join("")}</ul>`;
   }
   return `
     <section class="card" id="trip-card">
       <div class="dd-head"><h3 class="section-title">추천 일정</h3>
-        <label class="trip-pick">박수 <select id="nights">${opts}</select></label></div>
-      <p class="muted small trip-note">평일(주말 · 공휴일 제외) ${TRIP_WEEKDAYS(nights)}일 이하 일정 중 쉬는 날에 가까운 순 · 상세까지 확인한 날 중 방향별 최저 마일 +${TRIP_PCT}% 이내 (가는 편 ${out.limit != null ? `${num(Math.floor(out.limit))} 이하` : "-"} · 오는 편 ${back.limit != null ? `${num(Math.floor(back.limit))} 이하` : "-"})</p>
+        <label class="trip-pick">여행 일자 <select id="nights">${opts}</select></label></div>
       ${body}
     </section>`;
 }
