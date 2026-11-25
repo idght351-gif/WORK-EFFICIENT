@@ -175,7 +175,8 @@ function flightsHTML(fs) {
 // ------------------------------------------------------------ 직접 확인 표시 (좌석 없어짐)
 // 사용자가 에어프랑스 사이트에서 직접 보고 "좌석 없어짐" 을 누르면 award-tracker/marks.json 에 한 줄 더해요 (GitHub API).
 // 그 push 로 배포 작업이 돌면서 award.py apply-marks 가 앱 데이터에 반영해요 (1~2분). 그동안은 이 기기에서 먼저 보여줘요.
-// 토큰은 이 기기(localStorage)에만 저장해요: 이 저장소만, Contents 읽기·쓰기 권한의 fine-grained 토큰.
+// 토큰은 이 기기(localStorage)에만 저장해요: 주인 계정은 이 저장소만 Contents 읽기·쓰기 fine-grained 토큰,
+// 협업자 계정은 public_repo 범위의 classic 토큰 (개인 계정 저장소의 협업자는 fine-grained 토큰을 쓸 수 없어요).
 const GH_KEY = "award-gh-token";
 const PENDING_KEY = "award-marks-pending";
 const MARKS_PATH = "award-tracker/marks.json";
@@ -739,12 +740,18 @@ function renderGithub() {
       <h3 class="section-title">GitHub 연결</h3>
       <p class="small">날짜 카드의 <b>"사이트에서 좌석 없어진 것 확인"</b> 을 누르면, 이 앱이 저장소의 <code>${MARKS_PATH}</code> 에 바로 기록해요.
         그러면 1~2분 뒤 모든 기기의 앱과 추천 일정에서 그 날짜가 좌석 없음으로 바뀌어요. 그 날짜를 PC 가 다시 조회하면 새 결과가 우선해요.</p>
+      <p class="small" style="margin-bottom:4px"><b>저장소 주인 계정이면</b> (fine-grained 토큰)</p>
       <ol class="small steps">
-        <li><a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">GitHub 토큰 만들기</a> (Fine-grained token)</li>
+        <li><a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">fine-grained 토큰 만들기</a></li>
         <li>Repository access: <b>Only select repositories</b> → <b>${esc(info.repo)}</b></li>
         <li>Permissions → Repository permissions → <b>Contents: Read and write</b> (다른 권한은 필요 없어요)</li>
-        <li>만든 토큰(github_pat_…)을 아래에 붙여 넣고 저장</li>
       </ol>
+      <p class="small" style="margin-bottom:4px"><b>협업자로 초대받은 내 계정이면</b> (classic 토큰 · 남의 개인 저장소에는 fine-grained 토큰이 안 돼요)</p>
+      <ol class="small steps">
+        <li><a href="https://github.com/settings/tokens/new?scopes=public_repo&description=award-app" target="_blank" rel="noopener">classic 토큰 만들기</a></li>
+        <li>Expiration 을 정하고, Select scopes 에서 <b>public_repo</b> 하나만 체크 (링크로 열면 이미 체크돼 있어요)</li>
+      </ol>
+      <p class="small">만든 토큰(github_pat_… 또는 ghp_…)을 아래에 붙여 넣고 저장</p>
       <label class="gh-field">토큰 <input id="gh-token" type="password" autocomplete="off" placeholder="${has ? "저장돼 있어요 (바꾸려면 새로 붙여 넣기)" : "github_pat_…"}"></label>
       <div class="gh-btns">
         <button class="btn" id="gh-save" type="button">저장하고 확인</button>
