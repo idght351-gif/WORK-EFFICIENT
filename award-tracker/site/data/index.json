@@ -1,6 +1,6 @@
 {
  "sample": false,
- "updated_at": "2026-11-25T08:23:40+09:00",
+ "updated_at": "2026-11-25T19:44:29+09:00",
  "settings": {
   "max_searches_per_run": 4,
   "max_details_per_route": 8,
@@ -91,9 +91,9 @@
       "min": 6000,
       "min_date": "2027-02-02",
       "hit": 0,
-      "avail": 36,
+      "avail": 35,
       "checked": 59,
-      "fresh": 36
+      "fresh": 35
      }
     },
     "back": {
