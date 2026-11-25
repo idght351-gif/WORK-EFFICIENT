@@ -540,7 +540,8 @@ async function saveRoutes(change, message) {
 function renderSettings() {
   const { owner, repo } = ghRepo();
   const token = ghToken();
-  const newTokenUrl = "https://github.com/settings/personal-access-tokens/new";
+  // classic 키: 다른 사람 계정의 저장소에 협업자로 들어가 있어도 쓸 수 있음 (fine-grained 키는 본인·소속 조직 저장소만 고를 수 있음)
+  const newTokenUrl = "https://github.com/settings/tokens/new?scopes=repo&description=" + encodeURIComponent("항공권 가격 추적 앱");
   $app.innerHTML = `
     <section class="card">
       <h3 class="section-title">휴대폰에서 바로 저장하기</h3>
@@ -550,22 +551,22 @@ function renderSettings() {
     <section class="card">
       <h3 class="section-title">1. GitHub 접근 키 만들기</h3>
       <ol class="steps small">
-        <li>아래 버튼으로 GitHub 키 만들기 화면을 열어요 (로그인 필요).</li>
-        <li><b>Token name</b>: 아무 이름 (예: 항공권 앱) · <b>Expiration</b>: 원하는 기간</li>
-        <li><b>Repository access</b> → <b>Only select repositories</b> → <b>${esc(owner)}/${esc(repo)}</b> 선택</li>
-        <li><b>Permissions</b> → Repository permissions → <b>Contents</b> 를 <b>Read and write</b> 로</li>
-        <li>맨 아래 <b>Generate token</b> → 나온 키(github_pat_…)를 복사</li>
+        <li>아래 버튼으로 GitHub 키 만들기 화면을 열어요 (본인 계정으로 로그인).</li>
+        <li><b>Note</b>(이름)와 <b>repo</b> 체크는 미리 채워져 있어요. 그대로 두세요.</li>
+        <li><b>Expiration</b>: 원하는 기간 (예: 90 days). 만료되면 여기서 다시 연결하면 돼요.</li>
+        <li>맨 아래 <b>Generate token</b> → 나온 키(<b>ghp_…</b>)를 복사</li>
       </ol>
+      <p class="muted small" style="margin:-4px 2px 12px">저장소 주인(${esc(owner)})이 아니어도, 이 저장소에 쓰기 권한(협업자)만 있으면 연결돼요.</p>
       <a class="btn secondary" href="${newTokenUrl}" target="_blank" rel="noopener">GitHub 키 만들기 화면 열기</a>
     </section>
     <section class="card">
       <h3 class="section-title">2. 키 붙여 넣고 연결</h3>
       <form class="form" id="tf" onsubmit="return false">
-        <label class="full">접근 키<input name="token" type="password" autocomplete="off" placeholder="github_pat_…" value=""></label>
+        <label class="full">접근 키<input name="token" type="password" autocomplete="off" placeholder="ghp_… 또는 github_pat_…" value=""></label>
       </form>
       <button class="btn" id="connect" style="margin-top:12px">연결 확인하고 저장</button>
       ${token ? `<button class="btn secondary" id="disconnect" style="margin-top:8px">연결 해제 (이 휴대폰에서 키 지우기)</button>` : ""}
-      <p class="muted small" id="msg" style="margin:10px 2px 0">키는 이 휴대폰에만 저장되고, 이 저장소의 노선 설정 파일을 고칠 때만 써요. 휴대폰을 바꾸면 다시 연결해 주세요.</p>
+      <p class="muted small" id="msg" style="margin:10px 2px 0">키는 이 휴대폰에만 저장되고, 앱은 이 저장소의 노선 설정 파일을 고칠 때만 써요. 다만 이 키는 내 계정의 다른 저장소에도 쓸 수 있는 키라서, 다른 곳에 붙여 넣거나 공유하지 마세요. 휴대폰을 바꾸면 다시 연결해 주세요.</p>
     </section>`;
   const msg = document.getElementById("msg");
   document.getElementById("connect").onclick = async (e) => {
@@ -574,12 +575,14 @@ function renderSettings() {
     e.target.disabled = true; msg.textContent = "확인하는 중…";
     try {
       const info = await gh(`/repos/${owner}/${repo}`, {}, v);
-      if (!info.permissions || !info.permissions.push) throw new Error("이 키로는 저장소를 고칠 수 없어요. Contents 를 Read and write 로 했는지 확인해 주세요.");
+      if (!info.permissions || !info.permissions.push) throw new Error(`이 계정에는 ${owner}/${repo} 쓰기 권한이 없어요. 저장소 주인에게 협업자(Write) 초대를 받았는지, 키에 repo 가 체크됐는지 확인해 주세요.`);
       setGhToken(v);
       msg.textContent = "연결됐어요 ✓ 이제 조건 바꾸기 화면에서 바로 저장할 수 있어요.";
       document.querySelector("#state span:last-child").textContent = "연결됨 ✓";
     } catch (err) {
-      msg.textContent = err.status === 401 ? "키가 맞지 않거나 만료됐어요. 다시 확인해 주세요." : err.status === 404 ? `이 키로 ${owner}/${repo} 저장소를 볼 수 없어요. Repository access 에서 저장소를 골랐는지 확인해 주세요.` : `연결하지 못했어요: ${err.message}`;
+      msg.textContent = err.status === 401 ? "키가 맞지 않거나 만료됐어요. 다시 확인해 주세요."
+        : err.status === 404 || err.status === 403 ? `이 키로 ${owner}/${repo} 저장소를 볼 수 없어요. 키를 만들 때 repo 를 체크했는지 확인해 주세요. (fine-grained 키는 다른 사람 계정의 저장소를 고를 수 없어요)`
+        : !err.status ? err.message : `연결하지 못했어요: ${err.message}`;
     } finally { e.target.disabled = false; }
   };
   const dis = document.getElementById("disconnect");

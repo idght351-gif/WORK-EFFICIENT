@@ -77,9 +77,9 @@ routes.json 을 저장(commit)하면 바로 한 번 실행되어 첫 가격이 �
 
 ## 휴대폰에서 바로 저장 (GitHub 연결, 처음 한 번)
 추적 페이지 맨 아래 **⚙︎ 앱 설정**에서 GitHub 접근 키를 한 번 연결하면, 노선 추가 · 조건 바꾸기 · 삭제를 앱에서 버튼 한 번으로 저장하고 바로 조회해요.
-- 키 만들기: GitHub → Settings → Developer settings → Fine-grained tokens → Generate new token
-  - Repository access: **Only select repositories** → 이 저장소
-  - Permissions → Repository permissions → **Contents: Read and write**
+- 키 만들기: GitHub → Settings → Developer settings → **Tokens (classic)** → Generate new token → **repo** 체크 (앱 설정의 버튼을 누르면 미리 채워진 화면이 열려요)
+  - 저장소 주인이 아니어도 이 저장소의 협업자(Write)면 연결돼요. fine-grained 키는 다른 사람 계정의 저장소를 고를 수 없어서 classic 키를 써요.
+  - 저장소 주인이라면 fine-grained 키(이 저장소만, Contents: Read and write)를 붙여 넣어도 돼요.
 - 키는 그 휴대폰(브라우저)에만 저장되고, `flight-tracker/routes.json` 을 고칠 때만 써요.
 - 노선이 바뀌어 저장되면 **바뀐 노선만** 바로 조회해요(검색 횟수 절약).
 
