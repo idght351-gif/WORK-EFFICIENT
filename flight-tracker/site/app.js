@@ -111,7 +111,8 @@ async function renderList() {
     ${routes.length ? routes.map(cardHTML).join("") :
       `<div class="card empty"><p>아직 추적 중인 노선이 없어요.</p><p class="muted small">routes.json 에 노선을 추가하면 다음 실행부터 기록돼요.</p></div>`}
     <a href="#add" class="btn secondary" style="margin-top:16px">+ 노선 추가하기</a>
-    <div style="margin-top:24px">${quotaHTML(index.quota)}</div>`;
+    <div style="margin-top:24px">${quotaHTML(index.quota)}</div>
+    <a class="settings-link muted small" href="#settings">⚙︎ 앱 설정 · ${ghToken() ? "GitHub 연결됨" : "휴대폰에서 바로 저장하도록 연결하기"}</a>`;
   routes.forEach((r) => { const el = document.getElementById("spark-" + r.id); if (el) sparkline(el, r.spark, r.alert_below); });
   fitOneLine($app);
   window.onresize = () => fitOneLine($app);
@@ -497,6 +498,94 @@ function repoInfo() {
   return repo ? { owner: m[1], repo } : null;
 }
 
+// ------------------------------------------------------------ 휴대폰에서 바로 저장 (GitHub 연결)
+// 접근 키는 이 휴대폰(브라우저)에만 저장되고, 이 저장소의 routes.json 을 고칠 때만 씁니다.
+const TOKEN_KEY = "flight-tracker-gh-token";
+const ROUTES_PATH = "flight-tracker/routes.json";
+function ghToken() { try { return localStorage.getItem(TOKEN_KEY) || ""; } catch { return ""; } }
+function setGhToken(v) { try { v ? localStorage.setItem(TOKEN_KEY, v) : localStorage.removeItem(TOKEN_KEY); } catch {} }
+function ghRepo() { return repoInfo() || { owner: "idght351-gif", repo: "flight-tracker" }; }
+
+async function gh(path, opts = {}, token = ghToken()) {
+  const res = await fetch(`https://api.github.com${path}`, {
+    ...opts,
+    headers: { Accept: "application/vnd.github+json", Authorization: `Bearer ${token}`, "X-GitHub-Api-Version": "2022-11-28", ...(opts.headers || {}) },
+  });
+  if (!res.ok) {
+    let msg = `${res.status}`;
+    try { msg += " " + (await res.json()).message; } catch {}
+    const err = new Error(msg); err.status = res.status; throw err;
+  }
+  return res.status === 204 ? null : res.json();
+}
+const b64ToText = (b64) => new TextDecoder().decode(Uint8Array.from(atob(b64.replace(/\s/g, "")), (c) => c.charCodeAt(0)));
+const textToB64 = (text) => { const bytes = new TextEncoder().encode(text); let bin = ""; for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode(...bytes.subarray(i, i + 0x8000)); return btoa(bin); };
+
+// routes.json 을 읽어 change(routes) 로 고친 뒤 커밋. 다른 곳에서 동시에 바뀌면 한 번 더 시도.
+async function saveRoutes(change, message) {
+  const { owner, repo } = ghRepo();
+  for (let attempt = 0; attempt < 2; attempt++) {
+    const file = await gh(`/repos/${owner}/${repo}/contents/${ROUTES_PATH}?ref=main`);
+    const data = JSON.parse(b64ToText(file.content));
+    data.routes = change(data.routes || []);
+    try {
+      return await gh(`/repos/${owner}/${repo}/contents/${ROUTES_PATH}`, {
+        method: "PUT",
+        body: JSON.stringify({ message, content: textToB64(JSON.stringify(data, null, 2) + "\n"), sha: file.sha, branch: "main" }),
+      });
+    } catch (e) { if (e.status !== 409 || attempt) throw e; }
+  }
+}
+
+function renderSettings() {
+  const { owner, repo } = ghRepo();
+  const token = ghToken();
+  const newTokenUrl = "https://github.com/settings/personal-access-tokens/new";
+  $app.innerHTML = `
+    <section class="card">
+      <h3 class="section-title">휴대폰에서 바로 저장하기</h3>
+      <p class="small" style="margin-top:-4px">처음 한 번만 연결하면, 노선 추가 · 조건 바꾸기 · 삭제를 앱에서 버튼 한 번으로 저장하고 바로 조회해요.</p>
+      <div id="state" class="info-row" style="border-top:0"><span>연결 상태</span><span>${token ? "연결됨 ✓" : "연결 안 됨"}</span></div>
+    </section>
+    <section class="card">
+      <h3 class="section-title">1. GitHub 접근 키 만들기</h3>
+      <ol class="steps small">
+        <li>아래 버튼으로 GitHub 키 만들기 화면을 열어요 (로그인 필요).</li>
+        <li><b>Token name</b>: 아무 이름 (예: 항공권 앱) · <b>Expiration</b>: 원하는 기간</li>
+        <li><b>Repository access</b> → <b>Only select repositories</b> → <b>${esc(owner)}/${esc(repo)}</b> 선택</li>
+        <li><b>Permissions</b> → Repository permissions → <b>Contents</b> 를 <b>Read and write</b> 로</li>
+        <li>맨 아래 <b>Generate token</b> → 나온 키(github_pat_…)를 복사</li>
+      </ol>
+      <a class="btn secondary" href="${newTokenUrl}" target="_blank" rel="noopener">GitHub 키 만들기 화면 열기</a>
+    </section>
+    <section class="card">
+      <h3 class="section-title">2. 키 붙여 넣고 연결</h3>
+      <form class="form" id="tf" onsubmit="return false">
+        <label class="full">접근 키<input name="token" type="password" autocomplete="off" placeholder="github_pat_…" value=""></label>
+      </form>
+      <button class="btn" id="connect" style="margin-top:12px">연결 확인하고 저장</button>
+      ${token ? `<button class="btn secondary" id="disconnect" style="margin-top:8px">연결 해제 (이 휴대폰에서 키 지우기)</button>` : ""}
+      <p class="muted small" id="msg" style="margin:10px 2px 0">키는 이 휴대폰에만 저장되고, 이 저장소의 노선 설정 파일을 고칠 때만 써요. 휴대폰을 바꾸면 다시 연결해 주세요.</p>
+    </section>`;
+  const msg = document.getElementById("msg");
+  document.getElementById("connect").onclick = async (e) => {
+    const v = document.getElementById("tf").token.value.trim();
+    if (!v) { msg.textContent = "키를 붙여 넣어 주세요."; return; }
+    e.target.disabled = true; msg.textContent = "확인하는 중…";
+    try {
+      const info = await gh(`/repos/${owner}/${repo}`, {}, v);
+      if (!info.permissions || !info.permissions.push) throw new Error("이 키로는 저장소를 고칠 수 없어요. Contents 를 Read and write 로 했는지 확인해 주세요.");
+      setGhToken(v);
+      msg.textContent = "연결됐어요 ✓ 이제 조건 바꾸기 화면에서 바로 저장할 수 있어요.";
+      document.querySelector("#state span:last-child").textContent = "연결됨 ✓";
+    } catch (err) {
+      msg.textContent = err.status === 401 ? "키가 맞지 않거나 만료됐어요. 다시 확인해 주세요." : err.status === 404 ? `이 키로 ${owner}/${repo} 저장소를 볼 수 없어요. Repository access 에서 저장소를 골랐는지 확인해 주세요.` : `연결하지 못했어요: ${err.message}`;
+    } finally { e.target.disabled = false; }
+  };
+  const dis = document.getElementById("disconnect");
+  if (dis) dis.onclick = () => { setGhToken(""); renderSettings(); };
+}
+
 async function renderEdit(id) {
   let doc;
   try { doc = await getJSON(`data/routes/${encodeURIComponent(id)}.json`); }
@@ -522,7 +611,9 @@ function renderAdd(edit) {
     <a class="back" href="${edit ? `#${esc(encodeURIComponent(edit.id))}` : "#"}">‹ ${edit ? "노선" : "목록"}</a>
     <section class="card">
       <h3 class="section-title">${edit ? "추적 조건 바꾸기" : "노선 추가하기"}</h3>
-      <p class="muted small" style="margin-top:-6px">${edit ? "바꾸면 아래에 routes.json 에서 이 노선 항목을 대신할 내용이 만들어져요." : "입력하면 아래에 routes.json 에 붙여 넣을 내용이 만들어져요."}</p>
+      <p class="muted small" style="margin-top:-6px">${ghToken()
+        ? `조건을 바꾸고 맨 아래 [${edit ? "저장하고" : "추가하고"} 바로 조회]를 누르세요.`
+        : edit ? "바꾸면 아래에 routes.json 에서 이 노선 항목을 대신할 내용이 만들어져요." : "입력하면 아래에 routes.json 에 붙여 넣을 내용이 만들어져요."}</p>
       <form id="f" onsubmit="return false">
         <div class="seg" role="radiogroup" aria-label="여정 종류">
           <label><input type="radio" name="trip" value="round" checked><span>왕복</span></label>
@@ -558,13 +649,21 @@ function renderAdd(edit) {
       </form>
     </section>
     <section class="card">
-      <h3 class="section-title">${edit ? "routes.json 에서 바꿀 내용" : "routes.json 에 추가할 내용"}</h3>
-      <pre class="snippet" id="out"></pre>
-      <button class="btn secondary" id="copy" style="margin:12px 0 8px">복사하기</button>
-      ${editUrl ? `<a class="btn" href="${editUrl}" target="_blank" rel="noopener">GitHub에서 routes.json 열기</a>` : ""}
-      <p class="muted small">${edit
-        ? `routes.json 에서 "id": "${esc(edit.id)}" 인 항목의 { } 전체를 위 내용으로 바꾼 뒤 Commit 하세요. 바로 한 번 조회되고, 이후 매일 06:30 에 조회돼요.`
-        : `"routes" 목록 안의 마지막 항목 뒤에 쉼표(,)를 찍고 붙여 넣은 뒤 Commit 하세요. 바로 한 번 조회되고, 이후 매일 06:30 에 조회돼요.`}</p>
+      ${ghToken()
+        ? `<button class="btn" id="save">${edit ? "저장하고 바로 조회" : "추가하고 바로 조회"}</button>
+           ${edit ? `<button class="btn secondary danger" id="del" style="margin-top:8px">이 노선 삭제</button>` : ""}
+           <p class="muted small" id="save-msg" style="margin:10px 2px 0">저장하면 1~2분 뒤 새 조건으로 조회한 가격이 앱에 반영돼요. 바뀐 노선만 조회해요.</p>`
+        : `<p class="small" style="margin:0 0 10px">휴대폰에서 버튼 한 번으로 저장하려면 처음 한 번 GitHub 연결이 필요해요.</p>
+           <a class="btn" href="#settings">앱에서 바로 저장하도록 연결하기</a>`}
+      <details class="manual"${ghToken() ? "" : " open"}>
+        <summary>직접 붙여 넣기 (GitHub 에서 수정)</summary>
+        <pre class="snippet" id="out"></pre>
+        <button class="btn secondary" id="copy" style="margin:12px 0 8px">복사하기</button>
+        ${editUrl ? `<a class="btn secondary" href="${editUrl}" target="_blank" rel="noopener">GitHub에서 routes.json 열기</a>` : ""}
+        <p class="muted small">${edit
+          ? `routes.json 에서 "id": "${esc(edit.id)}" 인 항목의 { } 전체를 위 내용으로 바꾼 뒤 Commit 하세요.`
+          : `"routes" 목록 안의 마지막 항목 뒤에 쉼표(,)를 찍고 붙여 넣은 뒤 Commit 하세요.`}</p>
+      </details>
     </section>`;
 
   const f = document.getElementById("f"), out = document.getElementById("out");
@@ -638,6 +737,8 @@ function renderAdd(edit) {
         ...common,
       };
     }
+    // 화면에 없는 설정(구간별 편도 합산, 최소 환승 시간 등)은 그대로 유지
+    if (edit) for (const k of ["separate_tickets", "min_connection_min"]) if (edit[k] != null && body[k] == null) body[k] = edit[k];
     out.textContent = JSON.stringify(body, null, 2);
   };
 
@@ -656,6 +757,39 @@ function renderAdd(edit) {
   document.getElementById("copy").onclick = async (e) => {
     try { await navigator.clipboard.writeText(out.textContent); e.target.textContent = "복사됨 ✓"; } catch { e.target.textContent = "직접 선택해서 복사해 주세요"; }
   };
+
+  const saveBtn = document.getElementById("save"), delBtn = document.getElementById("del"), smsg = document.getElementById("save-msg");
+  const fail = (err) => {
+    smsg.textContent = err.status === 401 ? "GitHub 연결이 끊겼어요(키 만료 등). 앱 설정에서 다시 연결해 주세요."
+      : err.message && !err.status ? err.message : `저장하지 못했어요: ${err.message}`;
+  };
+  const busy = (on) => { [saveBtn, delBtn].forEach((b) => b && (b.disabled = on)); };
+  if (saveBtn) saveBtn.onclick = async () => {
+    let body;
+    try { body = JSON.parse(out.textContent); } catch { smsg.textContent = "입력값을 확인해 주세요."; return; }
+    const bad = (body.legs || [body]).some((l) => !/^[A-Za-z]{3}$/.test(l.from || "") || !/^[A-Za-z]{3}$/.test(l.to || "") || !l.date);
+    if (bad || (body.legs && body.legs.length < 2)) { smsg.textContent = "공항 코드(영문 3글자)와 날짜를 모두 채워 주세요."; return; }
+    busy(true); smsg.textContent = "저장하는 중…";
+    try {
+      await saveRoutes((routes) => {
+        if (edit) return routes.map((x) => (x.id === edit.id ? body : x));
+        let id = body.id, n = 2;
+        while (routes.some((x) => x.id === id)) id = `${body.id}-${n++}`;
+        return routes.concat({ ...body, id });
+      }, `앱에서 노선 ${edit ? "수정" : "추가"}: ${body.name}`);
+      smsg.textContent = "저장했어요 ✓ 1~2분 뒤 새 조건으로 조회한 가격이 반영돼요. 앱을 다시 열면 보여요.";
+      saveBtn.textContent = "저장됨 ✓";
+    } catch (err) { fail(err); busy(false); }
+  };
+  if (delBtn) delBtn.onclick = async () => {
+    if (!confirm(`"${edit.name}" 노선 추적을 그만할까요? (지금까지 기록은 남아 있어요)`)) return;
+    busy(true); smsg.textContent = "삭제하는 중…";
+    try {
+      await saveRoutes((routes) => routes.filter((x) => x.id !== edit.id), `앱에서 노선 삭제: ${edit.name}`);
+      smsg.textContent = "삭제했어요 ✓ 1~2분 뒤 목록에서 사라져요.";
+      delBtn.textContent = "삭제됨 ✓";
+    } catch (err) { fail(err); busy(false); }
+  };
 }
 
 // ------------------------------------------------------------ 라우팅
@@ -668,6 +802,7 @@ function route() {
   const id = decodeURIComponent(location.hash.slice(1));
   if (!id) renderList();
   else if (id === "add") renderAdd();
+  else if (id === "settings") renderSettings();
   else if (id.startsWith("edit/")) renderEdit(id.slice(5));
   else renderDetail(id);
 }
