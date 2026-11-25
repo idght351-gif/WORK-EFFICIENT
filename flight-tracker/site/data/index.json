@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-11-25T19:44:29+09:00",
+  "updated_at": "2026-11-26T05:58:42+09:00",
   "routes": [
     {
       "id": "icn-cts-20270629",
@@ -94,44 +94,46 @@
     },
     {
       "id": "sel-osa-20270227",
-      "name": "서울 → 오사카 · 고베",
+      "name": "인천 · 김포 → 오사카 · 고베",
       "from": "ICN,GMP",
       "to": "KIX,UKB",
       "date": "2027-02-27",
-      "return_date": null,
+      "return_date": "2027-02-28",
       "legs": null,
       "alert_below": null,
       "status": "active",
       "summary": {
-        "current": 209600,
-        "current_date": "2026-11-25",
-        "prev": null,
+        "current": 485036,
+        "current_date": "2026-11-26",
+        "prev": 209600,
         "min": 209600,
-        "max": 209600,
-        "avg": 209600,
-        "days": 1
+        "max": 485036,
+        "avg": 347318,
+        "days": 2
       },
       "next_check": "2026-11-26T06:30+09:00",
       "last_check": "2027-02-27T06:30+09:00",
       "spark": [
-        209600
+        209600,
+        485036
       ],
       "spark_dates": [
-        "2026-11-25"
+        "2026-11-25",
+        "2026-11-26"
       ]
     }
   ],
   "quota": {
     "plan_name": "Free Plan",
     "searches_per_month": 250,
-    "plan_searches_left": 201,
+    "plan_searches_left": 200,
     "extra_credits": 0,
-    "total_searches_left": 201,
-    "this_month_usage": 49,
+    "total_searches_left": 200,
+    "this_month_usage": 50,
     "plan_renewal_date": "2026-12-23",
     "account_rate_limit_per_hour": 250,
-    "daily_usage": 7,
-    "checked_at": "2026-11-25T19:44:29+09:00"
+    "daily_usage": 8,
+    "checked_at": "2026-11-26T05:58:42+09:00"
   },
   "schedule_kst": [
     "06:30"
