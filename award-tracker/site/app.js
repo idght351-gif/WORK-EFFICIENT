@@ -108,10 +108,10 @@ const VIEW_KEY = "award-view";
 function loadView() { try { return JSON.parse(localStorage.getItem(VIEW_KEY)) || {}; } catch { return {}; } }
 function saveView(v) { try { localStorage.setItem(VIEW_KEY, JSON.stringify(v)); } catch {} }
 
-// 탭 이름: "인천→나리타"처럼 짧게. 같은 구간이 둘 이상이면 시작 날짜를 붙여 구분해요.
-const shortCity = (code) => (AIRPORT[code] || code).split(" ").pop();
+// 탭 이름: "SEL ↔ OSA"처럼 도시 코드로 짧게 (가는 편 · 오는 편을 다 보니 양쪽 화살표). 같은 구간이 둘 이상이면 시작 날짜를 붙여 구분해요.
+// 한글 이름은 탭의 title(길게 누르기) · 화면 읽기로 나와요. 중지된 노선은 글자만 흐리게 (표시 없음).
 function tabLabel(r, all) {
-  const base = `${shortCity(r.from)}→${shortCity(r.to)}`;
+  const base = `${r.from} ↔ ${r.to}`;
   const dup = all.filter((x) => x.from === r.from && x.to === r.to).length > 1;
   return dup ? `${base} ${mdDow(r.start).replace(/\(.\)/, "")}~` : base;
 }
@@ -444,7 +444,8 @@ async function renderMain(want) {
     <div class="route-tabs" role="tablist" aria-label="노선" id="routes">
       ${routes.map((x) => `
         <button type="button" role="tab" class="route-tab${x.active === false ? " paused" : ""}" data-route="${esc(x.id)}"
-          aria-selected="${x.id === rid}" title="${esc(x.name || routeTitle(x.from, x.to))}">${esc(tabLabel(x, routes))}${x.active === false ? `<span class="tab-note">중지</span>` : ""}</button>`).join("")}
+          aria-selected="${x.id === rid}" title="${esc(x.name || routeTitle(x.from, x.to))}"
+          aria-label="${esc((x.name || routeTitle(x.from, x.to)) + (x.active === false ? " (중지)" : ""))}">${esc(tabLabel(x, routes))}</button>`).join("")}
       <a class="route-tab add" href="#add" aria-label="노선 추가">+ 노선</a>
     </div>
     ${round ? `
