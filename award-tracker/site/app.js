@@ -486,10 +486,11 @@ async function renderMain(want) {
     document.getElementById("prev").disabled = i <= 0;
     document.getElementById("next").disabled = i >= list.length - 1;
     document.getElementById("cal").innerHTML = monthHTML(days, st.cabin, y, m - 1, a, b, t, st.day, doc.updated_at, min);
+    // 범례 두 줄: 첫 줄은 칸 색(최저 +20% · 좌석 있음 · 좌석 없음), 둘째 줄은 표시(새로 열림 · 상세 확인 · 상세 일부)
     document.getElementById("legend").innerHTML =
-      (t ? `<span><i class="hit"></i>${num(t)} 이하</span><span><i class="avail"></i>${num(t)} 초과</span>` : `<span><i class="hit"></i>최저 +${LOW_PCT}% 이내</span><span><i class="avail"></i>좌석 있음</span>`)
-      + `<span>– 좌석 없음</span><span><i class="dot"></i> 새로 열림</span>`
-      + `<span><i class="ds done"></i>상세 확인</span><span><i class="ds part"></i>상세 일부</span>`;
+      `<div class="legend-row">${t ? `<span><i class="hit"></i>${num(t)} 이하</span><span><i class="avail"></i>${num(t)} 초과</span>` : `<span><i class="hit"></i>최저 +${LOW_PCT}% 이내</span><span><i class="avail"></i>좌석 있음</span>`}`
+      + `<span>– 좌석 없음</span></div>`
+      + `<div class="legend-row"><span><i class="dot"></i> 새로 열림</span><span><i class="ds done"></i>상세 확인</span><span><i class="ds part"></i>상세 일부</span></div>`;
     document.getElementById("daybox").innerHTML = st.day
       ? dayHTML(st.day, st.cabin, days[st.day] ? days[st.day][st.cabin] : undefined, t, back ? r.to : r.from, back ? r.from : r.to, doc.updated_at, r.id, back ? "back" : "out")
       : "";
