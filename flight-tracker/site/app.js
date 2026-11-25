@@ -212,7 +212,8 @@ function cardHTML(r) {
       <div class="route-price num">${won(s.current)}</div>
       <div class="route-delta num">${deltaHTML(s.current, s.prev)}</div>
     </div>
-    ${r.spark && r.spark.length > 1 ? `<svg class="spark" id="spark-${esc(r.id)}" aria-hidden="true"></svg>` : ""}
+    ${r.spark && r.spark.length > 1 ? `<svg class="spark" id="spark-${esc(r.id)}" aria-hidden="true"></svg>
+      <div class="spark-range muted small">${r.spark_dates && r.spark_dates.length > 1 ? `${md(r.spark_dates[0])} ~ ${md(r.spark_dates[r.spark_dates.length - 1])} · ` : ""}${r.spark.length}일 기록</div>` : ""}
   </a>`;
 }
 
@@ -224,8 +225,10 @@ function sparkline(svg, data, target) {
   const d = data.map((v, i) => `${i ? "L" : "M"}${x(i).toFixed(1)},${y(v).toFixed(1)}`).join("");
   const last = data.length - 1;
   svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+  // 날마다 작은 점을 찍어 며칠치인지 보이게 하고, 마지막 날은 크게
+  const dots = data.length <= 31 ? data.slice(0, last).map((v, i) => `<circle cx="${x(i).toFixed(1)}" cy="${y(v).toFixed(1)}" r="2.5" fill="var(--accent)"/>`).join("") : "";
   svg.innerHTML = `<path d="${d}" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
-    <circle cx="${x(last)}" cy="${y(data[last])}" r="4" fill="var(--accent)" stroke="var(--card)" stroke-width="2"/>`;
+    ${dots}<circle cx="${x(last)}" cy="${y(data[last])}" r="4" fill="var(--accent)" stroke="var(--card)" stroke-width="2"/>`;
 }
 
 // ------------------------------------------------------------ 비교 사이트 링크

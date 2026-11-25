@@ -222,3 +222,4 @@ pre.snippet { background: var(--bg); border-radius: 12px; padding: 12px; font-si
 .hero-top.wrap { flex-wrap: wrap; }
 .hero-top.wrap .leg-path { flex-basis: 100%; }
 .hero-top.wrap .hero-dday { margin-left: auto; padding-top: 0; }
+.spark-range { grid-column: 1 / -1; margin-top: 2px; text-align: right; }
