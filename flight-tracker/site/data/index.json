@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-11-25T18:14:20+09:00",
+  "updated_at": "2026-11-25T18:34:26+09:00",
   "routes": [
     {
       "id": "icn-cts-20270629",
@@ -93,39 +93,28 @@
       ]
     },
     {
-      "id": "icn-ukb-gmp-20270226",
-      "name": "인천 → 고베 / 간사이 → 김포",
-      "from": "ICN",
-      "to": "GMP",
-      "date": "2027-02-26",
+      "id": "sel-osa-20270227",
+      "name": "서울 → 오사카 · 고베",
+      "from": "ICN,GMP",
+      "to": "KIX,UKB",
+      "date": "2027-02-27",
       "return_date": null,
-      "legs": [
-        {
-          "from": "ICN",
-          "to": "UKB",
-          "date": "2027-02-26"
-        },
-        {
-          "from": "KIX",
-          "to": "GMP",
-          "date": "2027-03-01"
-        }
-      ],
+      "legs": null,
       "alert_below": null,
       "status": "active",
       "summary": {
-        "current": 716367,
+        "current": 209600,
         "current_date": "2026-11-25",
         "prev": null,
-        "min": 716367,
-        "max": 716367,
-        "avg": 716367,
+        "min": 209600,
+        "max": 209600,
+        "avg": 209600,
         "days": 1
       },
       "next_check": "2026-11-26T06:30+09:00",
-      "last_check": "2027-02-26T06:30+09:00",
+      "last_check": "2027-02-27T06:30+09:00",
       "spark": [
-        716367
+        209600
       ],
       "spark_dates": [
         "2026-11-25"
@@ -141,8 +130,8 @@
     "this_month_usage": 48,
     "plan_renewal_date": "2026-12-23",
     "account_rate_limit_per_hour": 250,
-    "daily_usage": 8,
-    "checked_at": "2026-11-25T18:14:20+09:00"
+    "daily_usage": 7,
+    "checked_at": "2026-11-25T18:34:26+09:00"
   },
   "schedule_kst": [
     "06:30"

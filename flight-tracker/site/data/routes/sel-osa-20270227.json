@@ -1,0 +1,51 @@
+{
+  "history": [
+    {
+      "date": "2026-11-25",
+      "checked_at": "2026-11-25T18:34:26+09:00",
+      "price": 209600,
+      "error": null,
+      "airline": "피치항공",
+      "flight_number": "MM 710",
+      "depart_time": "21:00",
+      "arrive_time": "22:45",
+      "stops": 0,
+      "duration_min": 105,
+      "dep_airport": "ICN",
+      "arr_airport": "KIX"
+    }
+  ],
+  "alert_state": {},
+  "google_flights_url": "https://www.google.com/travel/flights?hl=ko&gl=kr&curr=KRW&tfs=CBwQAho2EgoyMDI3LTAyLTI3KABAAEgXagcIARIDSUNOagcIARIDR01QcgcIARIDS0lYcgcIARIDVUtCQAFIAXABmAEC&tfu=EgIIAQ",
+  "route": {
+    "id": "sel-osa-20270227",
+    "name": "서울 → 오사카 · 고베",
+    "from": "ICN,GMP",
+    "to": "KIX,UKB",
+    "date": "2027-02-27",
+    "return_date": null,
+    "depart_after": "00:00",
+    "depart_before": "24:00",
+    "adults": 1,
+    "travel_class": "economy",
+    "max_stops": 0,
+    "alert_below": null,
+    "active": true
+  },
+  "status": "active",
+  "summary": {
+    "current": 209600,
+    "current_date": "2026-11-25",
+    "prev": null,
+    "min": 209600,
+    "max": 209600,
+    "avg": 209600,
+    "days": 1
+  },
+  "updated_at": "2026-11-25T18:34:26+09:00",
+  "next_check": "2026-11-26T06:30+09:00",
+  "last_check": "2027-02-27T06:30+09:00",
+  "schedule_kst": [
+    "06:30"
+  ]
+}
