@@ -75,6 +75,14 @@ routes.json 을 저장(commit)하면 바로 한 번 실행되어 첫 가격이 �
 - **조회 실패** 시 3번 재시도하고, 그래도 실패하면 그날은 "조회 실패"로 기록되고 그래프 선이 끊겨 보입니다.
 - 가격은 **한국 기준(KRW, gl=kr)** 으로 검색합니다. 저가항공은 수하물 미포함 가격일 수 있어요.
 
+## 휴대폰에서 바로 저장 (GitHub 연결, 처음 한 번)
+추적 페이지 맨 아래 **⚙︎ 앱 설정**에서 GitHub 접근 키를 한 번 연결하면, 노선 추가 · 조건 바꾸기 · 삭제를 앱에서 버튼 한 번으로 저장하고 바로 조회해요.
+- 키 만들기: GitHub → Settings → Developer settings → Fine-grained tokens → Generate new token
+  - Repository access: **Only select repositories** → 이 저장소
+  - Permissions → Repository permissions → **Contents: Read and write**
+- 키는 그 휴대폰(브라우저)에만 저장되고, `flight-tracker/routes.json` 을 고칠 때만 써요.
+- 노선이 바뀌어 저장되면 **바뀐 노선만** 바로 조회해요(검색 횟수 절약).
+
 ## 추적 조건 바꾸기 (직항만 · 시간 · 인원 등)
 추적 페이지에서 노선을 누르고 **조건 바꾸기**를 누르세요. 경유(상관없음 / 직항만 / 1회 이하), 출발 시간대, 인원, 좌석, 목표가를 고르면 `routes.json` 에서 그 노선 항목을 대신할 내용이 만들어져요. GitHub 에서 그 항목을 바꿔 Commit 하면 바로 한 번 조회되고, 이후 정해진 시각에 조회돼요.
 

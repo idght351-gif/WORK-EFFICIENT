@@ -375,5 +375,33 @@ class TestSeparateTickets(unittest.TestCase):
         self.assertIn("· 110,000원", dict(cp.flight_lines(out))["2구간 03/01 KIX→GMP"])
 
 
+class TestChangedRoutes(unittest.TestCase):
+    def test_detects_new_and_edited(self):
+        import check_prices as cp
+        prev = {"routes": [{"id": "a", "max_stops": 0}, {"id": "b", "max_stops": None}]}
+
+        class R:
+            stdout = __import__("json").dumps(prev)
+        orig = cp.subprocess.run
+        cp.subprocess.run = lambda *a, **k: R()
+        try:
+            got = cp.changed_route_ids([{"id": "a", "max_stops": 0}, {"id": "b", "max_stops": 0}, {"id": "c"}])
+        finally:
+            cp.subprocess.run = orig
+        self.assertEqual(got, {"b", "c"})
+
+    def test_unknown_history_checks_everything(self):
+        import check_prices as cp
+        orig = cp.subprocess.run
+
+        def boom(*a, **k):
+            raise cp.subprocess.CalledProcessError(128, "git")
+        cp.subprocess.run = boom
+        try:
+            self.assertIsNone(cp.changed_route_ids([{"id": "a"}]))
+        finally:
+            cp.subprocess.run = orig
+
+
 if __name__ == "__main__":
     unittest.main()

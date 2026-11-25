@@ -17,6 +17,7 @@ import json
 import os
 import smtplib
 import ssl
+import subprocess
 import sys
 import urllib.error
 import urllib.parse
@@ -666,12 +667,28 @@ def save_json(path: Path, data) -> None:
     path.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
 
+def changed_route_ids(routes_raw: list[dict]) -> set[str] | None:
+    """직전 커밋의 routes.json 과 비교해 새로 생기거나 조건이 바뀐 노선 id. 비교할 수 없으면 None(전부 조회)."""
+    try:
+        prev = subprocess.run(["git", "show", "HEAD^:flight-tracker/routes.json"], cwd=ROOT.parent,
+                              capture_output=True, text=True, check=True).stdout
+        before = {r["id"]: r for r in json.loads(prev).get("routes", [])}
+    except (subprocess.CalledProcessError, FileNotFoundError, ValueError, KeyError):
+        return None
+    return {r["id"] for r in routes_raw if before.get(r["id"]) != r}
+
+
 def run(dry_run: bool = False) -> int:
     api_key = os.environ.get("SERPAPI_KEY")
     if not api_key and not dry_run:
         print("SERPAPI_KEY 환경 변수가 없습니다.", file=sys.stderr)
         return 1
-    routes = [normalize_route(r) for r in load_json(ROUTES_FILE, {"routes": []})["routes"]]
+    routes_raw = load_json(ROUTES_FILE, {"routes": []})["routes"]
+    routes = [normalize_route(r) for r in routes_raw]
+    # 앱이나 GitHub 에서 노선을 바꿔 push 된 경우: 바뀐 노선만 조회 (검색 횟수 절약)
+    only = changed_route_ids(routes_raw) if os.environ.get("ONLY_CHANGED") == "1" else None
+    if only is not None:
+        print(f"바뀐 노선만 조회: {sorted(only) or '없음'}")
     now = now_kst()
     today = now.date().isoformat()
     prev_index = load_json(DATA_DIR / "index.json", {})
@@ -697,7 +714,7 @@ def run(dry_run: bool = False) -> int:
             status = "paused"
 
         print(f"- {route['name']} [{rid}] ({status})")
-        if status == "active" and not dry_run:
+        if status == "active" and not dry_run and (only is None or rid in only):
             result, error, insights, url = None, None, {}, None
             try:
                 result, insights, url = check_route(route, api_key)
