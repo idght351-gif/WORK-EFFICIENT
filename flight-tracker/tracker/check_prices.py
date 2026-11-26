@@ -425,6 +425,10 @@ def check_flex(route: dict, api_key: str) -> tuple[dict | None, dict, str | None
     return result, insights, url
 
 
+class NoMatch(RuntimeError):
+    """검색은 됐지만 조건(경유 · 시간대)에 맞는 편이 없음. 메시지에 걸러진 수를 담음."""
+
+
 def check_route(route: dict, api_key: str) -> tuple[dict | None, dict, str | None]:
     """가는 편 검색 → (왕복이면) 그 가는 편으로 오는 편 검색. 가격은 항상 전체 인원 왕복/편도 총액."""
     if is_flex(route):
@@ -436,7 +440,11 @@ def check_route(route: dict, api_key: str) -> tuple[dict | None, dict, str | Non
     insights = data.get("price_insights") or {}
     url = (data.get("search_metadata") or {}).get("google_flights_url")
     out = pick_cheapest(data, route, "depart")
-    if out and route.get("return_date") and out.get("departure_token"):
+    if not out:
+        # 왜 없는지 남김: 검색 결과 수 · 경유 조건 · 시간대
+        raise NoMatch(f"가는 편 {route['date']} 조건에 맞는 편 없음 ("
+                      f"{describe_options(data, route, (route.get('depart_after'), route.get('depart_before')))})")
+    if route.get("return_date") and out.get("departure_token"):
         try:
             data2 = fetch_serpapi({**params, "departure_token": out["departure_token"]})
             ret = pick_cheapest(data2, route, "return")
@@ -446,7 +454,10 @@ def check_route(route: dict, api_key: str) -> tuple[dict | None, dict, str | Non
                     out[f"return_{k}"] = ret[k]
                 url = (data2.get("search_metadata") or {}).get("google_flights_url") or url
             else:
-                out = None  # 오는 편 시간대에 맞는 편이 없음
+                raise NoMatch(f"오는 편 {route['return_date']} 조건에 맞는 편 없음 ("
+                              f"{describe_options(data2, route, (route.get('return_after'), route.get('return_before')))})")
+        except NoMatch:
+            raise
         except RuntimeError as e:
             print(f"  ! 오는 편 조회 실패, 가는 편 기준 가격만 기록: {e}")
     if out:
