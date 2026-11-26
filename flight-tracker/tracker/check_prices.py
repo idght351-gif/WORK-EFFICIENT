@@ -328,6 +328,7 @@ def matching_options(data: dict, route: dict, leg: str = "depart",
             "departure_token": item.get("departure_token"),
             "dep_airport": legs[0].get("departure_airport", {}).get("id"),
             "arr_airport": legs[-1].get("arrival_airport", {}).get("id"),
+            "airline_logo": legs[0].get("airline_logo") or item.get("airline_logo"),
         }
         key = (opt["flight_number"], opt["depart_time"])
         if key in seen:
@@ -349,7 +350,8 @@ OPTIONS_KEEP = 30  # 앱에 보여 줄 같은 조건의 항공편 수 (가장 �
 
 
 def option_list(opts: list[dict], day: str) -> list[dict]:
-    keys = ("price", "airline", "flight_number", "depart_time", "arrive_time", "stops", "dep_airport", "arr_airport")
+    keys = ("price", "airline", "flight_number", "depart_time", "arrive_time", "stops", "dep_airport", "arr_airport",
+            "airline_logo")
     return [{**{k: o.get(k) for k in keys}, "date": day} for o in opts[:OPTIONS_KEEP]]
 
 
