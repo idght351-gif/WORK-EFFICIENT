@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-11-27T08:35:54+09:00",
+  "updated_at": "2026-11-27T08:38:23+09:00",
   "routes": [
     {
       "id": "icn-cts-20270629",
@@ -13,14 +13,14 @@
       "alert_below": null,
       "status": "active",
       "cost": 4,
-      "last_checked_at": "2026-11-27T08:09:59+09:00",
+      "last_checked_at": "2026-11-27T08:38:23+09:00",
       "summary": {
-        "current": 624346,
+        "current": 624270,
         "current_date": "2026-11-27",
         "prev": 624511,
-        "min": 624316,
+        "min": 624270,
         "max": 624681,
-        "avg": 624502,
+        "avg": 624487,
         "days": 5
       },
       "next_check": null,
@@ -30,7 +30,7 @@
         624656,
         624316,
         624511,
-        624346
+        624270
       ],
       "spark_dates": [
         "2026-11-23",
@@ -116,14 +116,14 @@
       "alert_below": null,
       "status": "active",
       "cost": 4,
-      "last_checked_at": "2026-11-27T08:09:59+09:00",
+      "last_checked_at": "2026-11-27T08:38:23+09:00",
       "summary": {
-        "current": 484742,
+        "current": 484787,
         "current_date": "2026-11-27",
         "prev": 484991,
         "min": 209600,
         "max": 484991,
-        "avg": 393111,
+        "avg": 393126,
         "days": 3
       },
       "next_check": null,
@@ -131,7 +131,7 @@
       "spark": [
         209600,
         484991,
-        484742
+        484787
       ],
       "spark_dates": [
         "2026-11-25",
@@ -157,7 +157,7 @@
       "alert_below": null,
       "status": "active",
       "cost": 5,
-      "last_checked_at": "2026-11-27T08:09:59+09:00",
+      "last_checked_at": "2026-11-27T08:38:23+09:00",
       "summary": {
         "current": 414700,
         "current_date": "2026-11-27",
@@ -180,14 +180,14 @@
   "quota": {
     "plan_name": "Free Plan",
     "searches_per_month": 250,
-    "plan_searches_left": 167,
+    "plan_searches_left": 159,
     "extra_credits": 0,
-    "total_searches_left": 167,
-    "this_month_usage": 83,
+    "total_searches_left": 159,
+    "this_month_usage": 91,
     "plan_renewal_date": "2026-12-23",
     "account_rate_limit_per_hour": 250,
     "daily_usage": 0,
-    "checked_at": "2026-11-27T08:35:54+09:00"
+    "checked_at": "2026-11-27T08:38:23+09:00"
   },
   "schedule_kst": [],
   "last_scheduled_date": "2026-11-26"

@@ -35,8 +35,8 @@
     },
     {
       "date": "2026-11-27",
-      "checked_at": "2026-11-27T08:09:59+09:00",
-      "price": 484742,
+      "checked_at": "2026-11-27T08:38:23+09:00",
+      "price": 484787,
       "error": null,
       "airline": "피치항공",
       "flight_number": "MM 710",
@@ -49,7 +49,7 @@
       "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/MM.png",
       "return_options": [
         {
-          "price": 484742,
+          "price": 484787,
           "airline": "피치항공",
           "flight_number": "MM 701",
           "depart_time": "07:40",
@@ -61,7 +61,7 @@
           "date": "2027-02-28"
         },
         {
-          "price": 496547,
+          "price": 496594,
           "airline": "에어부산",
           "flight_number": "BX 332",
           "depart_time": "15:40",
@@ -73,7 +73,7 @@
           "date": "2027-02-28"
         },
         {
-          "price": 528589,
+          "price": 528641,
           "airline": "피치항공",
           "flight_number": "MM 705",
           "depart_time": "11:45",
@@ -85,7 +85,7 @@
           "date": "2027-02-28"
         },
         {
-          "price": 529560,
+          "price": 529484,
           "airline": "Trinity Airways",
           "flight_number": "TW 302",
           "depart_time": "11:15",
@@ -97,7 +97,7 @@
           "date": "2027-02-28"
         },
         {
-          "price": 549669,
+          "price": 549725,
           "airline": "피치항공",
           "flight_number": "MM 709",
           "depart_time": "18:10",
@@ -109,7 +109,7 @@
           "date": "2027-02-28"
         },
         {
-          "price": 549669,
+          "price": 549725,
           "airline": "피치항공",
           "flight_number": "MM 711",
           "depart_time": "19:50",
@@ -121,7 +121,7 @@
           "date": "2027-02-28"
         },
         {
-          "price": 554867,
+          "price": 554785,
           "airline": "Trinity Airways",
           "flight_number": "TW 304",
           "depart_time": "15:40",
@@ -133,7 +133,7 @@
           "date": "2027-02-28"
         },
         {
-          "price": 560771,
+          "price": 560689,
           "airline": "진에어",
           "flight_number": "LJ 314",
           "depart_time": "10:50",
@@ -145,7 +145,7 @@
           "date": "2027-02-28"
         },
         {
-          "price": 581017,
+          "price": 580929,
           "airline": "진에어",
           "flight_number": "LJ 316",
           "depart_time": "11:45",
@@ -157,7 +157,7 @@
           "date": "2027-02-28"
         },
         {
-          "price": 581017,
+          "price": 580929,
           "airline": "진에어",
           "flight_number": "LJ 384",
           "depart_time": "23:25",
@@ -169,7 +169,7 @@
           "date": "2027-02-28"
         },
         {
-          "price": 592673,
+          "price": 592736,
           "airline": "에어서울",
           "flight_number": "RS 302",
           "depart_time": "10:00",
@@ -181,7 +181,7 @@
           "date": "2027-02-28"
         },
         {
-          "price": 592673,
+          "price": 592736,
           "airline": "에어서울",
           "flight_number": "RS 354",
           "depart_time": "16:00",
@@ -193,7 +193,7 @@
           "date": "2027-02-28"
         },
         {
-          "price": 592673,
+          "price": 592736,
           "airline": "에어서울",
           "flight_number": "RS 382",
           "depart_time": "18:00",
@@ -205,7 +205,7 @@
           "date": "2027-02-28"
         },
         {
-          "price": 592673,
+          "price": 592736,
           "airline": "에어서울",
           "flight_number": "RS 380",
           "depart_time": "21:40",
@@ -217,7 +217,7 @@
           "date": "2027-02-28"
         },
         {
-          "price": 601262,
+          "price": 601170,
           "airline": "Trinity Airways",
           "flight_number": "TW 306",
           "depart_time": "19:10",
@@ -229,7 +229,7 @@
           "date": "2027-02-28"
         },
         {
-          "price": 607345,
+          "price": 607410,
           "airline": "제주항공",
           "flight_number": "7C 1396",
           "depart_time": "08:50",
@@ -241,7 +241,7 @@
           "date": "2027-02-28"
         },
         {
-          "price": 607345,
+          "price": 607410,
           "airline": "제주항공",
           "flight_number": "7C 1302",
           "depart_time": "09:50",
@@ -253,7 +253,7 @@
           "date": "2027-02-28"
         },
         {
-          "price": 607345,
+          "price": 607410,
           "airline": "제주항공",
           "flight_number": "7C 1392",
           "depart_time": "10:50",
@@ -265,7 +265,7 @@
           "date": "2027-02-28"
         },
         {
-          "price": 607345,
+          "price": 607410,
           "airline": "제주항공",
           "flight_number": "7C 1304",
           "depart_time": "12:00",
@@ -277,7 +277,7 @@
           "date": "2027-02-28"
         },
         {
-          "price": 607345,
+          "price": 607410,
           "airline": "제주항공",
           "flight_number": "7C 1316",
           "depart_time": "13:05",
@@ -289,7 +289,7 @@
           "date": "2027-02-28"
         },
         {
-          "price": 607345,
+          "price": 607410,
           "airline": "제주항공",
           "flight_number": "7C 1394",
           "depart_time": "17:00",
@@ -301,7 +301,7 @@
           "date": "2027-02-28"
         },
         {
-          "price": 607345,
+          "price": 607410,
           "airline": "제주항공",
           "flight_number": "7C 1372",
           "depart_time": "18:20",
@@ -313,7 +313,7 @@
           "date": "2027-02-28"
         },
         {
-          "price": 607345,
+          "price": 607410,
           "airline": "제주항공",
           "flight_number": "7C 1306",
           "depart_time": "19:40",
@@ -325,7 +325,7 @@
           "date": "2027-02-28"
         },
         {
-          "price": 614597,
+          "price": 614663,
           "airline": "에어부산",
           "flight_number": "BX 328",
           "depart_time": "12:00",
@@ -337,7 +337,7 @@
           "date": "2027-02-28"
         },
         {
-          "price": 614597,
+          "price": 614663,
           "airline": "에어부산",
           "flight_number": "BX 374",
           "depart_time": "18:00",
@@ -349,7 +349,7 @@
           "date": "2027-02-28"
         },
         {
-          "price": 650188,
+          "price": 650084,
           "airline": "진에어",
           "flight_number": "LJ 330",
           "depart_time": "14:50",
@@ -361,7 +361,7 @@
           "date": "2027-02-28"
         },
         {
-          "price": 650188,
+          "price": 650084,
           "airline": "진에어",
           "flight_number": "LJ 356",
           "depart_time": "17:35",
@@ -373,7 +373,7 @@
           "date": "2027-02-28"
         },
         {
-          "price": 650188,
+          "price": 650084,
           "airline": "진에어",
           "flight_number": "LJ 368",
           "depart_time": "17:50",
@@ -385,7 +385,7 @@
           "date": "2027-02-28"
         },
         {
-          "price": 662420,
+          "price": 662313,
           "airline": "대한항공",
           "flight_number": "KE 730",
           "depart_time": "10:30",
@@ -397,7 +397,7 @@
           "date": "2027-02-28"
         },
         {
-          "price": 662420,
+          "price": 662313,
           "airline": "대한항공",
           "flight_number": "KE 724",
           "depart_time": "11:55",
@@ -419,7 +419,7 @@
       "return_airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/MM.png",
       "options": [
         {
-          "price": 484742,
+          "price": 484787,
           "airline": "피치항공",
           "flight_number": "MM 710",
           "depart_time": "21:00",
@@ -431,7 +431,7 @@
           "date": "2027-02-27"
         },
         {
-          "price": 496942,
+          "price": 496987,
           "airline": "에어부산",
           "flight_number": "BX 373",
           "depart_time": "15:05",
@@ -440,18 +440,6 @@
           "dep_airport": "ICN",
           "arr_airport": "KIX",
           "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/BX.png",
-          "date": "2027-02-27"
-        },
-        {
-          "price": 506773,
-          "airline": "이스타항공",
-          "flight_number": "ZE 613",
-          "depart_time": "15:05",
-          "arrive_time": "17:00",
-          "stops": 0,
-          "dep_airport": "ICN",
-          "arr_airport": "KIX",
-          "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/ZE.png",
           "date": "2027-02-27"
         },
         {
@@ -467,7 +455,7 @@
           "date": "2027-02-27"
         },
         {
-          "price": 523242,
+          "price": 523287,
           "airline": "에어서울",
           "flight_number": "RS 381",
           "depart_time": "15:20",
@@ -479,7 +467,7 @@
           "date": "2027-02-27"
         },
         {
-          "price": 527652,
+          "price": 527587,
           "airline": "Trinity Airways",
           "flight_number": "TW 305",
           "depart_time": "15:50",
@@ -491,7 +479,7 @@
           "date": "2027-02-27"
         },
         {
-          "price": 532742,
+          "price": 532787,
           "airline": "피치항공",
           "flight_number": "MM 706",
           "depart_time": "15:05",
@@ -527,7 +515,7 @@
           "date": "2027-02-27"
         },
         {
-          "price": 578542,
+          "price": 578587,
           "airline": "에어부산",
           "flight_number": "BX 331",
           "depart_time": "12:40",
@@ -539,7 +527,7 @@
           "date": "2027-02-27"
         },
         {
-          "price": 618242,
+          "price": 618287,
           "airline": "에어서울",
           "flight_number": "RS 301",
           "depart_time": "07:15",
@@ -551,7 +539,7 @@
           "date": "2027-02-27"
         },
         {
-          "price": 619752,
+          "price": 619687,
           "airline": "Trinity Airways",
           "flight_number": "TW 301",
           "depart_time": "07:55",
@@ -563,7 +551,7 @@
           "date": "2027-02-27"
         },
         {
-          "price": 619752,
+          "price": 619687,
           "airline": "Trinity Airways",
           "flight_number": "TW 303",
           "depart_time": "12:10",
@@ -575,7 +563,7 @@
           "date": "2027-02-27"
         },
         {
-          "price": 629742,
+          "price": 629787,
           "airline": "피치항공",
           "flight_number": "MM 712",
           "depart_time": "07:30",
@@ -587,7 +575,7 @@
           "date": "2027-02-27"
         },
         {
-          "price": 629742,
+          "price": 629787,
           "airline": "피치항공",
           "flight_number": "MM 714",
           "depart_time": "10:35",
@@ -623,7 +611,7 @@
           "date": "2027-02-27"
         },
         {
-          "price": 648842,
+          "price": 648887,
           "airline": "제주항공",
           "flight_number": "7C 1301",
           "depart_time": "07:00",
@@ -635,7 +623,7 @@
           "date": "2027-02-27"
         },
         {
-          "price": 648842,
+          "price": 648887,
           "airline": "제주항공",
           "flight_number": "7C 1391",
           "depart_time": "08:05",
@@ -647,7 +635,7 @@
           "date": "2027-02-27"
         },
         {
-          "price": 648842,
+          "price": 648887,
           "airline": "제주항공",
           "flight_number": "7C 1303",
           "depart_time": "09:10",
@@ -659,7 +647,7 @@
           "date": "2027-02-27"
         },
         {
-          "price": 648842,
+          "price": 648887,
           "airline": "제주항공",
           "flight_number": "7C 1315",
           "depart_time": "10:15",
@@ -671,7 +659,7 @@
           "date": "2027-02-27"
         },
         {
-          "price": 648842,
+          "price": 648887,
           "airline": "제주항공",
           "flight_number": "7C 1393",
           "depart_time": "14:10",
@@ -683,7 +671,7 @@
           "date": "2027-02-27"
         },
         {
-          "price": 648842,
+          "price": 648887,
           "airline": "제주항공",
           "flight_number": "7C 1305",
           "depart_time": "16:55",
@@ -695,7 +683,7 @@
           "date": "2027-02-27"
         },
         {
-          "price": 648842,
+          "price": 648887,
           "airline": "제주항공",
           "flight_number": "7C 1395",
           "depart_time": "19:10",
@@ -719,31 +707,7 @@
           "date": "2027-02-27"
         },
         {
-          "price": 651900,
-          "airline": "이스타항공",
-          "flight_number": "ZE 615",
-          "depart_time": "09:55",
-          "arrive_time": "11:55",
-          "stops": 0,
-          "dep_airport": "ICN",
-          "arr_airport": "KIX",
-          "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/ZE.png",
-          "date": "2027-02-27"
-        },
-        {
-          "price": 661864,
-          "airline": "이스타항공",
-          "flight_number": "ZE 611",
-          "depart_time": "09:05",
-          "arrive_time": "10:55",
-          "stops": 0,
-          "dep_airport": "ICN",
-          "arr_airport": "KIX",
-          "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/ZE.png",
-          "date": "2027-02-27"
-        },
-        {
-          "price": 675142,
+          "price": 675187,
           "airline": "대한항공",
           "flight_number": "KE 723",
           "depart_time": "08:50",
@@ -755,7 +719,7 @@
           "date": "2027-02-27"
         },
         {
-          "price": 675142,
+          "price": 675187,
           "airline": "대한항공",
           "flight_number": "KE 725",
           "depart_time": "15:10",
@@ -767,11 +731,47 @@
           "date": "2027-02-27"
         },
         {
-          "price": 675142,
+          "price": 675187,
           "airline": "대한항공",
           "flight_number": "KE 735",
           "depart_time": "18:45",
           "arrive_time": "20:35",
+          "stops": 0,
+          "dep_airport": "ICN",
+          "arr_airport": "KIX",
+          "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/KE.png",
+          "date": "2027-02-27"
+        },
+        {
+          "price": 675187,
+          "airline": "대한항공",
+          "flight_number": "KE 721",
+          "depart_time": "18:55",
+          "arrive_time": "20:45",
+          "stops": 0,
+          "dep_airport": "ICN",
+          "arr_airport": "KIX",
+          "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/KE.png",
+          "date": "2027-02-27"
+        },
+        {
+          "price": 675187,
+          "airline": "대한항공",
+          "flight_number": "KE 737",
+          "depart_time": "20:55",
+          "arrive_time": "22:40",
+          "stops": 0,
+          "dep_airport": "ICN",
+          "arr_airport": "KIX",
+          "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/KE.png",
+          "date": "2027-02-27"
+        },
+        {
+          "price": 675187,
+          "airline": "대한항공",
+          "flight_number": "KE 739",
+          "depart_time": "21:00",
+          "arrive_time": "22:45",
           "stops": 0,
           "dep_airport": "ICN",
           "arr_airport": "KIX",
@@ -802,15 +802,15 @@
   },
   "status": "active",
   "summary": {
-    "current": 484742,
+    "current": 484787,
     "current_date": "2026-11-27",
     "prev": 484991,
     "min": 209600,
     "max": 484991,
-    "avg": 393111,
+    "avg": 393126,
     "days": 3
   },
-  "updated_at": "2026-11-27T08:35:54+09:00",
+  "updated_at": "2026-11-27T08:38:23+09:00",
   "next_check": null,
   "last_check": null,
   "schedule_kst": []

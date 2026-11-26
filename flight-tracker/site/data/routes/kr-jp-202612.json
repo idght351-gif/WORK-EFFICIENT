@@ -2,7 +2,7 @@
   "history": [
     {
       "date": "2026-11-27",
-      "checked_at": "2026-11-27T08:09:59+09:00",
+      "checked_at": "2026-11-27T08:38:23+09:00",
       "price": 414700,
       "error": null,
       "airline": "피치항공",
@@ -401,7 +401,7 @@
     "avg": 414700,
     "days": 1
   },
-  "updated_at": "2026-11-27T08:35:54+09:00",
+  "updated_at": "2026-11-27T08:38:23+09:00",
   "next_check": null,
   "last_check": null,
   "schedule_kst": []

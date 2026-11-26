@@ -1,0 +1,115 @@
+{
+  "updated_at": "2026-11-27T08:38:23+09:00",
+  "items": {
+    "2027-06-29|KE 761|10:15": {
+      "checked_at": "2026-11-27T08:38:23+09:00",
+      "prefetched": true,
+      "return_date": "2027-07-05",
+      "returns": [
+        {
+          "price": 652300,
+          "airline": "대한항공",
+          "flight_number": "KE 766",
+          "depart_time": "15:05",
+          "arrive_time": "18:10",
+          "stops": 0,
+          "dep_airport": "CTS",
+          "arr_airport": "ICN",
+          "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/KE.png",
+          "date": "2027-07-05"
+        },
+        {
+          "price": 687300,
+          "airline": "대한항공",
+          "flight_number": "KE 762",
+          "depart_time": "14:30",
+          "arrive_time": "17:45",
+          "stops": 0,
+          "dep_airport": "CTS",
+          "arr_airport": "ICN",
+          "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/KE.png",
+          "date": "2027-07-05"
+        },
+        {
+          "price": 688270,
+          "airline": "Trinity Airways",
+          "flight_number": "TW 264",
+          "depart_time": "14:30",
+          "arrive_time": "17:40",
+          "stops": 0,
+          "dep_airport": "CTS",
+          "arr_airport": "ICN",
+          "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/TW.png",
+          "date": "2027-07-05"
+        },
+        {
+          "price": 727300,
+          "airline": "대한항공",
+          "flight_number": "KE 770",
+          "depart_time": "16:20",
+          "arrive_time": "19:30",
+          "stops": 0,
+          "dep_airport": "CTS",
+          "arr_airport": "ICN",
+          "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/KE.png",
+          "date": "2027-07-05"
+        }
+      ]
+    },
+    "2027-06-29|KE 765|10:35": {
+      "checked_at": "2026-11-27T08:38:23+09:00",
+      "prefetched": true,
+      "return_date": "2027-07-05",
+      "returns": [
+        {
+          "price": 652300,
+          "airline": "대한항공",
+          "flight_number": "KE 766",
+          "depart_time": "15:05",
+          "arrive_time": "18:10",
+          "stops": 0,
+          "dep_airport": "CTS",
+          "arr_airport": "ICN",
+          "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/KE.png",
+          "date": "2027-07-05"
+        },
+        {
+          "price": 687300,
+          "airline": "대한항공",
+          "flight_number": "KE 762",
+          "depart_time": "14:30",
+          "arrive_time": "17:45",
+          "stops": 0,
+          "dep_airport": "CTS",
+          "arr_airport": "ICN",
+          "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/KE.png",
+          "date": "2027-07-05"
+        },
+        {
+          "price": 688270,
+          "airline": "Trinity Airways",
+          "flight_number": "TW 264",
+          "depart_time": "14:30",
+          "arrive_time": "17:40",
+          "stops": 0,
+          "dep_airport": "CTS",
+          "arr_airport": "ICN",
+          "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/TW.png",
+          "date": "2027-07-05"
+        },
+        {
+          "price": 727300,
+          "airline": "대한항공",
+          "flight_number": "KE 770",
+          "depart_time": "16:20",
+          "arrive_time": "19:30",
+          "stops": 0,
+          "dep_airport": "CTS",
+          "arr_airport": "ICN",
+          "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/KE.png",
+          "date": "2027-07-05"
+        }
+      ]
+    }
+  }
+}

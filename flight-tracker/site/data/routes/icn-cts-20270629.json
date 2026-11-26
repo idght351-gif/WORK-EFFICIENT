@@ -72,8 +72,8 @@
     },
     {
       "date": "2026-11-27",
-      "checked_at": "2026-11-27T08:09:59+09:00",
-      "price": 624346,
+      "checked_at": "2026-11-27T08:38:23+09:00",
+      "price": 624270,
       "error": null,
       "airline": "Trinity Airways",
       "flight_number": "TW 263",
@@ -86,7 +86,7 @@
       "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/TW.png",
       "return_options": [
         {
-          "price": 624346,
+          "price": 624270,
           "airline": "Trinity Airways",
           "flight_number": "TW 264",
           "depart_time": "14:30",
@@ -98,7 +98,7 @@
           "date": "2027-07-05"
         },
         {
-          "price": 693096,
+          "price": 693003,
           "airline": "대한항공",
           "flight_number": "KE 762",
           "depart_time": "14:30",
@@ -110,7 +110,7 @@
           "date": "2027-07-05"
         },
         {
-          "price": 693096,
+          "price": 693003,
           "airline": "대한항공",
           "flight_number": "KE 766",
           "depart_time": "15:05",
@@ -122,7 +122,7 @@
           "date": "2027-07-05"
         },
         {
-          "price": 743709,
+          "price": 743605,
           "airline": "대한항공",
           "flight_number": "KE 770",
           "depart_time": "16:20",
@@ -144,7 +144,7 @@
       "return_airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/TW.png",
       "options": [
         {
-          "price": 624217,
+          "price": 624270,
           "airline": "Trinity Airways",
           "flight_number": "TW 263",
           "depart_time": "10:10",
@@ -214,15 +214,15 @@
   },
   "status": "active",
   "summary": {
-    "current": 624346,
+    "current": 624270,
     "current_date": "2026-11-27",
     "prev": 624511,
-    "min": 624316,
+    "min": 624270,
     "max": 624681,
-    "avg": 624502,
+    "avg": 624487,
     "days": 5
   },
-  "updated_at": "2026-11-27T08:35:54+09:00",
+  "updated_at": "2026-11-27T08:38:23+09:00",
   "google_flights_url": "https://www.google.com/travel/flights?hl=ko&gl=kr&curr=KRW&tfs=CBwQAhpFEgoyMDI3LTA2LTI5Ih8KA0lDThIKMjAyNy0wNi0yORoDQ1RTKgJUVzIDMjYzKABACkgXagcIARIDSUNOcgcIARIDQ1RTGiQSCjIwMjctMDctMDUoAEAMSBdqBwgBEgNDVFNyBwgBEgNJQ05AAUgBcAGYAQE&tfu=EgIIAQ",
   "next_check": null,
   "last_check": null,
