@@ -277,10 +277,8 @@
     "avg": 601625,
     "days": 4
   },
-  "updated_at": "2026-11-27T08:32:06+09:00",
+  "updated_at": "2026-11-27T08:35:54+09:00",
   "next_check": null,
   "last_check": null,
-  "schedule_kst": [
-    "06:30"
-  ]
+  "schedule_kst": []
 }

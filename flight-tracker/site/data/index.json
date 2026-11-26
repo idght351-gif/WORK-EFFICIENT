@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-11-27T08:32:06+09:00",
+  "updated_at": "2026-11-27T08:35:54+09:00",
   "routes": [
     {
       "id": "icn-cts-20270629",
@@ -12,6 +12,8 @@
       "flex": null,
       "alert_below": null,
       "status": "active",
+      "cost": 4,
+      "last_checked_at": "2026-11-27T08:09:59+09:00",
       "summary": {
         "current": 624346,
         "current_date": "2026-11-27",
@@ -21,8 +23,8 @@
         "avg": 624502,
         "days": 5
       },
-      "next_check": "2026-11-28T06:30+09:00",
-      "last_check": "2027-06-29T06:30+09:00",
+      "next_check": null,
+      "last_check": null,
       "spark": [
         624681,
         624656,
@@ -76,6 +78,8 @@
       "flex": null,
       "alert_below": null,
       "status": "paused",
+      "cost": 4,
+      "last_checked_at": "2026-11-27T08:09:59+09:00",
       "summary": {
         "current": 601700,
         "current_date": "2026-11-26",
@@ -111,6 +115,8 @@
       "flex": null,
       "alert_below": null,
       "status": "active",
+      "cost": 4,
+      "last_checked_at": "2026-11-27T08:09:59+09:00",
       "summary": {
         "current": 484742,
         "current_date": "2026-11-27",
@@ -120,8 +126,8 @@
         "avg": 393111,
         "days": 3
       },
-      "next_check": "2026-11-28T06:30+09:00",
-      "last_check": "2027-02-27T06:30+09:00",
+      "next_check": null,
+      "last_check": null,
       "spark": [
         209600,
         484991,
@@ -150,6 +156,8 @@
       },
       "alert_below": null,
       "status": "active",
+      "cost": 5,
+      "last_checked_at": "2026-11-27T08:09:59+09:00",
       "summary": {
         "current": 414700,
         "current_date": "2026-11-27",
@@ -159,8 +167,8 @@
         "avg": 414700,
         "days": 1
       },
-      "next_check": "2026-11-28T06:30+09:00",
-      "last_check": "2026-12-11T06:30+09:00",
+      "next_check": null,
+      "last_check": null,
       "spark": [
         414700
       ],
@@ -178,11 +186,9 @@
     "this_month_usage": 83,
     "plan_renewal_date": "2026-12-23",
     "account_rate_limit_per_hour": 250,
-    "daily_usage": 13,
-    "checked_at": "2026-11-27T08:32:06+09:00"
+    "daily_usage": 0,
+    "checked_at": "2026-11-27T08:35:54+09:00"
   },
-  "schedule_kst": [
-    "06:30"
-  ],
+  "schedule_kst": [],
   "last_scheduled_date": "2026-11-26"
 }
