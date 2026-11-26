@@ -122,7 +122,7 @@ class TestQuota(unittest.TestCase):
                "plan_renewal_date": "2026-12-20", "account_rate_limit_per_hour": 50}
 
     def test_searches_per_check(self):
-        self.assertEqual(searches_per_check({"return_date": "2027-07-05"}), 2)
+        self.assertEqual(searches_per_check({"return_date": "2027-07-05"}), 4)  # 왕복 2 + 가는 편 2·3위의 오는 편 2
         self.assertEqual(searches_per_check({"return_date": None}), 1)
         self.assertEqual(searches_per_check({}), 1)
 
@@ -623,6 +623,40 @@ class TestReturnsFor(unittest.TestCase):
         finally:
             cp.fetch_serpapi = orig
         self.assertEqual((got["return_date"], seen[0]), ("2026-12-12", "2026-12-12"))
+
+
+class TestPrefetchReturns(unittest.TestCase):
+    def test_top3_outbounds_get_returns_with_same_outbound_params(self):
+        import check_prices as cp
+        from datetime import datetime
+        route = cp.normalize_route({"id": "x", "name": "x", "from": "ICN", "to": "CTS", "date": "2027-06-29",
+                                    "return_date": "2027-07-05", "adults": 1, "max_stops": None})
+        out_page = {"other_flights": [mflight(500000 + i * 1000, "2027-06-29", f"1{i}:00", "ICN", "CTS", f"F{i}", f"t{i}")
+                                      for i in range(5)]}
+        calls = []
+
+        def fake(params, retries=3):
+            calls.append(params)
+            t = params.get("departure_token")
+            if t:
+                return {"other_flights": [mflight(600000, "2027-07-05", "15:00", "CTS", "ICN", "R" + t)]}
+            return out_page
+        orig = cp.fetch_serpapi
+        cp.fetch_serpapi = fake
+        try:
+            result, _, _ = cp.check_route(route, "k")
+            pre = cp.prefetch_returns(route, result, "k", datetime(2026, 11, 27, tzinfo=cp.KST))
+        finally:
+            cp.fetch_serpapi = orig
+        self.assertEqual(sorted(pre), ["2027-06-29|F1|11:00", "2027-06-29|F2|12:00"])
+        self.assertEqual(pre["2027-06-29|F2|12:00"]["returns"][0]["flight_number"], "Rt2")
+        outbound = [c for c in calls if not c.get("departure_token")]
+        self.assertTrue(all(c == outbound[0] for c in outbound))  # 같은 검색이라 SerpApi 캐시(무료)
+        self.assertEqual(len(calls) - len(outbound), 3)  # 실제 과금: 오는 편 1 + 2
+
+    def test_one_way_skipped(self):
+        import check_prices as cp
+        self.assertEqual(cp.prefetch_returns({"date": "2027-01-01"}, {"options": [{}, {}]}, "k", None), {})
 
 
 if __name__ == "__main__":

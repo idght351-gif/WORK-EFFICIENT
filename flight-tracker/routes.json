@@ -52,7 +52,7 @@
       "travel_class": "economy",
       "max_stops": 0,
       "alert_below": null,
-      "active": true
+      "active": false
     },
     {
       "id": "sel-osa-20270227",

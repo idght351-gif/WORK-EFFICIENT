@@ -876,10 +876,10 @@ QUOTA_FIELDS = ("plan_name", "searches_per_month", "plan_searches_left", "extra_
 def searches_per_check(route: dict) -> int:
     """노선 1회 조회에 드는 검색 수. 왕복은 가는 편 + 오는 편 = 2회. 유연한 날짜는 가격 달력 1회 + 상세."""
     if is_flex(route):
-        return 1 + (2 if route["flex"].get("trip_days") else 1)
+        return 1 + (2 + PREFETCH_TOP - 1 if route["flex"].get("trip_days") else 1)
     if is_multi(route):
         return len(route["legs"])
-    return 2 if route.get("return_date") else 1
+    return (2 + PREFETCH_TOP - 1) if route.get("return_date") else 1
 
 
 def fetch_quota(api_key: str) -> dict:
@@ -974,8 +974,6 @@ def run_returns(spec: str) -> int:
         return 1
     routes = {r["id"]: normalize_route(r) for r in load_json(ROUTES_FILE, {"routes": []})["routes"]}
     now = now_kst()
-    path = RETURNS_DIR / f"{rid}.json"
-    doc = load_json(path, {"items": {}})
     item = {"checked_at": now.isoformat(timespec="seconds")}
     try:
         if rid not in routes:
@@ -987,15 +985,50 @@ def run_returns(spec: str) -> int:
     except Exception as e:  # noqa: BLE001
         item["error"] = str(e).replace(api_key or "\0", "***")
         print(f"! {rid} {day} {flight_number}: {item['error']}", file=sys.stderr)
-    items = doc.get("items") or {}
-    items[option_key(day, flight_number, depart_time)] = item
-    # 지난 날짜·오래된 결과 정리 (최근 40개까지)
+    save_returns(rid, {option_key(day, flight_number, depart_time): item}, now)
+    return 0
+
+
+def save_returns(rid: str, new_items: dict, now: datetime) -> None:
+    """site/data/returns/<노선id>.json 에 '가는 편별 오는 편' 결과를 더함. 지난 날짜는 지우고 최근 40개까지."""
+    path = RETURNS_DIR / f"{rid}.json"
+    items = {**(load_json(path, {"items": {}}).get("items") or {}), **new_items}
     today = now.date().isoformat()
     keep = sorted(((k, v) for k, v in items.items() if k.split("|")[0] >= today),
                   key=lambda kv: kv[1].get("checked_at", ""), reverse=True)[:40]
-    doc = {"updated_at": now.isoformat(timespec="seconds"), "items": dict(keep)}
-    save_json(path, doc)
-    return 0
+    save_json(path, {"updated_at": now.isoformat(timespec="seconds"), "items": dict(keep)})
+
+
+PREFETCH_TOP = 3  # 왕복: 가는 편 상위 몇 개까지 오는 편을 미리 받아 둘지 (1위는 기본 조회에 포함)
+
+
+def prefetch_returns(route: dict, result: dict, api_key: str, now: datetime) -> dict:
+    """가는 편 2~3위의 오는 편 목록. 가는 편 검색은 방금 한 것과 같아 SerpApi 캐시(무료), 편마다 오는 편 검색 1회."""
+    out = {}
+    if not is_round_trip(route):
+        return out
+    first = (result.get("options") or [{}])[0]
+    seen = {option_key(first.get("date"), first.get("flight_number"), first.get("depart_time"))}
+    for o in (result.get("options") or [])[1:]:
+        if len(out) >= PREFETCH_TOP - 1:
+            break
+        key = option_key(o.get("date"), o.get("flight_number"), o.get("depart_time"))
+        if key in seen:
+            continue
+        seen.add(key)
+        item = {"checked_at": now.isoformat(timespec="seconds"), "prefetched": True}
+        try:
+            item.update(fetch_returns_for(route, o["date"], o["flight_number"], o["depart_time"], api_key))
+        except Exception as e:  # noqa: BLE001
+            item["error"] = str(e).replace(api_key or "\0", "***")
+        out[key] = item
+    return out
+
+
+def is_round_trip(route: dict) -> bool:
+    if is_multi(route):
+        return False
+    return bool(route.get("return_date") or (is_flex(route) and route["flex"].get("trip_days")))
 
 
 def run(dry_run: bool = False) -> int:
@@ -1050,6 +1083,11 @@ def run(dry_run: bool = False) -> int:
                                     replace=only is not None and os.environ.get("ONLY_CHANGED") == "1")
             doc["google_flights_url"] = url or doc.get("google_flights_url")
             print(f"  가격: {won(result['price']) if result else '없음'}" + (f" (오류: {error})" if error else ""))
+            if result:
+                pre = prefetch_returns(route, result, api_key, now)
+                if pre:
+                    save_returns(rid, pre, now)
+                    print(f"  오는 편 미리 받기: {sum('returns' in v for v in pre.values())}/{len(pre)}개")
 
             summary = summarize(history)
             report_items.append({
