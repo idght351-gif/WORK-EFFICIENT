@@ -470,7 +470,7 @@ function logoHTML(o) {
   const code = ((o.flight_number || "").trim().match(/^([A-Z0-9]{2})\s*\d/i) || [])[1];
   const ch = esc(code ? code.toUpperCase() : (o.airline || "?").trim().charAt(0));
   const safe = /^https:\/\/[\w.-]+\.(gstatic|googleusercontent|google)\.com\//.test(o.airline_logo || "");
-  return `<span class="o-logo" title="${esc(o.airline || "")}" aria-label="${esc(o.airline || "")}">${safe
+  return `<span class="o-logo${safe ? " has-img" : ""}" title="${esc(o.airline || "")}" aria-label="${esc(o.airline || "")}">${safe
     ? `<img src="${esc(o.airline_logo)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.replaceWith(document.createTextNode('${ch}'))">`
     : ch}</span>`;
 }
@@ -489,7 +489,7 @@ function optionsHTML(e, r) {
         ${logoHTML(o)}
         <div class="o-main num">${esc(o.depart_time)} → ${esc(o.arrive_time)}</div>
         <div class="o-sub muted small">${[o.dep_airport && o.arr_airport ? `${esc(o.dep_airport)}→${esc(o.arr_airport)}` : "", o.stops > 0 ? `경유 ${o.stops}회` : ""].filter(Boolean).join(" · ")}</div>
-        <div class="o-price num">${i === 0 ? "" : `<span class="o-rank muted">${i + 1}</span>`}${won(o.price)}${i === 0 ? `<span class="o-best">최저</span>` : ""}</div>
+        <div class="o-price num">${won(o.price)}${i === 0 ? `<span class="o-best">최저</span>` : ""}</div>
       </li>`).join("")}
     </ol>
   </section>`;
