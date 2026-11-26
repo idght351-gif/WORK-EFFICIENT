@@ -417,5 +417,49 @@ class TestMultiAirport(unittest.TestCase):
         self.assertEqual(cp.site_codes("ICN,CJU"), ("ICN", "icn"))
 
 
+class TestFlex(unittest.TestCase):
+    ROUTE = {"id": "kr-jp", "name": "한국 → 일본", "from": "KR", "to": "JP", "adults": 1,
+             "travel_class": "economy", "max_stops": 0, "flex": {"months": ["2027-02"], "weekdays": [4, 5]}}
+
+    def test_dates_and_label(self):
+        import check_prices as cp
+        ds = cp.flex_dates(self.ROUTE["flex"])
+        self.assertEqual([d.isoformat() for d in ds][:3], ["2027-02-05", "2027-02-06", "2027-02-12"])
+        self.assertEqual(len(ds), 8)
+        self.assertEqual(cp.flex_label(self.ROUTE["flex"]), "2027년 2월 금·토요일 · 편도")
+        self.assertEqual(cp.resolve_place("KR"), "/m/06qd3")
+        self.assertEqual(cp.resolve_place("icn, /m/03_3d,JP"), "ICN,/m/03_3d,/m/03_3d")
+        r = cp.normalize_route(self.ROUTE)
+        self.assertEqual((r["date"], r["return_date"]), ("2027-02-05", None))
+        self.assertEqual(cp.searches_per_check(r), 2)
+
+    def test_picks_cheapest_weekday_then_details(self):
+        import check_prices as cp
+        calls = []
+        cal = {"prices": [{"outbound_date": "2027-02-03", "price": 50000},   # 수요일 → 제외
+                          {"outbound_date": "2027-02-12", "price": 99000},
+                          {"outbound_date": "2027-02-20", "price": 88000},
+                          {"outbound_date": "2027-02-27", "price": 120000}]}
+        detail = {"other_flights": [mflight(91000, "2027-02-20", "09:30", "GMP", "HND", "7C 1101")]}
+
+        def fake(params, retries=3):
+            calls.append(params)
+            return cal if params["engine"] == "google_flights_calendar" else detail
+        orig = cp.fetch_serpapi
+        cp.fetch_serpapi = fake
+        try:
+            out, _, _ = cp.check_route(cp.normalize_route(self.ROUTE), "k")
+        finally:
+            cp.fetch_serpapi = orig
+        self.assertEqual(calls[0]["departure_id"], "/m/06qd3")
+        self.assertEqual((calls[0]["date_range_start"], calls[0]["date_range_end"], calls[0]["type"]),
+                         ("2027-02-05", "2027-02-27", 2))
+        self.assertEqual((calls[1]["outbound_date"], calls[1]["arrival_id"]), ("2027-02-20", "/m/03_3d"))
+        self.assertEqual((out["flex_date"], out["price"], out["calendar_price"]), ("2027-02-20", 91000, 88000))
+        self.assertEqual([t["date"] for t in out["flex_top"]], ["2027-02-20", "2027-02-12", "2027-02-27"])
+        rows = dict(cp.flight_lines(out))
+        self.assertTrue(rows["가장 싼 날"].startswith("2/20(토)"))
+
+
 if __name__ == "__main__":
     unittest.main()
