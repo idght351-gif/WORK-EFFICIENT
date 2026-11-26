@@ -63,8 +63,60 @@ def is_multi(route: dict) -> bool:
     return bool(route.get("legs"))
 
 
+# ---------------------------------------------------------------- 지역(나라 전체) · 유연한 날짜
+
+# 나라 전체를 뜻하는 코드 → Google 위치 ID(kgmid). 공항 코드와 쉼표로 섞어 써도 됨 ("KR" , "ICN,GMP", "JP")
+REGIONS = {"KR": "/m/06qd3", "JP": "/m/03_3d"}
+WEEKDAY_KO = "월화수목금토일"
+
+
+def resolve_place(codes: str) -> str:
+    """"KR" → "/m/06qd3", "ICN, gmp" → "ICN,GMP"."""
+    out = []
+    for c in codes.split(","):
+        c = c.strip()
+        if c:
+            out.append(c if c.startswith("/") else REGIONS.get(c.upper(), c.upper()))
+    return ",".join(out)
+
+
+def is_flex(route: dict) -> bool:
+    return bool(route.get("flex"))
+
+
+def flex_dates(flex: dict) -> list[date]:
+    """flex = {"months": ["2027-02"], "weekdays": [4, 5]}  (요일: 0=월 … 6=일, 비우면 모든 요일)."""
+    days = set(flex.get("weekdays") or range(7))
+    out = []
+    for m in sorted(set(flex.get("months") or [])):
+        y, mo = map(int, m.split("-"))
+        d = date(y, mo, 1)
+        while d.month == mo:
+            if d.weekday() in days:
+                out.append(d)
+            d += timedelta(days=1)
+    return out
+
+
+def flex_label(flex: dict) -> str:
+    months = " · ".join(f"{int(m[:4])}년 {int(m[5:])}월" for m in sorted(flex.get("months") or []))
+    wd = flex.get("weekdays")
+    days = "·".join(WEEKDAY_KO[i] for i in sorted(wd)) + "요일" if wd and len(wd) < 7 else "모든 요일"
+    trip = f" · {flex['trip_days']}박 왕복" if flex.get("trip_days") else " · 편도"
+    return f"{months} {days}{trip}"
+
+
 def normalize_route(route: dict) -> dict:
-    """다구간 노선은 첫 구간 출발지·날짜와 마지막 도착지를 from/to/date 로 채워 다른 코드와 맞춥니다."""
+    """다구간 노선은 첫 구간 출발지·날짜와 마지막 도착지를 from/to/date 로 채워 다른 코드와 맞춥니다.
+    유연한 날짜 노선은 아직 지나지 않은 첫 후보일을 date 로 (모두 지났으면 마지막 후보일 → 추적 종료)."""
+    if is_flex(route):
+        cands = flex_dates(route["flex"])
+        today = now_kst().date()
+        first = next((d for d in cands if d >= today), cands[-1] if cands else today)
+        days = route["flex"].get("trip_days")
+        return {**route, "date": first.isoformat(),
+                "return_date": (first + timedelta(days=int(days))).isoformat() if days else None,
+                "trip_type": "flex"}
     if is_multi(route):
         legs = route["legs"]
         route = {**route, "from": legs[0]["from"], "to": legs[-1]["to"], "date": legs[0]["date"],
@@ -192,8 +244,8 @@ def check_multi(route: dict, api_key: str) -> tuple[dict | None, dict, str | Non
 def build_params(route: dict, api_key: str) -> dict:
     params = {
         "engine": "google_flights",
-        "departure_id": route["from"].replace(" ", "").upper(),  # "ICN,GMP" 처럼 여러 공항 가능
-        "arrival_id": route["to"].replace(" ", "").upper(),
+        "departure_id": resolve_place(route["from"]),  # "ICN,GMP" 처럼 여러 공항, "KR" 같은 나라 전체 가능
+        "arrival_id": resolve_place(route["to"]),
         "outbound_date": route["date"],
         "type": 1 if route.get("return_date") else 2,
         "currency": "KRW",
@@ -274,8 +326,60 @@ def pick_cheapest(data: dict, route: dict, leg: str = "depart",
     return best
 
 
+def check_flex(route: dict, api_key: str) -> tuple[dict | None, dict, str | None]:
+    """유연한 날짜: 가격 달력 1회로 후보일(월·요일) 중 가장 싼 날을 고르고, 그날 상세 검색으로 항공편을 확인."""
+    flex = route["flex"]
+    today = now_kst().date()
+    cands = [d for d in flex_dates(flex) if d >= today]
+    if not cands:
+        raise RuntimeError("남은 후보 날짜가 없음")
+    days = flex.get("trip_days")
+    params = {
+        "engine": "google_flights_calendar",
+        "departure_id": resolve_place(route["from"]),
+        "arrival_id": resolve_place(route["to"]),
+        "type": 1 if days else 2,
+        "date_range_start": cands[0].isoformat(),
+        "date_range_end": cands[-1].isoformat(),
+        "currency": "KRW", "hl": "ko", "gl": "kr",
+        "adults": route.get("adults", 1),
+        "travel_class": TRAVEL_CLASS[route.get("travel_class", "economy")],
+        "stops": STOPS[route.get("max_stops")],
+        "api_key": api_key,
+    }
+    if days:
+        params["round_trip_days"] = int(days)
+    if route.get("depart_after") or route.get("depart_before"):
+        params["outbound_times"] = outbound_times_param(route.get("depart_after", "00:00"), route.get("depart_before", "24:00"))
+    cal = fetch_serpapi(params)
+    wanted = {d.isoformat() for d in cands}
+    prices = sorted((p for p in cal.get("prices") or [] if p.get("price") and p.get("outbound_date") in wanted),
+                    key=lambda p: p["price"])
+    if not prices:
+        raise RuntimeError(f"가격 달력에 조건 맞는 날짜 없음 (후보 {len(cands)}일, 달력 결과 {len(cal.get('prices') or [])}일)")
+    best = prices[0]
+    one = {**route, "flex": None, "trip_type": None, "date": best["outbound_date"],
+           "return_date": best.get("return_date") if days else None}
+    try:
+        result, insights, url = check_route(one, api_key)
+    except RuntimeError as e:
+        result, insights, url = None, {}, None
+        print(f"  ! 상세 조회 실패, 달력 가격만 기록: {e}")
+    if not result:
+        result = {"price": int(best["price"]), "airline": "(항공편 정보 없음)", "flight_number": "",
+                  "depart_time": "", "arrive_time": "", "stops": None, "duration_min": None}
+    result["flex_date"] = best["outbound_date"]
+    if days:
+        result["flex_return_date"] = best.get("return_date")
+    result["calendar_price"] = int(best["price"])
+    result["flex_top"] = [{"date": p["outbound_date"], "price": int(p["price"])} for p in prices[:5]]
+    return result, insights, url
+
+
 def check_route(route: dict, api_key: str) -> tuple[dict | None, dict, str | None]:
     """가는 편 검색 → (왕복이면) 그 가는 편으로 오는 편 검색. 가격은 항상 전체 인원 왕복/편도 총액."""
+    if is_flex(route):
+        return check_flex(route, api_key)
     if is_multi(route):
         return check_separate(route, api_key) if route.get("separate_tickets") else check_multi(route, api_key)
     params = build_params(route, api_key)
@@ -367,6 +471,8 @@ def stops_text(stops) -> str:
 
 
 def trip_text(route: dict) -> str:
+    if is_flex(route):
+        return flex_label(route["flex"])
     if is_multi(route):
         kind = " (구간별 편도 합산)" if route.get("separate_tickets") else " (다구간)"
         return " · ".join(f"{l['date']} {l['from'].upper()}→{l['to'].upper()}" for l in route["legs"]) + kind
@@ -381,8 +487,20 @@ def flight_lines(e: dict) -> list[tuple[str, str]]:
                  + (f" · {won(l['price'])}" if e.get("separate_tickets") and l.get("price") else ""))
                 for i, l in enumerate(e["legs"], 1)]
     via = f"{e['dep_airport']}→{e['arr_airport']} " if e.get("dep_airport") and e.get("arr_airport") else ""
+    if e.get("flex_date"):
+        d = date.fromisoformat(e["flex_date"])
+        when = f"{d.month}/{d.day}({WEEKDAY_KO[d.weekday()]})"
+        if e.get("flex_return_date"):
+            r = date.fromisoformat(e["flex_return_date"])
+            when += f" ~ {r.month}/{r.day}({WEEKDAY_KO[r.weekday()]})"
+        others = ", ".join(f"{date.fromisoformat(t['date']).month}/{date.fromisoformat(t['date']).day} {won(t['price'])}"
+                           for t in (e.get("flex_top") or [])[1:4])
+        flex_rows = [("가장 싼 날", when + (f"  (다음: {others})" if others else ""))]
+    else:
+        flex_rows = []
     rows = [("가는 편", f"{via}{e.get('airline')} {e.get('flight_number')} {e.get('depart_time')} → "
                        f"{e.get('arrive_time')}{stops_text(e.get('stops'))}")]
+    rows = flex_rows + rows
     if e.get("return_airline"):
         rows.append(("오는 편", f"{e['return_airline']} {e['return_flight_number']} {e['return_depart_time']} → "
                                f"{e['return_arrive_time']}{stops_text(e.get('return_stops'))}"))
@@ -461,7 +579,8 @@ def build_report(items: list[dict], quota: dict | None, now: datetime, site_url:
         r, e, sm = it["route"], it["entry"], it["summary"]
         trip = trip_text(r)
         pax = "1인 기준" if r.get("adults", 1) == 1 else f"성인 {r.get('adults', 1)}명 총액"
-        links = compare_links(r)
+        links = compare_links({**r, "date": e.get("flex_date") or r["date"],
+                               "return_date": e.get("flex_return_date") or r.get("return_date")})
         if e.get("price") is None:
             text += [f"■ {r['name']} ({r['from']} → {r['to']}, {trip})", f"  조회 실패: {e.get('error')}", ""]
             html.append(f"<h3 style='margin:18px 0 4px'>{escape(r['name'])}</h3>"
@@ -595,9 +714,15 @@ METRO = [
 ]
 
 
+REGION_SITES = {"KR": ("SEL", "kr"), "JP": ("TYO", "jp")}  # 나라 전체: Kayak 은 대표 도시, Skyscanner 는 나라 코드
+
+
 def site_codes(codes: str) -> tuple[str, str]:
     """"ICN,GMP" → ("SEL", "sela"). 하나면 그 공항, 묶을 도시가 없으면 첫 공항."""
     items = [c.strip().upper() for c in codes.split(",") if c.strip()]
+    for c in items:
+        if c in REGION_SITES:
+            return REGION_SITES[c]
     if len(items) <= 1:
         c = items[0] if items else ""
         return c, c.lower()
@@ -651,7 +776,9 @@ QUOTA_FIELDS = ("plan_name", "searches_per_month", "plan_searches_left", "extra_
 
 
 def searches_per_check(route: dict) -> int:
-    """노선 1회 조회에 드는 검색 수. 왕복은 가는 편 + 오는 편 = 2회."""
+    """노선 1회 조회에 드는 검색 수. 왕복은 가는 편 + 오는 편 = 2회. 유연한 날짜는 가격 달력 1회 + 상세."""
+    if is_flex(route):
+        return 1 + (2 if route["flex"].get("trip_days") else 1)
     if is_multi(route):
         return len(route["legs"])
     return 2 if route.get("return_date") else 1
@@ -782,6 +909,7 @@ def run(dry_run: bool = False) -> int:
         index.append({
             "id": rid, "name": route["name"], "from": route["from"], "to": route["to"],
             "date": route["date"], "return_date": route.get("return_date"), "legs": route.get("legs"),
+            "flex": route.get("flex"),
             "alert_below": route.get("alert_below"), "status": status,
             "summary": doc["summary"], "next_check": doc["next_check"], "last_check": doc["last_check"],
             "spark": [h["price"] for h in history if h.get("price") is not None][-30:],

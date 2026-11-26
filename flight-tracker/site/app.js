@@ -7,6 +7,19 @@ const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "
 const LEVEL = { low: ["good", "Google 기준 싼 편"], typical: ["", "Google 기준 보통"], high: ["bad", "Google 기준 비싼 편"] };
 const DOW = ["일", "월", "화", "수", "목", "금", "토"];
 
+// 나라 전체 코드 (tracker/check_prices.py REGIONS 와 같음)
+const REGION_NAME = { KR: "한국", JP: "일본" };
+const WD = ["월", "화", "수", "목", "금", "토", "일"];  // flex.weekdays: 0=월 … 6=일
+// "2월 금·토", "2~3월 주말" 처럼 짧게
+function flexShort(flex) {
+  const ms = (flex.months || []).slice().sort();
+  const m = ms.length ? (ms.length === 1 ? `${+ms[0].slice(5)}월` : `${+ms[0].slice(5)}~${+ms[ms.length - 1].slice(5)}월`) : "";
+  const wd = (flex.weekdays || []).slice().sort();
+  const days = !wd.length || wd.length === 7 ? "매일" : wd.join() === "5,6" ? "주말" : wd.map((i) => WD[i]).join("·");
+  return `${m} ${days}`;
+}
+const dayLabel = (iso) => { const d = new Date(iso + "T00:00:00"); return `${d.getMonth() + 1}/${d.getDate()}(${DOW[d.getDay()]})`; };
+
 // 여정을 [공항, 비행(날짜), 공항, (육로 등 끊김), 공항 …] 순서로 펼칩니다.
 // withReturn 이면 왕복의 돌아오는 편까지 넣습니다(상세 화면용).
 function pathSteps(r, withReturn = false) {
@@ -15,7 +28,7 @@ function pathSteps(r, withReturn = false) {
     : [{ from: r.from, to: r.to, date: r.date }].concat(withReturn && r.return_date ? [{ from: r.to, to: r.from, date: r.return_date }] : []);
   const steps = [];
   legs.forEach((l, i) => {
-    const fmt = (c) => c.toUpperCase().split(",").map((x) => x.trim()).filter(Boolean).join("/");
+    const fmt = (c) => c.toUpperCase().split(",").map((x) => x.trim()).filter(Boolean).map((x) => REGION_NAME[x] || x).join("/");
     const from = fmt(l.from), to = fmt(l.to);
     if (i === 0) steps.push({ code: from });
     else if (legs[i - 1].to.toUpperCase() !== from) steps.push({ gap: true }, { code: from });
@@ -30,14 +43,16 @@ function routePath(r) {
 
 // 상세 화면: 화살표(비행 구간)마다 아래에 날짜
 function pathWithDatesHTML(r) {
-  return `<div class="leg-path fit-line" data-min="10">${pathSteps(r, true).map((st) =>
+  const steps = pathSteps(r, true), firstArrow = steps.find((st) => st.date);
+  return `<div class="leg-path fit-line" data-min="10">${steps.map((st) =>
     st.code ? `<span class="lp"><b>${esc(st.code)}</b><i></i></span>`
     : st.gap ? `<span class="lp gap"><b>·</b><i></i></span>`
-    : `<span class="lp arrow"><b>→</b><i>${md(st.date)}</i></span>`).join("")}</div>`;
+    : `<span class="lp arrow"><b>→</b><i>${r.flex ? (st === firstArrow ? flexShort(r.flex) : `${r.flex.trip_days}박 뒤`) : md(st.date)}</i></span>`).join("")}</div>`;
 }
 
 // 날짜만: 다구간 "6/26 · 6/29 · 7/3 · 7/3", 왕복 "6/29(화) ~ 7/5", 편도 "6/29(화)"
 function dateLabel(r) {
+  if (r.flex) return flexShort(r.flex) + (r.flex.trip_days ? ` · ${r.flex.trip_days}박` : "");
   if (r.legs && r.legs.length) return r.legs.map((l) => md(l.date)).join(" · ");
   const d = new Date(r.date + "T00:00:00");
   return `${md(r.date)}(${DOW[d.getDay()]})` + (r.return_date ? ` ~ ${md(r.return_date)}` : "");
@@ -238,8 +253,11 @@ function sparkline(svg, data, target) {
 // 공항 여러 개("ICN,GMP")는 비교 사이트에 도시 코드로 넘김 (tracker/check_prices.py site_codes 와 같은 규칙)
 const METRO = [[["ICN", "GMP"], "SEL", "sela"], [["KIX", "ITM", "UKB"], "OSA", "osaa"], [["HND", "NRT"], "TYO", "tyoa"],
   [["PVG", "SHA"], "SHA", "csha"], [["PEK", "PKX"], "BJS", "bjsa"], [["TPE", "TSA"], "TPE", "tpet"]];
+const REGION_SITES = { KR: ["SEL", "kr"], JP: ["TYO", "jp"] };
 function siteCodes(codes) {
   const items = (codes || "").toUpperCase().split(",").map((c) => c.trim()).filter(Boolean);
+  const region = items.find((c) => REGION_SITES[c]);
+  if (region) return REGION_SITES[region];
   if (items.length <= 1) return [items[0] || "", (items[0] || "").toLowerCase()];
   const m = METRO.find(([members]) => items.every((c) => members.includes(c)));
   return m ? [m[1], m[2]] : [items[0], items[0].toLowerCase()];
@@ -278,6 +296,7 @@ function compareHTML(r) {
 // 상세 화면 위쪽: 목록으로 돌아가기 + 다른 추적 항공편으로 바로 이동하는 선택 상자
 // 선택 상자용 짧은 이름: 출발일 기준 "6월 26일 시작 여행"
 function tripTitle(r) {
+  if (r.flex) return `${flexShort(r.flex)} 여행`;
   const [, m, d] = r.date.split("-");
   return `${+m}월 ${+d}일 시작 여행`;
 }
@@ -344,6 +363,8 @@ async function renderDetail(id) {
     <section class="card">
       <div class="hero-top">${pathWithDatesHTML(r)}<span class="hero-dday">${dday(r.date)}</span></div>
       <div class="hero-price num">${won(s.current)}</div>
+      ${lastEntry && lastEntry.flex_date ? `<div class="flex-best">가장 싼 날 <b>${dayLabel(lastEntry.flex_date)}${lastEntry.flex_return_date ? ` ~ ${dayLabel(lastEntry.flex_return_date)}` : ""}</b>${
+        (lastEntry.flex_top || []).slice(1, 4).length ? `<span class="muted"> · 다음 ${(lastEntry.flex_top || []).slice(1, 4).map((t) => `${md(t.date)} ${won(t.price)}`).join(" · ")}</span>` : ""}</div>` : ""}
       <div class="hero-delta num">${deltaHTML(s.current, s.prev)}${s.prev != null && s.current !== s.prev ? ` <span class="muted small">어제 대비</span>` : ""}</div>
       <div class="badges" style="margin-top:10px">${badges.join("")}</div>
       ${pos != null ? `
@@ -374,7 +395,7 @@ async function renderDetail(id) {
     </section>
 
     ${doc.google_flights_url ? `<a class="btn" href="${esc(doc.google_flights_url)}" target="_blank" rel="noopener">Google 항공권에서 예약하기</a>` : ""}
-    ${compareHTML(r)}
+    ${compareHTML(lastEntry && lastEntry.flex_date ? { ...r, date: lastEntry.flex_date, return_date: lastEntry.flex_return_date || r.return_date } : r)}
 
     <section class="card">
       <h3 class="section-title">날짜별 기록</h3>
@@ -427,6 +448,7 @@ function timeRange(a, b) {
 function legHTML(h, k, label) {
   const stops = h[k + "stops"];
   if (!k && h.dep_airport && h.arr_airport) label = `${label}${esc(h.dep_airport)}→${esc(h.arr_airport)} `;
+  if (!k && h.flex_date) label = `${dayLabel(h.flex_date)} ${label}`;
   return `<div>${label}${esc(h[k + "airline"])}</div><div class="sub">${esc(h[k + "flight_number"])} · ${esc(h[k + "depart_time"])}→${esc(h[k + "arrive_time"])}${stops === 0 ? " · 직항" : stops ? ` · 경유 ${stops}회` : ""}</div>`;
 }
 
@@ -625,7 +647,7 @@ const CITY = {
   SYD: "시드니", MEL: "멜버른", BNE: "브리즈번", AKL: "오클랜드", CDG: "파리", LHR: "런던", FRA: "프랑크푸르트", MUC: "뮌헨", FCO: "로마",
   MXP: "밀라노", BCN: "바르셀로나", MAD: "마드리드", AMS: "암스테르담", IST: "이스탄불", DXB: "두바이", PRG: "프라하", VIE: "빈", ZRH: "취리히",
 };
-const placeName1 = (c) => KR_AIRPORTS[c] || CITY[c] || c;
+const placeName1 = (c) => REGION_NAME[c] || KR_AIRPORTS[c] || CITY[c] || c;
 const placeName = (code) => [...new Set((code || "").toUpperCase().split(",").map((c) => c.trim()).filter(Boolean).map(placeName1))].join(" · ");
 
 // 왕복·편도: "인천 → 삿포로" / 다구간: "김포 → 도쿄 · 삿포로 · 아사히카와" (들르는 해외 도시, 중복 없이)
@@ -677,8 +699,23 @@ function renderAdd(edit) {
         <div class="form" id="simple">
           <label>출발 공항 코드<input name="from" value="ICN" maxlength="23" placeholder="ICN 또는 ICN,GMP"></label>
           <label>도착 공항 코드<input name="to" value="KIX" maxlength="23" placeholder="KIX 또는 KIX,UKB"></label>
-          <label>가는 날<input name="date" type="date"></label>
-          <label data-round>오는 날<input name="return_date" type="date"></label>
+          <div class="full quick">
+            <button type="button" class="chip" data-set="from" data-v="KR">출발 한국 전체</button>
+            <button type="button" class="chip" data-set="to" data-v="JP">도착 일본 전체</button>
+          </div>
+          <div class="full seg seg2" role="radiogroup" aria-label="날짜 정하는 방식">
+            <label><input type="radio" name="datemode" value="fixed" checked><span>정해진 날</span></label>
+            <label><input type="radio" name="datemode" value="flex"><span>월·요일로 찾기</span></label>
+          </div>
+          <label data-fixed>가는 날<input name="date" type="date"></label>
+          <label data-round data-fixed>오는 날<input name="return_date" type="date"></label>
+          <label data-flex>가는 달 (부터)<input name="month_from" type="month"></label>
+          <label data-flex>가는 달 (까지)<input name="month_to" type="month"></label>
+          <div class="full weekdays" data-flex role="group" aria-label="가는 요일">
+            ${WD.map((d, i) => `<label class="wd"><input type="checkbox" name="wd" value="${i}"><span>${d}</span></label>`).join("")}
+          </div>
+          <label data-round data-flex>여행 기간 (박)<input name="trip_days" type="number" min="1" max="30" value="4"></label>
+          <p class="full muted small" data-flex style="margin:-2px 2px 0">고른 달의 고른 요일 중 가장 싼 출발일을 찾아요 (요일을 안 고르면 매일). 조회 한 번에 검색 ${"2"}회를 써요.</p>
           <label>가는 편 출발 (부터)<input name="depart_after" type="time" value="08:00"></label>
           <label>가는 편 출발 (까지)<input name="depart_before" type="time" value=""></label>
           <label data-round>오는 편 출발 (부터)<input name="return_after" type="time" value="12:00"></label>
@@ -726,11 +763,28 @@ function renderAdd(edit) {
     rows.forEach((el, i) => { el.querySelector(".leg-no").textContent = `${i + 1}구간`; el.querySelector(".leg-del").hidden = rows.length <= 2; });
     $add.hidden = rows.length >= 6;
   };
+  // 여정 종류(왕복/편도)와 날짜 방식(정해진 날/월·요일)에 맞는 칸만 보이기
+  function applyVis() {
+    const trip = f.querySelector("input[name=trip]:checked").value;
+    const mode = f.querySelector("input[name=datemode]:checked").value;
+    f.querySelectorAll("[data-round],[data-fixed],[data-flex]").forEach((el) => {
+      el.hidden = (el.hasAttribute("data-round") && trip !== "round") || (el.hasAttribute("data-fixed") && mode !== "fixed")
+        || (el.hasAttribute("data-flex") && mode !== "flex");
+    });
+  }
+  const setMode = (mode) => { f.querySelector(`input[name=datemode][value=${mode}]`).checked = true; applyVis(); };
+  const monthsBetween = (a, b) => {
+    if (!a) return [];
+    const out = []; let [y, m] = a.split("-").map(Number); const [y2, m2] = (b && b >= a ? b : a).split("-").map(Number);
+    while ((y < y2 || (y === y2 && m <= m2)) && out.length < 6) { out.push(`${y}-${String(m).padStart(2, "0")}`); m++; if (m > 12) { m = 1; y++; } }
+    return out;
+  };
+
   const setTrip = (trip) => {
     f.querySelector(`input[name=trip][value=${trip}]`).checked = true;
     document.getElementById("simple").hidden = trip === "multi";
     document.getElementById("multi").hidden = trip !== "multi";
-    f.querySelectorAll("[data-round]").forEach((el) => { el.hidden = trip !== "round"; });
+    applyVis();
     if (trip === "multi" && !$legs.children.length) {
       const v = Object.fromEntries(new FormData(f));
       addLeg({ from: v.from, to: v.to, date: v.date, depart_after: v.depart_after, depart_before: v.depart_before });
@@ -759,6 +813,17 @@ function renderAdd(edit) {
       ["from", "to", "date", "return_date", "depart_after", "depart_before", "return_after", "return_before"].forEach((k) => { f.elements[k].value = ""; });
       edit.legs.forEach(addLeg);
       setTrip("multi");
+    } else if (edit.flex) {
+      f.from.value = edit.from; f.to.value = edit.to;
+      f.date.value = ""; f.return_date.value = "";
+      const ms = (edit.flex.months || []).slice().sort();
+      f.month_from.value = ms[0] || ""; f.month_to.value = ms[ms.length - 1] || "";
+      f.querySelectorAll("input[name=wd]").forEach((c) => { c.checked = (edit.flex.weekdays || []).includes(+c.value); });
+      if (edit.flex.trip_days) f.trip_days.value = edit.flex.trip_days;
+      f.depart_after.value = t(edit.depart_after); f.depart_before.value = t(edit.depart_before);
+      f.return_after.value = t(edit.return_after); f.return_before.value = t(edit.return_before);
+      setMode("flex");
+      setTrip(edit.flex.trip_days ? "round" : "oneway");
     } else {
       f.from.value = edit.from; f.to.value = edit.to;
       f.date.value = edit.date; f.return_date.value = edit.return_date || "";
@@ -817,6 +882,18 @@ function renderAdd(edit) {
       const first = legs[0] || {};
       const id = edit ? edit.id : `${first.from}-${legs.map((l) => l.to).join("-")}-${(first.date || "").replaceAll("-", "")}`.toLowerCase();
       body = { id, name: v.name, legs, ...(edit && edit.separate_tickets ? { separate_tickets: true } : {}), ...common };
+    } else if (v.datemode === "flex") {
+      const round = v.trip === "round";
+      const months = monthsBetween(v.month_from, v.month_to);
+      const weekdays = [...f.querySelectorAll("input[name=wd]:checked")].map((c) => +c.value);
+      const id = edit ? edit.id : `${v.from}-${v.to}-${(months[0] || "").replace("-", "")}`.toLowerCase().replace(/[^a-z0-9-]/g, "");
+      body = {
+        id, name: v.name, from: v.from.toUpperCase(), to: v.to.toUpperCase(),
+        flex: { months, weekdays, trip_days: round ? (+v.trip_days || 4) : null },
+        depart_after: v.depart_after || "00:00", depart_before: v.depart_before || "24:00",
+        ...(round ? { return_after: v.return_after || "00:00", return_before: v.return_before || "24:00" } : {}),
+        ...common,
+      };
     } else {
       const round = v.trip === "round";
       const id = edit ? edit.id : `${v.from}-${v.to}-${(v.date || "").replaceAll("-", "")}`.toLowerCase();
@@ -833,7 +910,8 @@ function renderAdd(edit) {
     out.textContent = JSON.stringify(body, null, 2);
   };
 
-  f.addEventListener("change", (e) => { if (e.target.name === "trip") setTrip(e.target.value); update(); });
+  f.addEventListener("change", (e) => { if (e.target.name === "trip") setTrip(e.target.value); if (e.target.name === "datemode") applyVis(); update(); });
+  f.querySelectorAll(".quick [data-set]").forEach((b) => { b.onclick = () => { f.elements[b.dataset.set].value = b.dataset.v; update(); }; });
   f.addEventListener("input", update);
   $add.onclick = () => {
     const rows = $legs.querySelectorAll(".leg");
@@ -865,13 +943,16 @@ function renderAdd(edit) {
     const bad = [];
     scope.forEach((root) => {
       const q = (k) => root.querySelector(multi ? `[data-k=${k}]` : `[name=${k}]`);
-      ["from", "to"].forEach((k) => { if (!/^[A-Za-z]{3}(\s*,\s*[A-Za-z]{3})*$/.test(q(k).value.trim())) bad.push(q(k)); });
-      if (!q("date").value) bad.push(q("date"));
+      ["from", "to"].forEach((k) => { if (!/^([A-Za-z]{3}|KR|JP)(\s*,\s*([A-Za-z]{3}|KR|JP))*$/i.test(q(k).value.trim())) bad.push(q(k)); });
+      const flexMode = !multi && f.querySelector("input[name=datemode]:checked").value === "flex";
+      if (flexMode) { if (!f.elements.month_from.value) bad.push(f.elements.month_from); }
+      else if (!q("date").value) bad.push(q("date"));
     });
-    if (!multi && body.return_date === null && f.querySelector("input[name=trip]:checked").value === "round") bad.push(f.elements.return_date);
+    if (!multi && !body.flex && body.return_date === null && f.querySelector("input[name=trip]:checked").value === "round") bad.push(f.elements.return_date);
     if (bad.length || (multi && body.legs.length < 2)) {
       bad.forEach((el) => el.classList.add("invalid"));
-      smsg.textContent = bad.some((el) => el.type === "date") ? "빨간 칸을 채워 주세요. (날짜가 비어 있어요)" : "빨간 칸을 확인해 주세요. 공항 코드는 영문 3글자예요. 여러 곳이면 쉼표로 (예: ICN,GMP)";
+      smsg.textContent = bad.some((el) => el.type === "date") ? "빨간 칸을 채워 주세요. (날짜가 비어 있어요)" : bad.some((el) => el.type === "month") ? "빨간 칸을 채워 주세요. (가는 달이 비어 있어요)"
+        : "빨간 칸을 확인해 주세요. 공항 코드는 영문 3글자(나라 전체는 KR · JP)예요. 여러 곳이면 쉼표로 (예: ICN,GMP)";
       (bad[0] || smsg).scrollIntoView({ behavior: "smooth", block: "center" });
       if (bad[0]) setTimeout(() => bad[0].focus({ preventScroll: true }), 300);
       return;
