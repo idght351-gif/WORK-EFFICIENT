@@ -8,7 +8,7 @@ const LEVEL = { low: ["good", "Google 기준 싼 편"], typical: ["", "Google �
 const DOW = ["일", "월", "화", "수", "목", "금", "토"];
 
 // 나라 전체 코드 (tracker/check_prices.py REGIONS 와 같음)
-const REGION_NAME = { KR: "한국", JP: "일본" };
+const REGION_NAME = { KR: "서울", JP: "일본" };  // KR 은 서울(인천·김포)로 검색
 const WD = ["월", "화", "수", "목", "금", "토", "일"];  // flex.weekdays: 0=월 … 6=일
 // "2월 금·토", "2~3월 주말" 처럼 짧게
 // 달·요일로 정한 노선을 실제 날짜 목록으로 (tracker/check_prices.py flex_dates 와 같은 규칙)
@@ -271,7 +271,7 @@ function sparkline(svg, data, target) {
 // 공항 여러 개("ICN,GMP")는 비교 사이트에 도시 코드로 넘김 (tracker/check_prices.py site_codes 와 같은 규칙)
 const METRO = [[["ICN", "GMP"], "SEL", "sela"], [["KIX", "ITM", "UKB"], "OSA", "osaa"], [["HND", "NRT"], "TYO", "tyoa"],
   [["PVG", "SHA"], "SHA", "csha"], [["PEK", "PKX"], "BJS", "bjsa"], [["TPE", "TSA"], "TPE", "tpet"]];
-const REGION_SITES = { KR: ["SEL", "kr"], JP: ["TYO", "jp"] };
+const REGION_SITES = { KR: ["SEL", "sela"], JP: ["TYO", "jp"] };
 function siteCodes(codes) {
   const items = (codes || "").toUpperCase().split(",").map((c) => c.trim()).filter(Boolean);
   const region = items.find((c) => REGION_SITES[c]);
@@ -750,7 +750,7 @@ function renderAdd(edit) {
           <label>출발 공항 코드<input name="from" value="ICN" maxlength="23" placeholder="ICN 또는 ICN,GMP"></label>
           <label>도착 공항 코드<input name="to" value="KIX" maxlength="23" placeholder="KIX 또는 KIX,UKB"></label>
           <div class="full quick">
-            <button type="button" class="chip" data-set="from" data-v="KR">출발 한국 전체</button>
+            <button type="button" class="chip" data-set="from" data-v="ICN,GMP">출발 서울 (인천·김포)</button>
             <button type="button" class="chip" data-set="to" data-v="JP">도착 일본 전체</button>
           </div>
           <div class="full seg seg2" role="radiogroup" aria-label="날짜 정하는 방식">
