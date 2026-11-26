@@ -760,7 +760,7 @@ WEEKDAYS = "월화수목금토일"
 
 def schedule_times() -> list[str]:
     """워크플로의 예약 시각(한국시간). cron 과 맞춰 SCHEDULE_KST 에 "06:30,18:30" 처럼 넣습니다."""
-    raw = os.environ.get("SCHEDULE_KST") or "06:30"
+    raw = os.environ.get("SCHEDULE_KST", "06:30")  # 빈 값 = 예약 조회 없음 (앱에서 누를 때만)
     return sorted({t.strip() for t in raw.split(",") if t.strip()}, key=parse_hm)
 
 
@@ -1119,7 +1119,8 @@ def run(dry_run: bool = False) -> int:
             "id": rid, "name": route["name"], "from": route["from"], "to": route["to"],
             "date": route["date"], "return_date": route.get("return_date"), "legs": route.get("legs"),
             "flex": route.get("flex"),
-            "alert_below": route.get("alert_below"), "status": status,
+            "alert_below": route.get("alert_below"), "status": status, "cost": searches_per_check(route),
+            "last_checked_at": next((h.get("checked_at") for h in reversed(history) if h.get("checked_at")), None),
             "summary": doc["summary"], "next_check": doc["next_check"], "last_check": doc["last_check"],
             "spark": [h["price"] for h in history if h.get("price") is not None][-30:],
             "spark_dates": [h["date"] for h in history if h.get("price") is not None][-30:],

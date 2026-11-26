@@ -125,10 +125,69 @@ function fitOneLine(root = document, minPx = 12) {
 // 위쪽 제목줄 오른쪽 자리: 목록에선 업데이트 시각, 상세에선 항공편 선택 상자
 function setTopRight(html) { document.getElementById("topright").innerHTML = html; }
 
+// 앱에서 다시 조회한 직후엔 Pages 배포(1~2분)를 기다리지 않고 저장소에서 바로 받은 데이터를 잠시 씀
+const FRESH = {};
 async function getJSON(url) {
+  if (FRESH[url] && Date.now() < FRESH[url].until) return FRESH[url].data;
   const r = await fetch(url + "?t=" + Date.now());
   if (!r.ok) throw new Error(r.status);
   return r.json();
+}
+
+// ------------------------------------------------------------ 지금 다시 조회 (앱 → GitHub Actions 실행)
+const RUNNING = {};  // 노선 id(전체는 "*") → 요청 시각
+function refreshHTML(rid, cost, lastAt) {
+  const key = rid || "*";
+  const when = lastAt ? `마지막 조회 ${new Date(lastAt).toLocaleString("ko-KR", { month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" })} · ` : "";
+  return `<div class="refresh">
+    <button type="button" class="btn secondary" id="refresh-btn" ${RUNNING[key] ? "disabled" : ""}>${RUNNING[key] ? "조회 중… 1~2분 걸려요" : rid ? "지금 다시 조회" : "전체 다시 조회"}</button>
+    <p class="muted small" id="refresh-msg">${RUNNING[key] ? "화면을 닫아도 조회는 계속돼요." : `${when}검색 약 ${cost}회 사용`}</p>
+  </div>`;
+}
+function bindRefresh(rid) {
+  const btn = document.getElementById("refresh-btn");
+  if (btn) btn.onclick = () => runRefresh(rid);
+}
+async function runRefresh(rid) {
+  const key = rid || "*", msg = (t) => { const el = document.getElementById("refresh-msg"); if (el) el.textContent = t; };
+  if (!ghToken()) { msg("앱 설정에서 GitHub 연결이 필요해요."); location.hash = "#settings"; return; }
+  const { owner, repo } = ghRepo(), asked = Date.now();
+  RUNNING[key] = asked;
+  const btn = document.getElementById("refresh-btn");
+  if (btn) { btn.disabled = true; btn.textContent = "조회 중… 1~2분 걸려요"; }
+  msg("화면을 닫아도 조회는 계속돼요.");
+  const raw = (p) => gh(`/repos/${owner}/${repo}/contents/flight-tracker/site/${p}?ref=main`).then((f) => JSON.parse(b64ToText(f.content)));
+  let done = false, err = null;
+  try {
+    await gh(`/repos/${owner}/${repo}/actions/workflows/flight-prices.yml/dispatches`, {
+      method: "POST", body: JSON.stringify({ ref: "main", inputs: { route: rid || "" } }),
+    });
+    for (let t = 0; t < 36 && !done; t++) {  // 최대 약 6분
+      await new Promise((res) => setTimeout(res, 10000));
+      try {
+        const index = await raw("data/index.json");
+        if (new Date(index.updated_at) >= asked - 30000) {
+          const until = Date.now() + 5 * 60000;
+          FRESH["data/index.json"] = { data: index, until };
+          for (const r of index.routes) {
+            if (rid && r.id !== rid) continue;
+            const p = `data/routes/${encodeURIComponent(r.id)}.json`;
+            try { FRESH[p] = { data: await raw(p), until }; } catch {}
+            const q = `data/returns/${encodeURIComponent(r.id)}.json`;
+            try { FRESH[q] = { data: await raw(q), until }; } catch {}
+          }
+          done = true;
+        }
+      } catch {}
+    }
+    if (!done) err = "시간 안에 결과가 오지 않았어요. 잠시 뒤 새로고침해 보세요.";
+  } catch (e) {
+    err = e.status === 401 ? "GitHub 연결이 끊겼어요. 앱 설정에서 다시 연결해 주세요." : `조회를 시작하지 못했어요 (${e.message})`;
+  }
+  delete RUNNING[key];
+  const here = decodeURIComponent(location.hash.slice(1));
+  if (done && (rid ? here === rid : !here)) route();
+  else if (err) { const b = document.getElementById("refresh-btn"); if (b) { b.disabled = false; b.textContent = rid ? "지금 다시 조회" : "전체 다시 조회"; } msg(err); }
 }
 
 // ------------------------------------------------------------ 목록
@@ -141,18 +200,21 @@ async function renderList() {
   const routes = [...index.routes].sort((a, b) => order[a.status] - order[b.status] || a.date.localeCompare(b.date));
 
   $app.innerHTML = `
-    <div class="quota-head" style="margin-top:8px"><h2 class="section-title">추적 중인 항공권</h2><span class="muted small">조회 ${scheduleText(index.schedule_kst)}</span></div>
+    <div class="quota-head" style="margin-top:8px"><h2 class="section-title">추적 중인 항공권</h2><span class="muted small">${scheduleText(index.schedule_kst)}</span></div>
     ${routes.length ? routes.map(cardHTML).join("") :
       `<div class="card empty"><p>아직 추적 중인 노선이 없어요.</p><p class="muted small">routes.json 에 노선을 추가하면 다음 실행부터 기록돼요.</p></div>`}
-    <a href="#add" class="btn secondary" style="margin-top:16px">+ 노선 추가하기</a>
+    ${refreshHTML(null, routes.filter((r) => r.status === "active").reduce((n, r) => n + (r.cost || 2), 0))}
+    <a href="#add" class="btn secondary" style="margin-top:10px">+ 노선 추가하기</a>
     <div style="margin-top:24px">${quotaHTML(index.quota)}</div>
     <a class="settings-link muted small" href="#settings">⚙︎ 앱 설정 · ${ghToken() ? "GitHub 연결됨" : "휴대폰에서 바로 저장하도록 연결하기"}</a>`;
   routes.forEach((r) => { const el = document.getElementById("spark-" + r.id); if (el) sparkline(el, r.spark, r.alert_below); });
+  bindRefresh(null);
   fitOneLine($app);
   window.onresize = () => fitOneLine($app);
   routes.forEach((r) => {
     const el = document.getElementById("plan-" + r.id), p = checkPlan(r, r.status, index.schedule_kst);
-    if (el) el.textContent = p ? `다음 조회 ${planLabel(p.next)}경` : "";
+    if (el) el.textContent = p ? `다음 조회 ${planLabel(p.next)}경`
+      : r.last_checked_at ? `마지막 조회 ${planLabel(new Date(r.last_checked_at))}` : "";
   });
 }
 
@@ -160,7 +222,8 @@ async function renderList() {
 // 예약 시각(한국시간)과 출발일로, 보는 시점 기준 다음 조회와 마지막 조회를 계산합니다.
 function kstNow() { return new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Seoul" })); }
 function checkPlan(r, status, times) {
-  times = (times && times.length ? times : ["06:30"]).slice().sort();
+  if (!times || !times.length) return null;  // 예약 조회 없음 (앱에서 누를 때만)
+  times = times.slice().sort();
   if (status && status !== "active") return null;
   const now = kstNow();
   const at = (d, t) => { const x = new Date(d); const [h, m] = t.split(":"); x.setHours(+h, +m, 0, 0); return x; };
@@ -179,7 +242,7 @@ function planLabel(d, withTime = true) {
   return withTime ? `${s} ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}` : s;
 }
 function scheduleText(times) {
-  return `매일 ${(times && times.length ? times : ["06:30"]).join(" · ")}`;
+  return times && times.length ? `조회 매일 ${times.join(" · ")}` : "누를 때만 조회";
 }
 
 // ------------------------------------------------------------ SerpApi 잔여 검색 수
@@ -207,7 +270,7 @@ function quotaHTML(q) {
     const days = Math.max(0, Math.round((renew - kstToday()) / 86400000));
     const need = daily * days;
     lines.push(`<div class="quota-row"><span class="muted">다음 갱신일</span><span class="num">${md(q.plan_renewal_date)} (${DOW[renew.getDay()]}) · ${days ? `${days}일 남음` : "오늘"}</span></div>`);
-    lines.push(`<div class="quota-row"><span class="muted">갱신일까지 예상 사용</span><span class="num">${need}회 (하루 ${daily}회)</span></div>`);
+    if (daily) lines.push(`<div class="quota-row"><span class="muted">갱신일까지 예상 사용</span><span class="num">${need}회 (하루 ${daily}회)</span></div>`);
     if (need > left) level = "bad";
     else if (need > left * 0.8) level = "warn";
   } else {
@@ -414,6 +477,7 @@ async function renderDetail(id) {
 
     ${doc.google_flights_url ? `<a class="btn" href="${esc(doc.google_flights_url)}" target="_blank" rel="noopener">Google 항공권에서 예약하기</a>` : ""}
     ${compareHTML(lastEntry && lastEntry.flex_date ? { ...r, date: lastEntry.flex_date, return_date: lastEntry.flex_return_date || r.return_date } : r)}
+    ${doc.status === "active" ? refreshHTML(r.id, ((index.routes || []).find((x) => x.id === r.id) || {}).cost || 2, (hist[hist.length - 1] || {}).checked_at) : ""}
 
     ${optionsHTML(lastEntry, r)}
 
@@ -439,8 +503,8 @@ async function renderDetail(id) {
         ? r.legs.map((l, i) => `<div class="info-row"><span>${i + 1}구간 ${md(l.date)} ${esc(l.from)}→${esc(l.to)}</span><span>${timeRange(l.depart_after, l.depart_before)}</span></div>`).join("")
         : `<div class="info-row"><span>가는 편 출발</span><span>${timeRange(r.depart_after, r.depart_before)}</span></div>`}
       ${r.return_date ? `<div class="info-row"><span>오는 편 출발</span><span>${timeRange(r.return_after, r.return_before)}</span></div>` : ""}
-      ${(() => { const p = checkPlan(r, doc.status, doc.schedule_kst); return `
-      <div class="info-row"><span>다음 조회</span><span>${p ? `${planLabel(p.next)}경` : "조회 끝"}</span></div>`; })()}
+      ${(() => { const p = checkPlan(r, doc.status, doc.schedule_kst); return p ? `
+      <div class="info-row"><span>다음 조회</span><span>${planLabel(p.next)}경</span></div>` : ""; })()}
       <div class="info-row"><span>인원</span><span>성인 ${r.adults || 1}명</span></div>
       <div class="info-row"><span>좌석</span><span>${{ economy: "일반석", premium_economy: "프리미엄 일반석", business: "비즈니스", first: "일등석" }[r.travel_class] || "일반석"}</span></div>
       <div class="info-row"><span>경유</span><span>${r.max_stops == null ? "상관없음" : r.max_stops === 0 ? "직항만" : `${r.max_stops}회 이하`}</span></div>
@@ -454,6 +518,7 @@ async function renderDetail(id) {
   }));
   draw(0);
   bindSwitcher();
+  bindRefresh(r.id);
   if (lastEntry && document.getElementById("rt-card")) mountRoundTrip(lastEntry, { ...r, return_date: r.return_date });
   fitOneLine($app);
   window.onresize = () => { draw(+document.querySelector('.chip[aria-pressed="true"]').dataset.range); fitOneLine($app); };
