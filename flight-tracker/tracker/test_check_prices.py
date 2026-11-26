@@ -521,6 +521,8 @@ class TestFlexDirectFallback(unittest.TestCase):
         self.assertEqual((out["flex_date"], out["flex_return_date"], out["price"]), ("2027-02-19", "2027-02-20", 260000))
         self.assertEqual([t["date"] for t in out["flex_top"]], ["2027-02-19", "2027-02-12"])
         self.assertEqual(len(calls), 5)  # 달력 1 + 날짜별 왕복 2×2
+        # 날짜별 항공편이 섞여 가격순으로
+        self.assertEqual([(o["date"], o["price"]) for o in out["options"]], [("2027-02-19", 250000), ("2027-02-12", 300000)])
 
     def test_changed_route_failure_replaces_old_success(self):
         h = [{"date": "2026-11-27", "price": 100, "error": None}]
