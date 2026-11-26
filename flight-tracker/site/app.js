@@ -477,12 +477,17 @@ function logoHTML(o) {
 }
 
 // 마지막 조회에서 조건에 맞았던 항공편들 (가격순, 최대 30개) — 상자 안에서 스크롤
+const mixedDays = (opts) => new Set((opts || []).map((o) => o.date).filter(Boolean)).size > 1;
+const addDays = (s, n) => { const d = new Date(s + "T00:00:00Z"); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0, 10); };
+const optSub = (o, showDate) => [showDate && o.date ? md(o.date) : "", o.dep_airport && o.arr_airport ? `${esc(o.dep_airport)}→${esc(o.arr_airport)}` : "", o.stops > 0 ? `경유 ${o.stops}회` : ""].filter(Boolean).join(" · ");
+
 function optListHTML(opts, label) {
+  const showDate = mixedDays(opts);
   return `<ol class="opts${opts.length > 5 ? " scroll" : ""}" tabindex="0" aria-label="${label}">${opts.map((o, i) => `
       <li>
         ${logoHTML(o)}
         <div class="o-main num">${esc(o.depart_time)} → ${esc(o.arrive_time)}</div>
-        <div class="o-sub muted small">${[o.dep_airport && o.arr_airport ? `${esc(o.dep_airport)}→${esc(o.arr_airport)}` : "", o.stops > 0 ? `경유 ${o.stops}회` : ""].filter(Boolean).join(" · ")}</div>
+        <div class="o-sub muted small">${optSub(o, showDate)}</div>
         <div class="o-price num">${won(o.price)}${i === 0 ? `<span class="o-best">최저</span>` : ""}</div>
       </li>`).join("")}
     </ol>`;
@@ -507,7 +512,7 @@ function optionsHTML(e, r) {
   if (!round || !rets.length) {
     return `<section class="card">
     <h3 class="section-title">조건에 맞는 항공편 ${outs.length}개</h3>
-    <p class="muted small" style="margin:-6px 0 6px">${e.flex_date ? `${dayLabel(e.flex_date)} 출발 · ` : ""}${round ? "가는 편 기준 · 가격은 왕복 최저가" : "가격순"} · ${md(e.date)} 조회${hint(outs.length)}</p>
+    <p class="muted small" style="margin:-6px 0 6px">${mixedDays(outs) ? "후보 날짜 모두 · " : e.flex_date ? `${dayLabel(e.flex_date)} 출발 · ` : ""}${round ? "가는 편 기준 · 가격은 왕복 최저가" : "가격순"} · ${md(e.date)} 조회${hint(outs.length)}</p>
     ${optListHTML(outs, "조건에 맞는 항공편 목록")}
   </section>`;
   }
@@ -518,13 +523,13 @@ function optionsHTML(e, r) {
 }
 
 // ---------- 왕복: 1단계 가는 편 → 2단계 오는 편 (가는 편마다 오는 편은 앱에서 요청해 조회)
-function rtRowHTML(o, idx, kind, selected, base) {
+function rtRowHTML(o, idx, kind, selected, base, showDate) {
   const d = Math.abs(o.price - base) < 500 ? 0 : o.price - base;  // 조회 간 몇백 원 차이는 같은 값으로
   const delta = d === 0 ? `<span class="o-best">최저</span>` : `<span class="o-delta ${d > 0 ? "up" : "down"}">${d > 0 ? "+" : "−"}${won(Math.abs(d))}</span>`;
   return `<li><button type="button" class="rt-row${selected ? " sel" : ""}" data-kind="${kind}" data-i="${idx}" aria-pressed="${selected}">
       ${logoHTML(o)}
       <span class="o-main num">${esc(o.depart_time)} → ${esc(o.arrive_time)}</span>
-      <span class="o-sub muted small">${[o.dep_airport && o.arr_airport ? `${esc(o.dep_airport)}→${esc(o.arr_airport)}` : "", o.stops > 0 ? `경유 ${o.stops}회` : ""].filter(Boolean).join(" · ")}</span>
+      <span class="o-sub muted small">${optSub(o, showDate)}</span>
       <span class="o-price num">${won(o.price)}${delta}</span>
     </button></li>`;
 }
@@ -535,7 +540,16 @@ async function mountRoundTrip(e, r) {
   const outs = e.options || [];
   const base = outs.length ? Math.min(outs[0].price, e.price) : e.price;  // 최저가 조합
   const outDay = e.flex_date || r.date, retDay = e.flex_return_date || r.return_date;
-  const keyOf = (o) => `${outDay}|${o.flight_number}|${o.depart_time}`;
+  const mixed = mixedDays(outs);
+  const dayOf = (o) => o.date || outDay;
+  const keyOf = (o) => `${dayOf(o)}|${o.flight_number}|${o.depart_time}`;
+  const tripDays = r.flex && r.flex.trip_days;
+  const retDayOf = (i) => {  // 가는 편마다 오는 날 (날짜가 섞여 있으면 가는 날 + 여행 기간)
+    const o = outs[i];
+    if (!o || i === 0 || dayOf(o) === outDay) return retDay;
+    const it = st.items[keyOf(o)];
+    return (it && it.return_date) || (tripDays ? addDays(dayOf(o), +tripDays) : r.return_date);
+  };
   const cheapestBack = { price: e.price, depart_time: e.return_depart_time, arrive_time: e.return_arrive_time, stops: e.return_stops,
     dep_airport: e.return_dep_airport, arr_airport: e.return_arr_airport, airline: e.return_airline,
     flight_number: e.return_flight_number, airline_logo: e.return_airline_logo };
@@ -559,13 +573,13 @@ async function mountRoundTrip(e, r) {
       <div class="combo">
         <div class="combo-head"><span class="muted small">${rr ? "선택한 왕복" : "선택한 가는 편 (오는 편 미정)"}</span>
           <b class="num">${rr ? "" : "약 "}${won(total)}</b></div>
-        ${comboRowHTML("가는 편", outDay, o)}
-        ${rr ? comboRowHTML("오는 편", retDay, rr) : ""}
+        ${comboRowHTML("가는 편", dayOf(o), o)}
+        ${rr ? comboRowHTML("오는 편", retDayOf(st.out), rr) : ""}
         ${diff ? `<div class="combo-diff muted small">최저가 조합보다 <b class="${diff > 0 ? "up" : "down"}">${diff > 0 ? "+" : "−"}${won(Math.abs(diff))}</b></div>` : `<div class="combo-diff small"><span class="o-best" style="display:inline">최저가 조합</span></div>`}
       </div>
-      <div class="rt-step"><span class="rt-no">1</span>가는 편 고르기 <span class="muted small">· ${outDay ? dayLabel(outDay) : ""} · 가격은 왕복 최저가</span></div>
-      <ol class="opts rt-list${outs.length > 5 ? " scroll" : ""}">${outs.map((x, i) => rtRowHTML(x, i, "out", i === st.out, base)).join("")}</ol>
-      <div class="rt-step"><span class="rt-no">2</span>오는 편 고르기 <span class="muted small">· ${retDay ? dayLabel(retDay) : ""} · 가격은 왕복 총액</span></div>
+      <div class="rt-step"><span class="rt-no">1</span>가는 편 고르기 <span class="muted small">· ${mixed ? "후보 날짜 모두" : outDay ? dayLabel(outDay) : ""} · 가격은 왕복 최저가</span></div>
+      <ol class="opts rt-list${outs.length > 5 ? " scroll" : ""}">${outs.map((x, i) => rtRowHTML(x, i, "out", i === st.out, base, mixed)).join("")}</ol>
+      <div class="rt-step"><span class="rt-no">2</span>오는 편 고르기 <span class="muted small">· ${retDayOf(st.out) ? dayLabel(retDayOf(st.out)) : ""} · 가격은 왕복 총액</span></div>
       ${rets ? `<ol class="opts rt-list${rets.length > 5 ? " scroll" : ""}">${rets.map((x, i) => rtRowHTML(x, i, "ret", i === st.ret, base)).join("")}</ol>`
         : st.loading[keyOf(o)] ? `<p class="rt-wait muted small">이 가는 편의 오는 편을 조회하는 중이에요… 1~2분쯤 걸려요. 화면을 닫아도 결과는 저장돼요.</p>`
         : `${it && it.error ? `<p class="rt-wait small" style="color:var(--up)">조회하지 못했어요: ${esc(it.error)}</p>` : ""}
@@ -585,7 +599,7 @@ async function mountRoundTrip(e, r) {
     st.loading[key] = true; draw();
     try {
       await gh(`/repos/${owner}/${repo}/actions/workflows/flight-prices.yml/dispatches`, {
-        method: "POST", body: JSON.stringify({ ref: "main", inputs: { returns_for: `${r.id}|${outDay}|${o.flight_number}|${o.depart_time}` } }),
+        method: "POST", body: JSON.stringify({ ref: "main", inputs: { returns_for: `${r.id}|${dayOf(o)}|${o.flight_number}|${o.depart_time}` } }),
       });
       for (let t = 0; t < 30; t++) {  // 최대 약 5분
         await new Promise((res) => setTimeout(res, 10000));

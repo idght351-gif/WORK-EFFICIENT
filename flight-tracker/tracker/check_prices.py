@@ -383,6 +383,10 @@ def check_flex_direct(route: dict, api_key: str, cands: list[date], days) -> tup
     if ret:
         result["flex_return_date"] = ret
     result["flex_top"] = [{"date": x[1].isoformat(), "price": int(x[0])} for x in found[:5]]
+    # 날짜마다 이미 검색한 항공편을 섞어 가격순으로 (가장 싼 날 편이 같은 가격이면 앞으로). 추가 검색 없음
+    pool = [(o["price"], j, o) for j, x in enumerate(found) for o in (x[2].get("options") or [])]
+    if len({o["date"] for _, _, o in pool}) > 1:
+        result["options"] = [o for _, _, o in sorted(pool, key=lambda t: (t[0], t[1]))][:OPTIONS_KEEP]
     return result, insights, url
 
 
