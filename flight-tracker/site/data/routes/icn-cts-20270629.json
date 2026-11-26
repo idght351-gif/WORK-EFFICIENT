@@ -72,7 +72,7 @@
     },
     {
       "date": "2026-11-27",
-      "checked_at": "2026-11-27T08:03:22+09:00",
+      "checked_at": "2026-11-27T08:09:59+09:00",
       "price": 624346,
       "error": null,
       "airline": "Trinity Airways",
@@ -222,7 +222,7 @@
     "avg": 624502,
     "days": 5
   },
-  "updated_at": "2026-11-27T08:09:28+09:00",
+  "updated_at": "2026-11-27T08:09:59+09:00",
   "google_flights_url": "https://www.google.com/travel/flights?hl=ko&gl=kr&curr=KRW&tfs=CBwQAhpFEgoyMDI3LTA2LTI5Ih8KA0lDThIKMjAyNy0wNi0yORoDQ1RTKgJUVzIDMjYzKABACkgXagcIARIDSUNOcgcIARIDQ1RTGiQSCjIwMjctMDctMDUoAEAMSBdqBwgBEgNDVFNyBwgBEgNJQ05AAUgBcAGYAQE&tfu=EgIIAQ",
   "next_check": "2026-11-28T06:30+09:00",
   "last_check": "2027-06-29T06:30+09:00",
