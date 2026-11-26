@@ -345,7 +345,7 @@ def pick_cheapest(data: dict, route: dict, leg: str = "depart",
     return dict(opts[0]) if opts else None
 
 
-OPTIONS_KEEP = 5  # 앱에 보여 줄 같은 조건의 다른 항공편 수
+OPTIONS_KEEP = 30  # 앱에 보여 줄 같은 조건의 항공편 수 (가장 최근 조회분만 저장)
 
 
 def option_list(opts: list[dict], day: str) -> list[dict]:
@@ -507,7 +507,8 @@ def record_result(history: list, today: str, result: dict | None, error: str | N
         entry["price_level"] = insights["price_level"]
     if insights.get("typical_price_range"):
         entry["typical_range"] = insights["typical_price_range"]
-    history = [h for h in history if h["date"] != today] + [entry]
+    # 항공편 목록은 가장 최근 조회분만 남겨 기록 파일이 커지지 않게 함
+    history = [{k: v for k, v in h.items() if k != "options"} for h in history if h["date"] != today] + [entry]
     history.sort(key=lambda h: h["date"])
     return history
 

@@ -549,5 +549,13 @@ class TestOptions(unittest.TestCase):
         self.assertEqual(out["options"][0]["date"], "2026-12-20")
 
 
+class TestOptionsOnlyLatest(unittest.TestCase):
+    def test_older_entries_drop_options(self):
+        h = [{"date": "2026-11-26", "price": 100, "error": None, "options": [{"price": 100}]}]
+        out = record_result(h, "2026-11-27", {"price": 90, "options": [{"price": 90}]}, None, "t", {})
+        self.assertNotIn("options", out[0])
+        self.assertEqual(out[-1]["options"], [{"price": 90}])
+
+
 if __name__ == "__main__":
     unittest.main()
