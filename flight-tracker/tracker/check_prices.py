@@ -358,7 +358,7 @@ def check_flex(route: dict, api_key: str) -> tuple[dict | None, dict, str | None
     if not prices:
         raise RuntimeError(f"가격 달력에 조건 맞는 날짜 없음 (후보 {len(cands)}일, 달력 결과 {len(cal.get('prices') or [])}일)")
     # 달력은 시 단위로만 거르므로(예: 19:30 이후 → 19시~), 가장 싼 날에 조건 맞는 편이 없으면 다음 날짜로 최대 3일까지 확인
-    result, insights, url, best = None, {}, None, prices[0]
+    result, insights, url, best, failed = None, {}, None, prices[0], set()
     for cand in prices[:3]:
         one = {**route, "flex": None, "trip_type": None, "date": cand["outbound_date"],
                "return_date": cand.get("return_date") if days else None}
@@ -370,6 +370,7 @@ def check_flex(route: dict, api_key: str) -> tuple[dict | None, dict, str | None
         if result:
             best = cand
             break
+        failed.add(cand["outbound_date"])
         print(f"  - {cand['outbound_date']} 조건에 맞는 편 없음 → 다음으로 싼 날 확인")
     if not result:
         result = {"price": int(best["price"]), "airline": "(항공편 정보 없음)", "flight_number": "",
@@ -378,7 +379,9 @@ def check_flex(route: dict, api_key: str) -> tuple[dict | None, dict, str | None
     if days:
         result["flex_return_date"] = best.get("return_date")
     result["calendar_price"] = int(best["price"])
-    result["flex_top"] = [{"date": p["outbound_date"], "price": int(p["price"])} for p in prices[:5]]
+    # 고른 날을 맨 앞에, 조건에 안 맞는 것으로 확인된 날짜는 빼고 다음 후보들
+    rest = [p for p in prices if p["outbound_date"] not in failed and p["outbound_date"] != best["outbound_date"]]
+    result["flex_top"] = [{"date": p["outbound_date"], "price": int(p["price"])} for p in [best] + rest[:4]]
     return result, insights, url
 
 

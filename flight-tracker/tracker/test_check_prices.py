@@ -483,6 +483,7 @@ class TestFlexFallback(unittest.TestCase):
             cp.fetch_serpapi = orig
         self.assertEqual(calls[0]["outbound_times"], "19,23")
         self.assertEqual((out["flex_date"], out["flight_number"], out["price"]), ("2027-02-12", "LATE", 61000))
+        self.assertEqual([x["date"] for x in out["flex_top"]], ["2027-02-12"])
 
 
 if __name__ == "__main__":
