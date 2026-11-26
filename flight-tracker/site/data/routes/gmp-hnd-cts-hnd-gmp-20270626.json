@@ -260,14 +260,14 @@
     "travel_class": "economy",
     "max_stops": 0,
     "alert_below": null,
-    "active": true,
+    "active": false,
     "from": "GMP",
     "to": "GMP",
     "date": "2027-06-26",
     "return_date": null,
     "trip_type": "multi_city"
   },
-  "status": "active",
+  "status": "paused",
   "summary": {
     "current": 601700,
     "current_date": "2026-11-26",
@@ -277,9 +277,9 @@
     "avg": 601625,
     "days": 4
   },
-  "updated_at": "2026-11-27T08:09:59+09:00",
-  "next_check": "2026-11-28T06:30+09:00",
-  "last_check": "2027-06-26T06:30+09:00",
+  "updated_at": "2026-11-27T08:32:06+09:00",
+  "next_check": null,
+  "last_check": null,
   "schedule_kst": [
     "06:30"
   ]

@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-11-27T08:09:59+09:00",
+  "updated_at": "2026-11-27T08:32:06+09:00",
   "routes": [
     {
       "id": "icn-cts-20270629",
@@ -75,7 +75,7 @@
       ],
       "flex": null,
       "alert_below": null,
-      "status": "active",
+      "status": "paused",
       "summary": {
         "current": 601700,
         "current_date": "2026-11-26",
@@ -85,8 +85,8 @@
         "avg": 601625,
         "days": 4
       },
-      "next_check": "2026-11-28T06:30+09:00",
-      "last_check": "2027-06-26T06:30+09:00",
+      "next_check": null,
+      "last_check": null,
       "spark": [
         599900,
         602800,
@@ -178,8 +178,8 @@
     "this_month_usage": 83,
     "plan_renewal_date": "2026-12-23",
     "account_rate_limit_per_hour": 250,
-    "daily_usage": 11,
-    "checked_at": "2026-11-27T08:09:59+09:00"
+    "daily_usage": 13,
+    "checked_at": "2026-11-27T08:32:06+09:00"
   },
   "schedule_kst": [
     "06:30"
