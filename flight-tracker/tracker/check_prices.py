@@ -85,7 +85,10 @@ def is_flex(route: dict) -> bool:
 
 
 def flex_dates(flex: dict) -> list[date]:
-    """flex = {"months": ["2027-02"], "weekdays": [4, 5]}  (요일: 0=월 … 6=일, 비우면 모든 요일)."""
+    """flex = {"dates": ["2026-12-11", "2026-12-12"]} (직접 고른 날짜들) 또는
+    {"months": ["2027-02"], "weekdays": [4, 5]} (요일: 0=월 … 6=일, 비우면 모든 요일)."""
+    if flex.get("dates"):
+        return sorted({date.fromisoformat(d) for d in flex["dates"]})
     days = set(flex.get("weekdays") or range(7))
     out = []
     for m in sorted(set(flex.get("months") or [])):
@@ -99,6 +102,10 @@ def flex_dates(flex: dict) -> list[date]:
 
 
 def flex_label(flex: dict) -> str:
+    trip = f" · {flex['trip_days']}박 왕복" if flex.get("trip_days") else " · 편도"
+    if flex.get("dates"):
+        ds = flex_dates(flex)
+        return " · ".join(f"{d.month}/{d.day}({WEEKDAY_KO[d.weekday()]})" for d in ds) + f" 중 가장 싼 날{trip}"
     months = " · ".join(f"{int(m[:4])}년 {int(m[5:])}월" for m in sorted(flex.get("months") or []))
     wd = flex.get("weekdays")
     days = "·".join(WEEKDAY_KO[i] for i in sorted(wd)) + "요일" if wd and len(wd) < 7 else "모든 요일"
