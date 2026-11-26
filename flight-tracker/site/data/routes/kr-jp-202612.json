@@ -53,16 +53,13 @@
     "from": "KR",
     "to": "JP",
     "flex": {
-      "months": [
-        "2026-12"
+      "dates": [
+        "2026-12-11",
+        "2026-12-18"
       ],
-      "weekdays": [
-        4,
-        5
-      ],
-      "trip_days": 2
+      "trip_days": 1
     },
-    "depart_after": "19:30",
+    "depart_after": "19:00",
     "depart_before": "24:00",
     "return_after": "00:00",
     "return_before": "24:00",
@@ -71,8 +68,8 @@
     "max_stops": null,
     "alert_below": null,
     "active": true,
-    "date": "2026-12-04",
-    "return_date": "2026-12-06",
+    "date": "2026-12-11",
+    "return_date": "2026-12-12",
     "trip_type": "flex"
   },
   "status": "active",
@@ -85,9 +82,9 @@
     "avg": 322399,
     "days": 1
   },
-  "updated_at": "2026-11-27T06:57:07+09:00",
+  "updated_at": "2026-11-27T07:02:02+09:00",
   "next_check": "2026-11-28T06:30+09:00",
-  "last_check": "2026-12-04T06:30+09:00",
+  "last_check": "2026-12-11T06:30+09:00",
   "schedule_kst": [
     "06:30"
   ]

@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-11-27T06:57:07+09:00",
+  "updated_at": "2026-11-27T07:02:02+09:00",
   "routes": [
     {
       "id": "icn-cts-20270629",
@@ -134,18 +134,15 @@
       "name": "한국 → 일본",
       "from": "KR",
       "to": "JP",
-      "date": "2026-12-04",
-      "return_date": "2026-12-06",
+      "date": "2026-12-11",
+      "return_date": "2026-12-12",
       "legs": null,
       "flex": {
-        "months": [
-          "2026-12"
+        "dates": [
+          "2026-12-11",
+          "2026-12-18"
         ],
-        "weekdays": [
-          4,
-          5
-        ],
-        "trip_days": 2
+        "trip_days": 1
       },
       "alert_below": null,
       "status": "active",
@@ -159,7 +156,7 @@
         "days": 1
       },
       "next_check": "2026-11-28T06:30+09:00",
-      "last_check": "2026-12-04T06:30+09:00",
+      "last_check": "2026-12-11T06:30+09:00",
       "spark": [
         322399
       ],
@@ -178,7 +175,7 @@
     "plan_renewal_date": "2026-12-23",
     "account_rate_limit_per_hour": 250,
     "daily_usage": 11,
-    "checked_at": "2026-11-27T06:57:07+09:00"
+    "checked_at": "2026-11-27T07:02:02+09:00"
   },
   "schedule_kst": [
     "06:30"
