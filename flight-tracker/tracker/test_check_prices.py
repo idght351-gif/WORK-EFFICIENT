@@ -486,5 +486,13 @@ class TestFlexFallback(unittest.TestCase):
         self.assertEqual([x["date"] for x in out["flex_top"]], ["2027-02-12"])
 
 
+class TestFlexDates(unittest.TestCase):
+    def test_picked_dates(self):
+        import check_prices as cp
+        flex = {"dates": ["2026-12-12", "2026-12-11", "2026-12-12"], "trip_days": 2}
+        self.assertEqual([d.isoformat() for d in cp.flex_dates(flex)], ["2026-12-11", "2026-12-12"])
+        self.assertEqual(cp.flex_label(flex), "12/11(금) · 12/12(토) 중 가장 싼 날 · 2박 왕복")
+
+
 if __name__ == "__main__":
     unittest.main()

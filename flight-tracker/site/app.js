@@ -11,7 +11,25 @@ const DOW = ["일", "월", "화", "수", "목", "금", "토"];
 const REGION_NAME = { KR: "한국", JP: "일본" };
 const WD = ["월", "화", "수", "목", "금", "토", "일"];  // flex.weekdays: 0=월 … 6=일
 // "2월 금·토", "2~3월 주말" 처럼 짧게
+// 달·요일로 정한 노선을 실제 날짜 목록으로 (tracker/check_prices.py flex_dates 와 같은 규칙)
+function flexDates(flex) {
+  if (flex.dates && flex.dates.length) return [...new Set(flex.dates)].sort();
+  const wd = new Set(flex.weekdays && flex.weekdays.length ? flex.weekdays : [0, 1, 2, 3, 4, 5, 6]);
+  const out = [];
+  (flex.months || []).slice().sort().forEach((m) => {
+    const [y, mo] = m.split("-").map(Number);
+    for (let d = new Date(y, mo - 1, 1); d.getMonth() === mo - 1; d.setDate(d.getDate() + 1)) {
+      if (wd.has((d.getDay() + 6) % 7)) out.push(`${y}-${String(mo).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`);
+    }
+  });
+  return out;
+}
+
 function flexShort(flex) {
+  if (flex.dates && flex.dates.length) {
+    const ds = flexDates(flex);
+    return ds.length <= 2 ? ds.map(md).join("·") : `${md(ds[0])} 외 ${ds.length - 1}일`;
+  }
   const ms = (flex.months || []).slice().sort();
   const m = ms.length ? (ms.length === 1 ? `${+ms[0].slice(5)}월` : `${+ms[0].slice(5)}~${+ms[ms.length - 1].slice(5)}월`) : "";
   const wd = (flex.weekdays || []).slice().sort();
@@ -31,7 +49,7 @@ function pathSteps(r, withReturn = false) {
     const fmt = (c) => c.toUpperCase().split(",").map((x) => x.trim()).filter(Boolean).map((x) => REGION_NAME[x] || x).join("/");
     const from = fmt(l.from), to = fmt(l.to);
     if (i === 0) steps.push({ code: from });
-    else if (legs[i - 1].to.toUpperCase() !== from) steps.push({ gap: true }, { code: from });
+    else if (fmt(legs[i - 1].to) !== from) steps.push({ gap: true }, { code: from });
     steps.push({ date: l.date }, { code: to });
   });
   return steps;
@@ -705,17 +723,16 @@ function renderAdd(edit) {
           </div>
           <div class="full seg seg2" role="radiogroup" aria-label="날짜 정하는 방식">
             <label><input type="radio" name="datemode" value="fixed" checked><span>정해진 날</span></label>
-            <label><input type="radio" name="datemode" value="flex"><span>월·요일로 찾기</span></label>
+            <label><input type="radio" name="datemode" value="flex"><span>여러 날짜 중 찾기</span></label>
           </div>
           <label data-fixed>가는 날<input name="date" type="date"></label>
           <label data-round data-fixed>오는 날<input name="return_date" type="date"></label>
-          <label data-flex>가는 달 (부터)<input name="month_from" type="month"></label>
-          <label data-flex>가는 달 (까지)<input name="month_to" type="month"></label>
-          <div class="full weekdays" data-flex role="group" aria-label="가는 요일">
-            ${WD.map((d, i) => `<label class="wd"><input type="checkbox" name="wd" value="${i}"><span>${d}</span></label>`).join("")}
+          <div class="full pick-dates" data-flex>
+            <label>가는 날 후보 추가<span class="pick-row"><input name="pick" type="date"><button type="button" class="btn secondary" id="pick-add">추가</button></span></label>
+            <div class="date-chips" id="date-chips" aria-live="polite"></div>
           </div>
-          <label data-round data-flex>여행 기간 (박)<input name="trip_days" type="number" min="1" max="30" value="4"></label>
-          <p class="full muted small" data-flex style="margin:-2px 2px 0">고른 달의 고른 요일 중 가장 싼 출발일을 찾아요 (요일을 안 고르면 매일). 조회 한 번에 검색 ${"2"}회를 써요.</p>
+          <label data-round data-flex>여행 기간 (박)<input name="trip_days" type="number" min="1" max="30" value="2"></label>
+          <p class="full muted small" data-flex style="margin:-2px 2px 0">고른 날짜들 중 가장 싼 출발일을 찾아요. 날짜를 몇 개 고르든 조회 한 번에 검색 2회(왕복 3회)예요.</p>
           <label>가는 편 출발 (부터)<input name="depart_after" type="time" value="08:00"></label>
           <label>가는 편 출발 (까지)<input name="depart_before" type="time" value=""></label>
           <label data-round>오는 편 출발 (부터)<input name="return_after" type="time" value="12:00"></label>
@@ -772,13 +789,14 @@ function renderAdd(edit) {
         || (el.hasAttribute("data-flex") && mode !== "flex");
     });
   }
-  const setMode = (mode) => { f.querySelector(`input[name=datemode][value=${mode}]`).checked = true; applyVis(); };
-  const monthsBetween = (a, b) => {
-    if (!a) return [];
-    const out = []; let [y, m] = a.split("-").map(Number); const [y2, m2] = (b && b >= a ? b : a).split("-").map(Number);
-    while ((y < y2 || (y === y2 && m <= m2)) && out.length < 6) { out.push(`${y}-${String(m).padStart(2, "0")}`); m++; if (m > 12) { m = 1; y++; } }
-    return out;
+  let picked = [];
+  const $chips = () => document.getElementById("date-chips");
+  const drawChips = () => {
+    $chips().innerHTML = picked.length
+      ? picked.map((d) => `<span class="date-chip">${dayLabel(d)}<button type="button" data-del="${d}" aria-label="${dayLabel(d)} 빼기">×</button></span>`).join("")
+      : `<span class="muted small">아직 고른 날짜가 없어요</span>`;
   };
+  const setMode = (mode) => { f.querySelector(`input[name=datemode][value=${mode}]`).checked = true; applyVis(); };
 
   const setTrip = (trip) => {
     f.querySelector(`input[name=trip][value=${trip}]`).checked = true;
@@ -816,9 +834,7 @@ function renderAdd(edit) {
     } else if (edit.flex) {
       f.from.value = edit.from; f.to.value = edit.to;
       f.date.value = ""; f.return_date.value = "";
-      const ms = (edit.flex.months || []).slice().sort();
-      f.month_from.value = ms[0] || ""; f.month_to.value = ms[ms.length - 1] || "";
-      f.querySelectorAll("input[name=wd]").forEach((c) => { c.checked = (edit.flex.weekdays || []).includes(+c.value); });
+      picked = flexDates(edit.flex);
       if (edit.flex.trip_days) f.trip_days.value = edit.flex.trip_days;
       f.depart_after.value = t(edit.depart_after); f.depart_before.value = t(edit.depart_before);
       f.return_after.value = t(edit.return_after); f.return_before.value = t(edit.return_before);
@@ -884,12 +900,11 @@ function renderAdd(edit) {
       body = { id, name: v.name, legs, ...(edit && edit.separate_tickets ? { separate_tickets: true } : {}), ...common };
     } else if (v.datemode === "flex") {
       const round = v.trip === "round";
-      const months = monthsBetween(v.month_from, v.month_to);
-      const weekdays = [...f.querySelectorAll("input[name=wd]:checked")].map((c) => +c.value);
-      const id = edit ? edit.id : `${v.from}-${v.to}-${(months[0] || "").replace("-", "")}`.toLowerCase().replace(/[^a-z0-9-]/g, "");
+      const dates = picked.slice();
+      const id = edit ? edit.id : `${v.from}-${v.to}-${(dates[0] || "").slice(0, 7).replace("-", "")}`.toLowerCase().replace(/[^a-z0-9-]/g, "");
       body = {
         id, name: v.name, from: v.from.toUpperCase(), to: v.to.toUpperCase(),
-        flex: { months, weekdays, trip_days: round ? (+v.trip_days || 4) : null },
+        flex: { dates, trip_days: round ? (+v.trip_days || 2) : null },
         depart_after: v.depart_after || "00:00", depart_before: v.depart_before || "24:00",
         ...(round ? { return_after: v.return_after || "00:00", return_before: v.return_before || "24:00" } : {}),
         ...common,
@@ -912,6 +927,19 @@ function renderAdd(edit) {
 
   f.addEventListener("change", (e) => { if (e.target.name === "trip") setTrip(e.target.value); if (e.target.name === "datemode") applyVis(); update(); });
   f.querySelectorAll(".quick [data-set]").forEach((b) => { b.onclick = () => { f.elements[b.dataset.set].value = b.dataset.v; update(); }; });
+  const addPick = () => {
+    const d = f.elements.pick.value;
+    if (!d) { f.elements.pick.focus(); return; }
+    if (!picked.includes(d)) picked = [...picked, d].sort();
+    f.elements.pick.value = ""; f.elements.pick.classList.remove("invalid"); drawChips(); update();
+  };
+  document.getElementById("pick-add").onclick = addPick;
+  f.elements.pick.addEventListener("change", addPick);  // 달력에서 고르면 바로 추가
+  $chips().addEventListener("click", (e) => {
+    const b = e.target.closest("[data-del]"); if (!b) return;
+    picked = picked.filter((d) => d !== b.dataset.del); drawChips(); update();
+  });
+  drawChips();
   f.addEventListener("input", update);
   $add.onclick = () => {
     const rows = $legs.querySelectorAll(".leg");
@@ -945,13 +973,13 @@ function renderAdd(edit) {
       const q = (k) => root.querySelector(multi ? `[data-k=${k}]` : `[name=${k}]`);
       ["from", "to"].forEach((k) => { if (!/^([A-Za-z]{3}|KR|JP)(\s*,\s*([A-Za-z]{3}|KR|JP))*$/i.test(q(k).value.trim())) bad.push(q(k)); });
       const flexMode = !multi && f.querySelector("input[name=datemode]:checked").value === "flex";
-      if (flexMode) { if (!f.elements.month_from.value) bad.push(f.elements.month_from); }
+      if (flexMode) { if (!picked.length) bad.push(f.elements.pick); }
       else if (!q("date").value) bad.push(q("date"));
     });
     if (!multi && !body.flex && body.return_date === null && f.querySelector("input[name=trip]:checked").value === "round") bad.push(f.elements.return_date);
     if (bad.length || (multi && body.legs.length < 2)) {
       bad.forEach((el) => el.classList.add("invalid"));
-      smsg.textContent = bad.some((el) => el.type === "date") ? "빨간 칸을 채워 주세요. (날짜가 비어 있어요)" : bad.some((el) => el.type === "month") ? "빨간 칸을 채워 주세요. (가는 달이 비어 있어요)"
+      smsg.textContent = bad.some((el) => el.name === "pick") ? "가는 날 후보를 하나 이상 추가해 주세요." : bad.some((el) => el.type === "date") ? "빨간 칸을 채워 주세요. (날짜가 비어 있어요)"
         : "빨간 칸을 확인해 주세요. 공항 코드는 영문 3글자(나라 전체는 KR · JP)예요. 여러 곳이면 쉼표로 (예: ICN,GMP)";
       (bad[0] || smsg).scrollIntoView({ behavior: "smooth", block: "center" });
       if (bad[0]) setTimeout(() => bad[0].focus({ preventScroll: true }), 300);
