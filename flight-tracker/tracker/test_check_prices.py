@@ -577,5 +577,51 @@ class TestReturnOptions(unittest.TestCase):
         self.assertEqual(out["return_options"][0]["date"], "2027-07-05")
 
 
+class TestReturnsFor(unittest.TestCase):
+    def test_finds_outbound_and_lists_returns(self):
+        import check_prices as cp
+        route = {"id": "x", "from": "ICN", "to": "CTS", "date": "2027-06-29", "return_date": "2027-07-05", "adults": 1,
+                 "travel_class": "economy", "max_stops": None}
+        out_page = {"other_flights": [mflight(500000, "2027-06-29", "10:10", "ICN", "CTS", "A1", "tA"),
+                                      mflight(530000, "2027-06-29", "13:00", "ICN", "CTS", "B1", "tB")]}
+        rets = {"tB": {"other_flights": [mflight(560000, "2027-07-05", "15:00", "CTS", "ICN", "R2"),
+                                         mflight(540000, "2027-07-05", "09:00", "CTS", "ICN", "R1")]}}
+        calls = []
+
+        def fake(params, retries=3):
+            calls.append(params)
+            return rets[params["departure_token"]] if params.get("departure_token") else out_page
+        orig = cp.fetch_serpapi
+        cp.fetch_serpapi = fake
+        try:
+            got = cp.fetch_returns_for(route, "2027-06-29", "B1", "13:00", "k")
+            with self.assertRaises(RuntimeError):
+                cp.fetch_returns_for(route, "2027-06-29", "ZZ", "13:00", "k")
+        finally:
+            cp.fetch_serpapi = orig
+        self.assertEqual(got["return_date"], "2027-07-05")
+        self.assertEqual([r["flight_number"] for r in got["returns"]], ["R1", "R2"])
+        self.assertEqual(calls[1]["departure_token"], "tB")
+
+    def test_flex_uses_trip_days(self):
+        import check_prices as cp
+        route = {"id": "x", "from": "ICN", "to": "JP", "adults": 1, "travel_class": "economy", "max_stops": None,
+                 "flex": {"dates": ["2026-12-11"], "trip_days": 1}}
+        seen = []
+
+        def fake(params, retries=3):
+            seen.append(params.get("return_date"))
+            if params.get("departure_token"):
+                return {"other_flights": [mflight(400000, "2026-12-12", "11:45", "KIX", "ICN", "R")]}
+            return {"other_flights": [mflight(390000, "2026-12-11", "21:00", "ICN", "KIX", "MM 710", "t")]}
+        orig = cp.fetch_serpapi
+        cp.fetch_serpapi = fake
+        try:
+            got = cp.fetch_returns_for(route, "2026-12-11", "MM 710", "21:00", "k")
+        finally:
+            cp.fetch_serpapi = orig
+        self.assertEqual((got["return_date"], seen[0]), ("2026-12-12", "2026-12-12"))
+
+
 if __name__ == "__main__":
     unittest.main()

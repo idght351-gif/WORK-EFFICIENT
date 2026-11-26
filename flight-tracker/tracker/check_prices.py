@@ -925,6 +925,75 @@ def changed_route_ids(routes_raw: list[dict]) -> set[str] | None:
     return {r["id"] for r in routes_raw if before.get(r["id"]) != r}
 
 
+# ---------------------------------------------------------------- 가는 편 하나의 오는 편 목록 (앱에서 요청)
+
+RETURNS_DIR = DATA_DIR / "returns"
+
+
+def option_key(day: str, flight_number: str, depart_time: str) -> str:
+    return f"{day}|{flight_number}|{depart_time}"
+
+
+def fetch_returns_for(route: dict, day: str, flight_number: str, depart_time: str, api_key: str) -> dict:
+    """그 날 가는 편 검색(1시간 안이면 SerpApi 캐시라 무료)에서 해당 편을 찾아, 그 편과 묶이는 오는 편 목록을 받음."""
+    days = (route.get("flex") or {}).get("trip_days")
+    if days:
+        ret_day = (date.fromisoformat(day) + timedelta(days=int(days))).isoformat()
+    else:
+        ret_day = route.get("return_date")
+    if not ret_day:
+        raise RuntimeError("왕복 노선이 아니에요")
+    one = {**route, "flex": None, "trip_type": None, "date": day, "return_date": ret_day}
+    params = build_params(one, api_key)
+    data = fetch_serpapi(params)
+    token = None
+    for o in matching_options(data, one, "depart"):
+        if o["flight_number"] == flight_number and o["depart_time"] == depart_time:
+            token = o.get("departure_token")
+            break
+    if not token:
+        raise RuntimeError("지금 검색 결과에서 그 가는 편을 찾지 못했어요 (매진 · 시간 변경 등)")
+    data2 = fetch_serpapi({**params, "departure_token": token})
+    rets = option_list(matching_options(data2, one, "return"), ret_day)
+    if not rets:
+        raise RuntimeError("이 가는 편과 묶이는 오는 편 중 조건에 맞는 편이 없어요")
+    return {"return_date": ret_day, "returns": rets}
+
+
+def run_returns(spec: str) -> int:
+    """spec = "노선id|가는날|편명|출발시각". 결과는 site/data/returns/<노선id>.json 에 저장 (메일 · 기록 변경 없음)."""
+    api_key = os.environ.get("SERPAPI_KEY")
+    try:
+        rid, day, flight_number, depart_time = [x.strip() for x in spec.split("|")]
+    except ValueError:
+        print(f"잘못된 요청: {spec}", file=sys.stderr)
+        return 1
+    routes = {r["id"]: normalize_route(r) for r in load_json(ROUTES_FILE, {"routes": []})["routes"]}
+    now = now_kst()
+    path = RETURNS_DIR / f"{rid}.json"
+    doc = load_json(path, {"items": {}})
+    item = {"checked_at": now.isoformat(timespec="seconds")}
+    try:
+        if rid not in routes:
+            raise RuntimeError("노선을 찾지 못했어요")
+        if not api_key:
+            raise RuntimeError("SERPAPI_KEY 없음")
+        item.update(fetch_returns_for(routes[rid], day, flight_number, depart_time, api_key))
+        print(f"- {rid} {day} {flight_number} {depart_time}: 오는 편 {len(item['returns'])}개")
+    except Exception as e:  # noqa: BLE001
+        item["error"] = str(e).replace(api_key or "\0", "***")
+        print(f"! {rid} {day} {flight_number}: {item['error']}", file=sys.stderr)
+    items = doc.get("items") or {}
+    items[option_key(day, flight_number, depart_time)] = item
+    # 지난 날짜·오래된 결과 정리 (최근 40개까지)
+    today = now.date().isoformat()
+    keep = sorted(((k, v) for k, v in items.items() if k.split("|")[0] >= today),
+                  key=lambda kv: kv[1].get("checked_at", ""), reverse=True)[:40]
+    doc = {"updated_at": now.isoformat(timespec="seconds"), "items": dict(keep)}
+    save_json(path, doc)
+    return 0
+
+
 def run(dry_run: bool = False) -> int:
     api_key = os.environ.get("SERPAPI_KEY")
     if not api_key and not dry_run:
@@ -1045,4 +1114,7 @@ def run(dry_run: bool = False) -> int:
 if __name__ == "__main__":
     p = argparse.ArgumentParser()
     p.add_argument("--dry-run", action="store_true", help="API 호출 없이 index.json 만 다시 만듭니다")
-    sys.exit(run(dry_run=p.parse_args().dry_run))
+    args = p.parse_args()
+    if os.environ.get("RETURNS_FOR"):  # 앱에서 요청한 '가는 편 하나의 오는 편 목록'만 조회
+        sys.exit(run_returns(os.environ["RETURNS_FOR"]))
+    sys.exit(run(dry_run=args.dry_run))

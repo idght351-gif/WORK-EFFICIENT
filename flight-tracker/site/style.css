@@ -305,3 +305,26 @@ pre.snippet { background: var(--bg); border-radius: 12px; padding: 12px; font-si
   .combo-row { grid-template-columns: 24px minmax(0, 1fr); gap: 1px 7px; }
   .combo-row .o-main { font-size: 13px; }
 }
+
+/* ---------- 왕복 조합 고르기 (1단계 · 2단계) ---------- */
+.rt-step { display: flex; align-items: center; gap: 6px; font-weight: 700; font-size: 14px; margin: 14px 0 6px; flex-wrap: wrap; }
+.rt-no { display: inline-grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; background: var(--accent); color: #fff; font-size: 12px; }
+.rt-list li { display: block; padding: 2px 0; }
+.rt-row { all: unset; box-sizing: border-box; width: 100%; cursor: pointer; display: grid; grid-template-columns: 30px minmax(0, 1fr) auto;
+  gap: 1px 10px; align-items: center; padding: 9px 6px; border-radius: 10px; }
+.rt-row:focus-visible { outline: 2px solid var(--accent); }
+.rt-row.sel { background: var(--accent-wash); }
+.rt-row .o-logo { grid-row: 1 / span 2; grid-column: 1; }
+.rt-row .o-main { grid-column: 2; }
+.rt-row .o-sub { grid-column: 2; }
+.rt-row .o-price { grid-row: 1 / span 2; grid-column: 3; text-align: right; font-weight: 800; font-size: 15px; white-space: nowrap; }
+.o-delta { display: block; font-size: 11px; font-weight: 700; }
+.o-delta.up, .combo-diff .up { color: var(--up); }
+.o-delta.down, .combo-diff .down { color: var(--down); }
+.combo-diff { margin-top: 4px; text-align: right; }
+.rt-wait { margin: 4px 2px 0; }
+#rt-fetch { margin-top: 4px; }
+@media (max-width: 360px) {
+  .rt-row { grid-template-columns: 24px minmax(0, 1fr) auto; gap: 1px 7px; padding: 8px 4px; }
+  .rt-row .o-main, .rt-row .o-price { font-size: 13px; }
+}
