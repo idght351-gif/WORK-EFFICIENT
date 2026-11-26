@@ -50,6 +50,25 @@
       "return_depart_time": "14:30",
       "return_arrive_time": "17:40",
       "return_stops": 0
+    },
+    {
+      "date": "2026-11-26",
+      "checked_at": "2026-11-26T12:39:58+09:00",
+      "price": 624511,
+      "error": null,
+      "airline": "Trinity Airways",
+      "flight_number": "TW 263",
+      "depart_time": "10:10",
+      "arrive_time": "13:00",
+      "stops": 0,
+      "duration_min": 170,
+      "dep_airport": "ICN",
+      "arr_airport": "CTS",
+      "return_airline": "Trinity Airways",
+      "return_flight_number": "TW 264",
+      "return_depart_time": "14:30",
+      "return_arrive_time": "17:40",
+      "return_stops": 0
     }
   ],
   "alert_state": {},
@@ -72,17 +91,17 @@
   },
   "status": "active",
   "summary": {
-    "current": 624316,
-    "current_date": "2026-11-25",
-    "prev": 624656,
+    "current": 624511,
+    "current_date": "2026-11-26",
+    "prev": 624316,
     "min": 624316,
     "max": 624681,
-    "avg": 624551,
-    "days": 3
+    "avg": 624541,
+    "days": 4
   },
-  "updated_at": "2026-11-26T05:58:42+09:00",
+  "updated_at": "2026-11-26T12:39:58+09:00",
   "google_flights_url": "https://www.google.com/travel/flights?hl=ko&gl=kr&curr=KRW&tfs=CBwQAhpFEgoyMDI3LTA2LTI5Ih8KA0lDThIKMjAyNy0wNi0yORoDQ1RTKgJUVzIDMjYzKABACkgXagcIARIDSUNOcgcIARIDQ1RTGiQSCjIwMjctMDctMDUoAEAMSBdqBwgBEgNDVFNyBwgBEgNJQ05AAUgBcAGYAQE&tfu=EgIIAQ",
-  "next_check": "2026-11-26T06:30+09:00",
+  "next_check": "2026-11-27T06:30+09:00",
   "last_check": "2027-06-29T06:30+09:00",
   "schedule_kst": [
     "06:30"

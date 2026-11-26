@@ -16,8 +16,8 @@
     },
     {
       "date": "2026-11-26",
-      "checked_at": "2026-11-26T05:58:42+09:00",
-      "price": 485036,
+      "checked_at": "2026-11-26T12:39:58+09:00",
+      "price": 484991,
       "error": null,
       "airline": "피치항공",
       "flight_number": "MM 710",
@@ -55,16 +55,16 @@
   },
   "status": "active",
   "summary": {
-    "current": 485036,
+    "current": 484991,
     "current_date": "2026-11-26",
     "prev": 209600,
     "min": 209600,
-    "max": 485036,
-    "avg": 347318,
+    "max": 484991,
+    "avg": 347296,
     "days": 2
   },
-  "updated_at": "2026-11-26T05:58:42+09:00",
-  "next_check": "2026-11-26T06:30+09:00",
+  "updated_at": "2026-11-26T12:39:58+09:00",
+  "next_check": "2026-11-27T06:30+09:00",
   "last_check": "2027-02-27T06:30+09:00",
   "schedule_kst": [
     "06:30"

@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-11-26T05:58:42+09:00",
+  "updated_at": "2026-11-26T12:39:58+09:00",
   "routes": [
     {
       "id": "icn-cts-20270629",
@@ -12,25 +12,27 @@
       "alert_below": null,
       "status": "active",
       "summary": {
-        "current": 624316,
-        "current_date": "2026-11-25",
-        "prev": 624656,
+        "current": 624511,
+        "current_date": "2026-11-26",
+        "prev": 624316,
         "min": 624316,
         "max": 624681,
-        "avg": 624551,
-        "days": 3
+        "avg": 624541,
+        "days": 4
       },
-      "next_check": "2026-11-26T06:30+09:00",
+      "next_check": "2026-11-27T06:30+09:00",
       "last_check": "2027-06-29T06:30+09:00",
       "spark": [
         624681,
         624656,
-        624316
+        624316,
+        624511
       ],
       "spark_dates": [
         "2026-11-23",
         "2026-11-24",
-        "2026-11-25"
+        "2026-11-25",
+        "2026-11-26"
       ]
     },
     {
@@ -71,25 +73,27 @@
       "alert_below": null,
       "status": "active",
       "summary": {
-        "current": 602100,
-        "current_date": "2026-11-25",
-        "prev": 602800,
+        "current": 601700,
+        "current_date": "2026-11-26",
+        "prev": 602100,
         "min": 599900,
         "max": 602800,
-        "avg": 601600,
-        "days": 3
+        "avg": 601625,
+        "days": 4
       },
-      "next_check": "2026-11-26T06:30+09:00",
+      "next_check": "2026-11-27T06:30+09:00",
       "last_check": "2027-06-26T06:30+09:00",
       "spark": [
         599900,
         602800,
-        602100
+        602100,
+        601700
       ],
       "spark_dates": [
         "2026-11-23",
         "2026-11-24",
-        "2026-11-25"
+        "2026-11-25",
+        "2026-11-26"
       ]
     },
     {
@@ -103,19 +107,19 @@
       "alert_below": null,
       "status": "active",
       "summary": {
-        "current": 485036,
+        "current": 484991,
         "current_date": "2026-11-26",
         "prev": 209600,
         "min": 209600,
-        "max": 485036,
-        "avg": 347318,
+        "max": 484991,
+        "avg": 347296,
         "days": 2
       },
-      "next_check": "2026-11-26T06:30+09:00",
+      "next_check": "2026-11-27T06:30+09:00",
       "last_check": "2027-02-27T06:30+09:00",
       "spark": [
         209600,
-        485036
+        484991
       ],
       "spark_dates": [
         "2026-11-25",
@@ -126,17 +130,17 @@
   "quota": {
     "plan_name": "Free Plan",
     "searches_per_month": 250,
-    "plan_searches_left": 200,
+    "plan_searches_left": 194,
     "extra_credits": 0,
-    "total_searches_left": 200,
-    "this_month_usage": 50,
+    "total_searches_left": 194,
+    "this_month_usage": 56,
     "plan_renewal_date": "2026-12-23",
     "account_rate_limit_per_hour": 250,
     "daily_usage": 8,
-    "checked_at": "2026-11-26T05:58:42+09:00"
+    "checked_at": "2026-11-26T12:39:58+09:00"
   },
   "schedule_kst": [
     "06:30"
   ],
-  "last_scheduled_date": "2026-11-25"
+  "last_scheduled_date": "2026-11-26"
 }
