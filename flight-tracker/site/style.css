@@ -254,8 +254,16 @@ pre.snippet { background: var(--bg); border-radius: 12px; padding: 12px; font-si
 
 /* ---------- 조건에 맞는 항공편 목록 ---------- */
 .opts { list-style: none; margin: 0; padding: 0; }
-.opts li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 12px; padding: 10px 0; border-top: 1px solid var(--line); }
+.opts li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 1px 10px; padding: 9px 0; border-top: 1px solid var(--line); }
 .opts li:first-child { border-top: 0; }
-.opts .o-main { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; font-size: 15px; }
-.opts .o-sub { grid-column: 1; }
+.opts .o-main { font-size: 15px; font-weight: 700; }
+.opts .o-sub { grid-column: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .opts .o-price { grid-row: 1 / span 2; grid-column: 2; align-self: center; font-weight: 800; font-size: 15px; text-align: right; }
+.opts.scroll { max-height: 300px; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch;
+  border: 1px solid var(--line); border-radius: 12px; padding: 0 12px;
+  background: linear-gradient(var(--card) 30%, transparent) top / 100% 24px no-repeat local,
+              linear-gradient(transparent, var(--card) 70%) bottom / 100% 24px no-repeat local,
+              linear-gradient(rgba(0,0,0,.08), transparent) top / 100% 8px no-repeat scroll,
+              linear-gradient(transparent, rgba(0,0,0,.08)) bottom / 100% 8px no-repeat scroll; }
+.opts.scroll:focus-visible { outline: 2px solid var(--accent); }
+.o-rank { font-size: 11px; font-weight: 600; margin-right: 6px; }

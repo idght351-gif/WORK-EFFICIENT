@@ -465,7 +465,7 @@ function timeRange(a, b) {
   return `${esc(a)} ~ ${esc(b)}`;
 }
 
-// 마지막 조회에서 조건에 맞았던 항공편들 (가격순, 최대 5개)
+// 마지막 조회에서 조건에 맞았던 항공편들 (가격순, 최대 30개) — 상자 안에서 스크롤
 function optionsHTML(e, r) {
   const opts = (e && e.options) || [];
   if (opts.length < 2) return "";
@@ -473,13 +473,12 @@ function optionsHTML(e, r) {
   const when = e.flex_date ? `${dayLabel(e.flex_date)} 출발 · ` : "";
   return `<section class="card">
     <h3 class="section-title">조건에 맞는 항공편 ${opts.length}개</h3>
-    <p class="muted small" style="margin:-6px 0 6px">${when}${round ? "가는 편 기준 · 가격은 왕복 최저가" : "가격순"} · ${md(e.date)} 조회</p>
-    <ol class="opts">${opts.map((o, i) => `
+    <p class="muted small" style="margin:-6px 0 6px">${when}${round ? "가는 편 기준 · 가격은 왕복 최저가" : "가격순"} · ${md(e.date)} 조회${opts.length > 5 ? " · 상자 안을 스크롤하면 더 보여요" : ""}</p>
+    <ol class="opts${opts.length > 5 ? " scroll" : ""}" tabindex="0" aria-label="조건에 맞는 항공편 목록">${opts.map((o, i) => `
       <li>
-        <div class="o-main"><b class="num">${esc(o.depart_time)} → ${esc(o.arrive_time)}</b>
-          <span class="muted small">${o.dep_airport && o.arr_airport ? `${esc(o.dep_airport)}→${esc(o.arr_airport)} · ` : ""}${o.stops === 0 ? "직항" : `경유 ${o.stops}회`}</span></div>
-        <div class="o-sub muted small">${esc(o.airline)} ${esc(o.flight_number)}</div>
-        <div class="o-price num">${i === 0 ? `<span class="badge good">최저</span> ` : ""}${won(o.price)}</div>
+        <div class="o-main num">${esc(o.depart_time)} → ${esc(o.arrive_time)}</div>
+        <div class="o-sub muted small">${o.dep_airport && o.arr_airport ? `${esc(o.dep_airport)}→${esc(o.arr_airport)} · ` : ""}${o.stops === 0 ? "직항" : `경유 ${o.stops}회`} · ${esc(o.airline)} ${esc(o.flight_number)}</div>
+        <div class="o-price num">${i === 0 ? `<span class="badge good">최저</span> ` : `<span class="o-rank muted">${i + 1}</span>`}${won(o.price)}</div>
       </li>`).join("")}
     </ol>
   </section>`;
