@@ -357,14 +357,20 @@ def check_flex(route: dict, api_key: str) -> tuple[dict | None, dict, str | None
                     key=lambda p: p["price"])
     if not prices:
         raise RuntimeError(f"가격 달력에 조건 맞는 날짜 없음 (후보 {len(cands)}일, 달력 결과 {len(cal.get('prices') or [])}일)")
-    best = prices[0]
-    one = {**route, "flex": None, "trip_type": None, "date": best["outbound_date"],
-           "return_date": best.get("return_date") if days else None}
-    try:
-        result, insights, url = check_route(one, api_key)
-    except RuntimeError as e:
-        result, insights, url = None, {}, None
-        print(f"  ! 상세 조회 실패, 달력 가격만 기록: {e}")
+    # 달력은 시 단위로만 거르므로(예: 19:30 이후 → 19시~), 가장 싼 날에 조건 맞는 편이 없으면 다음 날짜로 최대 3일까지 확인
+    result, insights, url, best = None, {}, None, prices[0]
+    for cand in prices[:3]:
+        one = {**route, "flex": None, "trip_type": None, "date": cand["outbound_date"],
+               "return_date": cand.get("return_date") if days else None}
+        try:
+            result, insights, url = check_route(one, api_key)
+        except RuntimeError as e:
+            result = None
+            print(f"  ! {cand['outbound_date']} 상세 조회 실패: {e}")
+        if result:
+            best = cand
+            break
+        print(f"  - {cand['outbound_date']} 조건에 맞는 편 없음 → 다음으로 싼 날 확인")
     if not result:
         result = {"price": int(best["price"]), "airline": "(항공편 정보 없음)", "flight_number": "",
                   "depart_time": "", "arrive_time": "", "stops": None, "duration_min": None}

@@ -461,5 +461,29 @@ class TestFlex(unittest.TestCase):
         self.assertTrue(rows["가장 싼 날"].startswith("2/20(토)"))
 
 
+class TestFlexFallback(unittest.TestCase):
+    def test_tries_next_date_when_time_window_fails(self):
+        import check_prices as cp
+        route = cp.normalize_route({"id": "x", "name": "x", "from": "KR", "to": "JP", "adults": 1, "max_stops": None,
+                                    "depart_after": "19:30", "flex": {"months": ["2027-02"], "weekdays": [4]}})
+        cal = {"prices": [{"outbound_date": "2027-02-05", "price": 50000},
+                          {"outbound_date": "2027-02-12", "price": 60000}]}
+        pages = {"2027-02-05": {"other_flights": [mflight(50000, "2027-02-05", "19:05", "ICN", "NRT", "EARLY")]},
+                 "2027-02-12": {"other_flights": [mflight(61000, "2027-02-12", "20:10", "ICN", "NRT", "LATE")]}}
+        calls = []
+
+        def fake(params, retries=3):
+            calls.append(params)
+            return cal if params["engine"] == "google_flights_calendar" else pages[params["outbound_date"]]
+        orig = cp.fetch_serpapi
+        cp.fetch_serpapi = fake
+        try:
+            out, _, _ = cp.check_route(route, "k")
+        finally:
+            cp.fetch_serpapi = orig
+        self.assertEqual(calls[0]["outbound_times"], "19,23")
+        self.assertEqual((out["flex_date"], out["flight_number"], out["price"]), ("2027-02-12", "LATE", 61000))
+
+
 if __name__ == "__main__":
     unittest.main()
