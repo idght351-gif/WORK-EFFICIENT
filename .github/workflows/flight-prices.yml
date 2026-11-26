@@ -1,14 +1,7 @@
 name: 항공권 가격 체크
 
 on:
-  schedule:
-    # 한국시간 06:30 (UTC 21:30) 하루 1번. 기본 브랜치에서만 동작하고,
-    # GitHub 사정으로 늦어지거나 빠질 수 있어서 07:10 · 07:50 에 다시 시도합니다.
-    # 그날 이미 조회했으면 재시도 실행은 검색 없이 바로 끝나요 (검색 횟수 그대로).
-    # 횟수를 늘리려면 cron 줄을 추가하고 아래 RUNS_PER_DAY · SCHEDULE_KST 도 맞춰 주세요 (예: "30 9 * * *" = 18:30).
-    - cron: "30 21 * * *"
-    - cron: "10 22 * * *"   # 07:10 재시도
-    - cron: "50 22 * * *"   # 07:50 재시도
+  # 정기(예약) 조회는 하지 않아요. 앱의 [지금 다시 조회] 버튼이나 Actions 탭 "Run workflow" 로만 조회합니다 (검색 횟수 절약).
   workflow_dispatch:        # Actions 탭에서 "Run workflow" 로 바로 실행
     inputs:
       route:
@@ -61,13 +54,13 @@ jobs:
           GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
           ALERT_EMAIL: sangsoo421@gmail.com   # 알림 받을 주소 (이 주소로만 보냄)
           SITE_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}
-          # 예약 실행·수동 실행 때만 목표가와 상관없이 최저가 메일을 보냅니다 (코드 push 때는 안 보냄)
-          SEND_REPORT: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
+          # 최저가 리포트 메일은 보내지 않아요 (앱에서 확인). 다시 받으려면 "true" 로
+          SEND_REPORT: "false"
           RUN_EVENT: ${{ github.event_name }}
           ONLY_ROUTE: ${{ github.event.inputs.route }}
           RETURNS_FOR: ${{ github.event.inputs.returns_for }}
-          RUNS_PER_DAY: "1"
-          SCHEDULE_KST: "06:30"   # 위 cron 을 한국시간으로 적은 것 (페이지·메일의 '다음 조회' 표시용)
+          RUNS_PER_DAY: "0"   # 예약 조회 없음
+          SCHEDULE_KST: ""    # 예약 조회 시각 (없음)
         # 코드 push 때 노선(routes.json)이 그대로면 검색 없이 페이지 데이터만 다시 만듭니다 (검색 횟수 절약)
         run: |
           if [ -n "$RETURNS_FOR" ]; then
