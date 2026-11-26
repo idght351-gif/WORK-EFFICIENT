@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-11-27T06:17:23+09:00",
+  "updated_at": "2026-11-27T06:50:01+09:00",
   "routes": [
     {
       "id": "icn-cts-20270629",
@@ -21,7 +21,7 @@
         "avg": 624541,
         "days": 4
       },
-      "next_check": "2026-11-27T06:30+09:00",
+      "next_check": "2026-11-28T06:30+09:00",
       "last_check": "2027-06-29T06:30+09:00",
       "spark": [
         624681,
@@ -83,7 +83,7 @@
         "avg": 601625,
         "days": 4
       },
-      "next_check": "2026-11-27T06:30+09:00",
+      "next_check": "2026-11-28T06:30+09:00",
       "last_check": "2027-06-26T06:30+09:00",
       "spark": [
         599900,
@@ -118,7 +118,7 @@
         "avg": 347296,
         "days": 2
       },
-      "next_check": "2026-11-27T06:30+09:00",
+      "next_check": "2026-11-28T06:30+09:00",
       "last_check": "2027-02-27T06:30+09:00",
       "spark": [
         209600,
@@ -128,19 +128,57 @@
         "2026-11-25",
         "2026-11-26"
       ]
+    },
+    {
+      "id": "kr-jp-202612",
+      "name": "한국 → 일본",
+      "from": "KR",
+      "to": "JP",
+      "date": "2026-12-04",
+      "return_date": "2026-12-06",
+      "legs": null,
+      "flex": {
+        "months": [
+          "2026-12"
+        ],
+        "weekdays": [
+          4,
+          5
+        ],
+        "trip_days": 2
+      },
+      "alert_below": null,
+      "status": "active",
+      "summary": {
+        "current": 322399,
+        "current_date": "2026-11-27",
+        "prev": null,
+        "min": 322399,
+        "max": 322399,
+        "avg": 322399,
+        "days": 1
+      },
+      "next_check": "2026-11-28T06:30+09:00",
+      "last_check": "2026-12-04T06:30+09:00",
+      "spark": [
+        322399
+      ],
+      "spark_dates": [
+        "2026-11-27"
+      ]
     }
   ],
   "quota": {
     "plan_name": "Free Plan",
     "searches_per_month": 250,
-    "plan_searches_left": 191,
+    "plan_searches_left": 188,
     "extra_credits": 0,
-    "total_searches_left": 191,
-    "this_month_usage": 59,
+    "total_searches_left": 188,
+    "this_month_usage": 62,
     "plan_renewal_date": "2026-12-23",
     "account_rate_limit_per_hour": 250,
-    "daily_usage": 8,
-    "checked_at": "2026-11-27T06:17:23+09:00"
+    "daily_usage": 11,
+    "checked_at": "2026-11-27T06:50:01+09:00"
   },
   "schedule_kst": [
     "06:30"

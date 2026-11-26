@@ -1,0 +1,94 @@
+{
+  "history": [
+    {
+      "date": "2026-11-27",
+      "checked_at": "2026-11-27T06:50:01+09:00",
+      "price": 322399,
+      "error": null,
+      "airline": "피치항공",
+      "flight_number": "MM 710",
+      "depart_time": "21:00",
+      "arrive_time": "22:45",
+      "stops": 0,
+      "duration_min": 105,
+      "dep_airport": "ICN",
+      "arr_airport": "KIX",
+      "return_airline": "피치항공",
+      "return_flight_number": "MM 701",
+      "return_depart_time": "07:40",
+      "return_arrive_time": "09:45",
+      "return_stops": 0,
+      "flex_date": "2026-12-19",
+      "flex_return_date": "2026-12-21",
+      "calendar_price": 302800,
+      "flex_top": [
+        {
+          "date": "2026-12-12",
+          "price": 292800
+        },
+        {
+          "date": "2026-12-19",
+          "price": 302800
+        },
+        {
+          "date": "2026-12-11",
+          "price": 352800
+        },
+        {
+          "date": "2026-12-18",
+          "price": 382800
+        },
+        {
+          "date": "2026-12-05",
+          "price": 386520
+        }
+      ]
+    }
+  ],
+  "alert_state": {},
+  "google_flights_url": "https://www.google.com/travel/flights?hl=ko&gl=kr&curr=KRW&tfs=CBwQAhpNEgoyMDI2LTEyLTE5Ih8KA0lDThIKMjAyNi0xMi0xORoDS0lYKgJNTTIDNzEwQBNIF2oMCAMSCC9tLzA2cWQzcgwIAxIIL20vMDNfM2QaLBIKMjAyNi0xMi0yMUAASBdqDAgDEggvbS8wM18zZHIMCAMSCC9tLzA2cWQzQAFIAXABmAEB&tfu=EgIIAQ",
+  "route": {
+    "id": "kr-jp-202612",
+    "name": "한국 → 일본",
+    "from": "KR",
+    "to": "JP",
+    "flex": {
+      "months": [
+        "2026-12"
+      ],
+      "weekdays": [
+        4,
+        5
+      ],
+      "trip_days": 2
+    },
+    "depart_after": "19:30",
+    "depart_before": "24:00",
+    "return_after": "00:00",
+    "return_before": "24:00",
+    "adults": 1,
+    "travel_class": "economy",
+    "max_stops": null,
+    "alert_below": null,
+    "active": true,
+    "date": "2026-12-04",
+    "return_date": "2026-12-06",
+    "trip_type": "flex"
+  },
+  "status": "active",
+  "summary": {
+    "current": 322399,
+    "current_date": "2026-11-27",
+    "prev": null,
+    "min": 322399,
+    "max": 322399,
+    "avg": 322399,
+    "days": 1
+  },
+  "updated_at": "2026-11-27T06:50:01+09:00",
+  "next_check": "2026-11-28T06:30+09:00",
+  "last_check": "2026-12-04T06:30+09:00",
+  "schedule_kst": [
+    "06:30"
+  ]
+}
