@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-11-27T07:30:19+09:00",
+  "updated_at": "2026-11-27T07:39:07+09:00",
   "routes": [
     {
       "id": "icn-cts-20270629",
@@ -135,8 +135,8 @@
     },
     {
       "id": "kr-jp-202612",
-      "name": "한국 → 일본",
-      "from": "KR",
+      "name": "서울 → 일본",
+      "from": "ICN,GMP",
       "to": "JP",
       "date": "2026-12-11",
       "return_date": "2026-12-12",
@@ -151,18 +151,18 @@
       "alert_below": null,
       "status": "active",
       "summary": {
-        "current": 322399,
+        "current": 414700,
         "current_date": "2026-11-27",
         "prev": null,
-        "min": 322399,
-        "max": 322399,
-        "avg": 322399,
+        "min": 414700,
+        "max": 414700,
+        "avg": 414700,
         "days": 1
       },
       "next_check": "2026-11-28T06:30+09:00",
       "last_check": "2026-12-11T06:30+09:00",
       "spark": [
-        322399
+        414700
       ],
       "spark_dates": [
         "2026-11-27"
@@ -172,14 +172,14 @@
   "quota": {
     "plan_name": "Free Plan",
     "searches_per_month": 250,
-    "plan_searches_left": 177,
+    "plan_searches_left": 174,
     "extra_credits": 0,
-    "total_searches_left": 177,
-    "this_month_usage": 73,
+    "total_searches_left": 174,
+    "this_month_usage": 76,
     "plan_renewal_date": "2026-12-23",
     "account_rate_limit_per_hour": 250,
     "daily_usage": 11,
-    "checked_at": "2026-11-27T07:30:19+09:00"
+    "checked_at": "2026-11-27T07:39:07+09:00"
   },
   "schedule_kst": [
     "06:30"
