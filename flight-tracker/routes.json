@@ -73,8 +73,8 @@
     },
     {
       "id": "kr-jp-202612",
-      "name": "서울 → 일본",
-      "from": "ICN,GMP",
+      "name": "인천 · 김포 · 청주 → 일본",
+      "from": "ICN,GMP,CJJ",
       "to": "JP",
       "flex": {
         "dates": [

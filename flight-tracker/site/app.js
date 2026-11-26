@@ -8,7 +8,7 @@ const LEVEL = { low: ["good", "Google 기준 싼 편"], typical: ["", "Google �
 const DOW = ["일", "월", "화", "수", "목", "금", "토"];
 
 // 나라 전체 코드 (tracker/check_prices.py REGIONS 와 같음)
-const REGION_NAME = { KR: "서울", JP: "일본" };  // KR 은 서울(인천·김포)로 검색
+const REGION_NAME = { KR: "한국", JP: "일본" };  // KR 은 인천·김포·청주로 검색
 const WD = ["월", "화", "수", "목", "금", "토", "일"];  // flex.weekdays: 0=월 … 6=일
 // "2월 금·토", "2~3월 주말" 처럼 짧게
 // 달·요일로 정한 노선을 실제 날짜 목록으로 (tracker/check_prices.py flex_dates 와 같은 규칙)
@@ -750,7 +750,7 @@ function renderAdd(edit) {
           <label>출발 공항 코드<input name="from" value="ICN" maxlength="23" placeholder="ICN 또는 ICN,GMP"></label>
           <label>도착 공항 코드<input name="to" value="KIX" maxlength="23" placeholder="KIX 또는 KIX,UKB"></label>
           <div class="full quick">
-            <button type="button" class="chip" data-set="from" data-v="ICN,GMP">출발 서울 (인천·김포)</button>
+            <button type="button" class="chip" data-set="from" data-v="ICN,GMP,CJJ">출발 인천·김포·청주</button>
             <button type="button" class="chip" data-set="to" data-v="JP">도착 일본 전체</button>
           </div>
           <div class="full seg seg2" role="radiogroup" aria-label="날짜 정하는 방식">
