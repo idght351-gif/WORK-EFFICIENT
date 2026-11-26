@@ -73,8 +73,8 @@
     },
     {
       "id": "kr-jp-202612",
-      "name": "한국 → 일본",
-      "from": "KR",
+      "name": "서울 → 일본",
+      "from": "ICN,GMP",
       "to": "JP",
       "flex": {
         "dates": [

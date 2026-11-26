@@ -427,7 +427,7 @@ class TestFlex(unittest.TestCase):
         self.assertEqual([d.isoformat() for d in ds][:3], ["2027-02-05", "2027-02-06", "2027-02-12"])
         self.assertEqual(len(ds), 8)
         self.assertEqual(cp.flex_label(self.ROUTE["flex"]), "2027년 2월 금·토요일 · 편도")
-        self.assertEqual(cp.resolve_place("KR"), "/m/06qd3")
+        self.assertEqual(cp.resolve_place("KR"), "ICN,GMP")
         self.assertEqual(cp.resolve_place("icn, /m/03_3d,JP"), "ICN,/m/03_3d,/m/03_3d")
         r = cp.normalize_route(self.ROUTE)
         self.assertEqual((r["date"], r["return_date"]), ("2027-02-05", None))
@@ -451,7 +451,7 @@ class TestFlex(unittest.TestCase):
             out, _, _ = cp.check_route(cp.normalize_route(self.ROUTE), "k")
         finally:
             cp.fetch_serpapi = orig
-        self.assertEqual(calls[0]["departure_id"], "/m/06qd3")
+        self.assertEqual(calls[0]["departure_id"], "ICN,GMP")
         self.assertEqual((calls[0]["date_range_start"], calls[0]["date_range_end"], calls[0]["type"]),
                          ("2027-02-05", "2027-02-27", 2))
         self.assertEqual((calls[1]["outbound_date"], calls[1]["arrival_id"]), ("2027-02-20", "/m/03_3d"))

@@ -65,8 +65,10 @@ def is_multi(route: dict) -> bool:
 
 # ---------------------------------------------------------------- 지역(나라 전체) · 유연한 날짜
 
-# 나라 전체를 뜻하는 코드 → Google 위치 ID(kgmid). 공항 코드와 쉼표로 섞어 써도 됨 ("KR" , "ICN,GMP", "JP")
-REGIONS = {"KR": "/m/06qd3", "JP": "/m/03_3d"}
+# 나라 전체를 뜻하는 코드. 공항 코드와 쉼표로 섞어 써도 됨 ("KR" , "ICN,GMP", "JP")
+# 한국 전체(kgmid /m/06qd3)로 출발하면 Google 이 결과를 주지 않아서, KR 은 서울(인천·김포)로 검색함.
+# 일본 전체는 Google 위치 ID(kgmid)로 검색.
+REGIONS = {"KR": "ICN,GMP", "JP": "/m/03_3d"}
 WEEKDAY_KO = "월화수목금토일"
 
 
@@ -801,7 +803,7 @@ METRO = [
 ]
 
 
-REGION_SITES = {"KR": ("SEL", "kr"), "JP": ("TYO", "jp")}  # 나라 전체: Kayak 은 대표 도시, Skyscanner 는 나라 코드
+REGION_SITES = {"KR": ("SEL", "sela"), "JP": ("TYO", "jp")}  # 나라 전체: Kayak 은 대표 도시, Skyscanner 는 나라 코드
 
 
 def site_codes(codes: str) -> tuple[str, str]:
