@@ -293,15 +293,15 @@ def fetch_serpapi(params: dict, retries: int = 3) -> dict:
     raise RuntimeError(f"SerpApi 조회 실패: {last_err}")
 
 
-def pick_cheapest(data: dict, route: dict, leg: str = "depart",
-                  window: tuple[str | None, str | None] | None = None) -> dict | None:
-    """응답에서 출발 시간대·경유 조건 안의 최저가 항공편 하나를 고릅니다.
+def matching_options(data: dict, route: dict, leg: str = "depart",
+                     window: tuple[str | None, str | None] | None = None) -> list[dict]:
+    """응답에서 출발 시간대·경유 조건에 맞는 항공편들을 가격순으로 (같은 편 중복 없이).
     leg="return" 이면 오는 편 시간대를, window 를 주면 그 시간대를 씁니다.
     SerpApi 는 departure_token 으로 이어서 조회할 때 경유·시간 필터를 적용하지 않으므로 여기서 직접 거릅니다."""
     a, b = window if window else (route.get(f"{leg}_after"), route.get(f"{leg}_before"))
     after, before = parse_hm(a or "00:00"), parse_hm(b or "24:00")
     max_stops = route.get("max_stops")
-    best = None
+    found, seen = [], set()
     for item in (data.get("best_flights") or []) + (data.get("other_flights") or []):
         price = item.get("price")
         legs = item.get("flights") or []
@@ -317,20 +317,40 @@ def pick_cheapest(data: dict, route: dict, leg: str = "depart",
             continue
         if max_stops is not None and len(legs) - 1 > max_stops:
             continue
-        if best is None or price < best["price"]:
-            best = {
-                "price": int(price),
-                "airline": " + ".join(dict.fromkeys(l.get("airline", "") for l in legs)),
-                "flight_number": ", ".join(l.get("flight_number", "") for l in legs),
-                "depart_time": dep.split(" ")[1] if " " in dep else dep,
-                "arrive_time": arr.split(" ")[1] if " " in arr else arr,
-                "stops": len(legs) - 1,
-                "duration_min": item.get("total_duration"),
-                "departure_token": item.get("departure_token"),
-                "dep_airport": legs[0].get("departure_airport", {}).get("id"),
-                "arr_airport": legs[-1].get("arrival_airport", {}).get("id"),
-            }
-    return best
+        opt = {
+            "price": int(price),
+            "airline": " + ".join(dict.fromkeys(l.get("airline", "") for l in legs)),
+            "flight_number": ", ".join(l.get("flight_number", "") for l in legs),
+            "depart_time": dep.split(" ")[1] if " " in dep else dep,
+            "arrive_time": arr.split(" ")[1] if " " in arr else arr,
+            "stops": len(legs) - 1,
+            "duration_min": item.get("total_duration"),
+            "departure_token": item.get("departure_token"),
+            "dep_airport": legs[0].get("departure_airport", {}).get("id"),
+            "arr_airport": legs[-1].get("arrival_airport", {}).get("id"),
+        }
+        key = (opt["flight_number"], opt["depart_time"])
+        if key in seen:
+            continue
+        seen.add(key)
+        found.append(opt)
+    found.sort(key=lambda o: o["price"])
+    return found
+
+
+def pick_cheapest(data: dict, route: dict, leg: str = "depart",
+                  window: tuple[str | None, str | None] | None = None) -> dict | None:
+    """조건에 맞는 최저가 항공편 하나."""
+    opts = matching_options(data, route, leg, window)
+    return dict(opts[0]) if opts else None
+
+
+OPTIONS_KEEP = 5  # 앱에 보여 줄 같은 조건의 다른 항공편 수
+
+
+def option_list(opts: list[dict], day: str) -> list[dict]:
+    keys = ("price", "airline", "flight_number", "depart_time", "arrive_time", "stops", "dep_airport", "arr_airport")
+    return [{**{k: o.get(k) for k in keys}, "date": day} for o in opts[:OPTIONS_KEEP]]
 
 
 MAX_DIRECT_FLEX_DATES = 4  # 가격 달력이 비었을 때 날짜별로 직접 검색할 최대 후보 수
@@ -439,7 +459,8 @@ def check_route(route: dict, api_key: str) -> tuple[dict | None, dict, str | Non
     data = fetch_serpapi(params)
     insights = data.get("price_insights") or {}
     url = (data.get("search_metadata") or {}).get("google_flights_url")
-    out = pick_cheapest(data, route, "depart")
+    opts = matching_options(data, route, "depart")
+    out = dict(opts[0]) if opts else None
     if not out:
         # 왜 없는지 남김: 검색 결과 수 · 경유 조건 · 시간대
         raise NoMatch(f"가는 편 {route['date']} 조건에 맞는 편 없음 ("
@@ -462,6 +483,8 @@ def check_route(route: dict, api_key: str) -> tuple[dict | None, dict, str | Non
             print(f"  ! 오는 편 조회 실패, 가는 편 기준 가격만 기록: {e}")
     if out:
         out.pop("departure_token", None)
+        # 같은 조건의 다른 가는 편들 (왕복이면 가격은 Google 이 보여 주는 왕복 최저 기준)
+        out["options"] = option_list(opts, route["date"])
     return out, insights, url
 
 

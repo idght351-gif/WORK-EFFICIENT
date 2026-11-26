@@ -530,5 +530,24 @@ class TestFlexDirectFallback(unittest.TestCase):
         self.assertEqual((replaced[-1]["price"], replaced[-1]["error"]), (None, "boom"))
 
 
+class TestOptions(unittest.TestCase):
+    def test_keeps_sorted_unique_options(self):
+        import check_prices as cp
+        data = {"best_flights": [flight(300000, "10:00", fn="A")],
+                "other_flights": [flight(200000, "11:00", fn="B"), flight(200000, "11:00", fn="B"),
+                                  flight(150000, "08:00", fn="EARLY"), flight(250000, "11:30", fn="C")]}
+        route = {"from": "ICN", "to": "NRT", "date": "2026-12-20", "return_date": None,
+                 "depart_after": "09:00", "depart_before": "12:00", "adults": 1, "travel_class": "economy", "max_stops": None}
+        orig = cp.fetch_serpapi
+        cp.fetch_serpapi = lambda params, retries=3: data
+        try:
+            out, _, _ = cp.check_route(route, "k")
+        finally:
+            cp.fetch_serpapi = orig
+        self.assertEqual(out["flight_number"], "B")
+        self.assertEqual([o["flight_number"] for o in out["options"]], ["B", "C", "A"])
+        self.assertEqual(out["options"][0]["date"], "2026-12-20")
+
+
 if __name__ == "__main__":
     unittest.main()
