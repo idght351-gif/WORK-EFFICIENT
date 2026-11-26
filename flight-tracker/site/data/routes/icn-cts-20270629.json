@@ -69,6 +69,76 @@
       "return_depart_time": "14:30",
       "return_arrive_time": "17:40",
       "return_stops": 0
+    },
+    {
+      "date": "2026-11-27",
+      "checked_at": "2026-11-27T07:30:19+09:00",
+      "price": 624346,
+      "error": null,
+      "airline": "Trinity Airways",
+      "flight_number": "TW 263",
+      "depart_time": "10:10",
+      "arrive_time": "13:00",
+      "stops": 0,
+      "duration_min": 170,
+      "dep_airport": "ICN",
+      "arr_airport": "CTS",
+      "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/TW.png",
+      "return_airline": "Trinity Airways",
+      "return_flight_number": "TW 264",
+      "return_depart_time": "14:30",
+      "return_arrive_time": "17:40",
+      "return_stops": 0,
+      "options": [
+        {
+          "price": 624217,
+          "airline": "Trinity Airways",
+          "flight_number": "TW 263",
+          "depart_time": "10:10",
+          "arrive_time": "13:00",
+          "stops": 0,
+          "dep_airport": "ICN",
+          "arr_airport": "CTS",
+          "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/TW.png",
+          "date": "2027-06-29"
+        },
+        {
+          "price": 652300,
+          "airline": "대한항공",
+          "flight_number": "KE 761",
+          "depart_time": "10:15",
+          "arrive_time": "13:00",
+          "stops": 0,
+          "dep_airport": "ICN",
+          "arr_airport": "CTS",
+          "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/KE.png",
+          "date": "2027-06-29"
+        },
+        {
+          "price": 652300,
+          "airline": "대한항공",
+          "flight_number": "KE 765",
+          "depart_time": "10:35",
+          "arrive_time": "13:25",
+          "stops": 0,
+          "dep_airport": "ICN",
+          "arr_airport": "CTS",
+          "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/KE.png",
+          "date": "2027-06-29"
+        },
+        {
+          "price": 652300,
+          "airline": "대한항공",
+          "flight_number": "KE 769",
+          "depart_time": "12:35",
+          "arrive_time": "15:20",
+          "stops": 0,
+          "dep_airport": "ICN",
+          "arr_airport": "CTS",
+          "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/KE.png",
+          "date": "2027-06-29"
+        }
+      ]
     }
   ],
   "alert_state": {},
@@ -91,15 +161,15 @@
   },
   "status": "active",
   "summary": {
-    "current": 624511,
-    "current_date": "2026-11-26",
-    "prev": 624316,
+    "current": 624346,
+    "current_date": "2026-11-27",
+    "prev": 624511,
     "min": 624316,
     "max": 624681,
-    "avg": 624541,
-    "days": 4
+    "avg": 624502,
+    "days": 5
   },
-  "updated_at": "2026-11-27T07:28:38+09:00",
+  "updated_at": "2026-11-27T07:30:19+09:00",
   "google_flights_url": "https://www.google.com/travel/flights?hl=ko&gl=kr&curr=KRW&tfs=CBwQAhpFEgoyMDI3LTA2LTI5Ih8KA0lDThIKMjAyNy0wNi0yORoDQ1RTKgJUVzIDMjYzKABACkgXagcIARIDSUNOcgcIARIDQ1RTGiQSCjIwMjctMDctMDUoAEAMSBdqBwgBEgNDVFNyBwgBEgNJQ05AAUgBcAGYAQE&tfu=EgIIAQ",
   "next_check": "2026-11-28T06:30+09:00",
   "last_check": "2027-06-29T06:30+09:00",
