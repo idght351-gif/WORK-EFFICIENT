@@ -72,7 +72,7 @@
     },
     {
       "date": "2026-11-27",
-      "checked_at": "2026-11-27T07:30:19+09:00",
+      "checked_at": "2026-11-27T08:03:22+09:00",
       "price": 624346,
       "error": null,
       "airline": "Trinity Airways",
@@ -84,11 +84,64 @@
       "dep_airport": "ICN",
       "arr_airport": "CTS",
       "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/TW.png",
+      "return_options": [
+        {
+          "price": 624346,
+          "airline": "Trinity Airways",
+          "flight_number": "TW 264",
+          "depart_time": "14:30",
+          "arrive_time": "17:40",
+          "stops": 0,
+          "dep_airport": "CTS",
+          "arr_airport": "ICN",
+          "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/TW.png",
+          "date": "2027-07-05"
+        },
+        {
+          "price": 693096,
+          "airline": "대한항공",
+          "flight_number": "KE 762",
+          "depart_time": "14:30",
+          "arrive_time": "17:45",
+          "stops": 0,
+          "dep_airport": "CTS",
+          "arr_airport": "ICN",
+          "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/KE.png",
+          "date": "2027-07-05"
+        },
+        {
+          "price": 693096,
+          "airline": "대한항공",
+          "flight_number": "KE 766",
+          "depart_time": "15:05",
+          "arrive_time": "18:10",
+          "stops": 0,
+          "dep_airport": "CTS",
+          "arr_airport": "ICN",
+          "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/KE.png",
+          "date": "2027-07-05"
+        },
+        {
+          "price": 743709,
+          "airline": "대한항공",
+          "flight_number": "KE 770",
+          "depart_time": "16:20",
+          "arrive_time": "19:30",
+          "stops": 0,
+          "dep_airport": "CTS",
+          "arr_airport": "ICN",
+          "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/KE.png",
+          "date": "2027-07-05"
+        }
+      ],
       "return_airline": "Trinity Airways",
       "return_flight_number": "TW 264",
       "return_depart_time": "14:30",
       "return_arrive_time": "17:40",
       "return_stops": 0,
+      "return_dep_airport": "CTS",
+      "return_arr_airport": "ICN",
+      "return_airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/TW.png",
       "options": [
         {
           "price": 624217,
@@ -169,7 +222,7 @@
     "avg": 624502,
     "days": 5
   },
-  "updated_at": "2026-11-27T07:57:40+09:00",
+  "updated_at": "2026-11-27T08:03:22+09:00",
   "google_flights_url": "https://www.google.com/travel/flights?hl=ko&gl=kr&curr=KRW&tfs=CBwQAhpFEgoyMDI3LTA2LTI5Ih8KA0lDThIKMjAyNy0wNi0yORoDQ1RTKgJUVzIDMjYzKABACkgXagcIARIDSUNOcgcIARIDQ1RTGiQSCjIwMjctMDctMDUoAEAMSBdqBwgBEgNDVFNyBwgBEgNJQ05AAUgBcAGYAQE&tfu=EgIIAQ",
   "next_check": "2026-11-28T06:30+09:00",
   "last_check": "2027-06-29T06:30+09:00",

@@ -2,7 +2,7 @@
   "history": [
     {
       "date": "2026-11-27",
-      "checked_at": "2026-11-27T07:41:49+09:00",
+      "checked_at": "2026-11-27T08:03:22+09:00",
       "price": 414700,
       "error": null,
       "airline": "피치항공",
@@ -14,11 +14,64 @@
       "dep_airport": "ICN",
       "arr_airport": "KIX",
       "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/MM.png",
+      "return_options": [
+        {
+          "price": 414700,
+          "airline": "피치항공",
+          "flight_number": "MM 705",
+          "depart_time": "11:45",
+          "arrive_time": "13:50",
+          "stops": 0,
+          "dep_airport": "KIX",
+          "arr_airport": "ICN",
+          "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/MM.png",
+          "date": "2026-12-12"
+        },
+        {
+          "price": 462700,
+          "airline": "피치항공",
+          "flight_number": "MM 701",
+          "depart_time": "07:40",
+          "arrive_time": "09:45",
+          "stops": 0,
+          "dep_airport": "KIX",
+          "arr_airport": "ICN",
+          "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/MM.png",
+          "date": "2026-12-12"
+        },
+        {
+          "price": 473700,
+          "airline": "피치항공",
+          "flight_number": "MM 709",
+          "depart_time": "18:10",
+          "arrive_time": "20:15",
+          "stops": 0,
+          "dep_airport": "KIX",
+          "arr_airport": "ICN",
+          "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/MM.png",
+          "date": "2026-12-12"
+        },
+        {
+          "price": 473700,
+          "airline": "피치항공",
+          "flight_number": "MM 711",
+          "depart_time": "19:50",
+          "arrive_time": "21:50",
+          "stops": 0,
+          "dep_airport": "KIX",
+          "arr_airport": "ICN",
+          "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/MM.png",
+          "date": "2026-12-12"
+        }
+      ],
       "return_airline": "피치항공",
       "return_flight_number": "MM 705",
       "return_depart_time": "11:45",
       "return_arrive_time": "13:50",
       "return_stops": 0,
+      "return_dep_airport": "KIX",
+      "return_arr_airport": "ICN",
+      "return_airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/MM.png",
       "options": [
         {
           "price": 414700,
@@ -204,7 +257,7 @@
     "avg": 414700,
     "days": 1
   },
-  "updated_at": "2026-11-27T07:57:40+09:00",
+  "updated_at": "2026-11-27T08:03:22+09:00",
   "next_check": "2026-11-28T06:30+09:00",
   "last_check": "2026-12-11T06:30+09:00",
   "schedule_kst": [
