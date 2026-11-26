@@ -10,6 +10,11 @@ on:
     - cron: "10 22 * * *"   # 07:10 재시도
     - cron: "50 22 * * *"   # 07:50 재시도
   workflow_dispatch:        # Actions 탭에서 "Run workflow" 로 바로 실행
+    inputs:
+      route:
+        description: "이 노선만 조회 (노선 id, 비우면 전체)"
+        required: false
+        default: ""
   push:
     branches: [main]
     paths:
@@ -55,6 +60,7 @@ jobs:
           # 예약 실행·수동 실행 때만 목표가와 상관없이 최저가 메일을 보냅니다 (코드 push 때는 안 보냄)
           SEND_REPORT: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
           RUN_EVENT: ${{ github.event_name }}
+          ONLY_ROUTE: ${{ github.event.inputs.route }}
           RUNS_PER_DAY: "1"
           SCHEDULE_KST: "06:30"   # 위 cron 을 한국시간으로 적은 것 (페이지·메일의 '다음 조회' 표시용)
         # 코드 push 때 노선(routes.json)이 그대로면 검색 없이 페이지 데이터만 다시 만듭니다 (검색 횟수 절약)

@@ -333,6 +333,35 @@ def pick_cheapest(data: dict, route: dict, leg: str = "depart",
     return best
 
 
+MAX_DIRECT_FLEX_DATES = 4  # 가격 달력이 비었을 때 날짜별로 직접 검색할 최대 후보 수
+
+
+def check_flex_direct(route: dict, api_key: str, cands: list[date], days) -> tuple[dict | None, dict, str | None]:
+    """후보일마다 일반 검색 → 조건에 맞는 가장 싼 날."""
+    found = []
+    for d in cands:
+        one = {**route, "flex": None, "trip_type": None, "date": d.isoformat(),
+               "return_date": (d + timedelta(days=int(days))).isoformat() if days else None}
+        try:
+            result, insights, url = check_route(one, api_key)
+        except RuntimeError as e:
+            print(f"  ! {d} 조회 실패: {e}")
+            continue
+        if result:
+            found.append((result["price"], d, result, insights, url, one["return_date"]))
+        else:
+            print(f"  - {d} 조건에 맞는 편 없음")
+    if not found:
+        raise RuntimeError(f"후보 {len(cands)}일 모두 조건에 맞는 편 없음")
+    found.sort(key=lambda x: x[0])
+    price, d, result, insights, url, ret = found[0]
+    result["flex_date"] = d.isoformat()
+    if ret:
+        result["flex_return_date"] = ret
+    result["flex_top"] = [{"date": x[1].isoformat(), "price": int(x[0])} for x in found[:5]]
+    return result, insights, url
+
+
 def check_flex(route: dict, api_key: str) -> tuple[dict | None, dict, str | None]:
     """유연한 날짜: 가격 달력 1회로 후보일(월·요일) 중 가장 싼 날을 고르고, 그날 상세 검색으로 항공편을 확인."""
     flex = route["flex"]
@@ -363,7 +392,11 @@ def check_flex(route: dict, api_key: str) -> tuple[dict | None, dict, str | None
     prices = sorted((p for p in cal.get("prices") or [] if p.get("price") and p.get("outbound_date") in wanted),
                     key=lambda p: p["price"])
     if not prices:
-        raise RuntimeError(f"가격 달력에 조건 맞는 날짜 없음 (후보 {len(cands)}일, 달력 결과 {len(cal.get('prices') or [])}일)")
+        # 가격 달력이 비는 경우(1박 왕복·짧은 범위 등): 후보일이 적으면 날짜마다 직접 검색해 가장 싼 날을 고름
+        if len(cands) > MAX_DIRECT_FLEX_DATES:
+            raise RuntimeError(f"가격 달력에 조건 맞는 날짜 없음 (후보 {len(cands)}일, 달력 결과 {len(cal.get('prices') or [])}일)")
+        print(f"  - 가격 달력 결과 없음 → 후보 {len(cands)}일을 하나씩 검색")
+        return check_flex_direct(route, api_key, cands, days)
     # 달력은 시 단위로만 거르므로(예: 19:30 이후 → 19시~), 가장 싼 날에 조건 맞는 편이 없으면 다음 날짜로 최대 3일까지 확인
     result, insights, url, best, failed = None, {}, None, prices[0], set()
     for cand in prices[:3]:
@@ -424,10 +457,11 @@ def check_route(route: dict, api_key: str) -> tuple[dict | None, dict, str | Non
 # ---------------------------------------------------------------- 기록 / 알림 판단
 
 def record_result(history: list, today: str, result: dict | None, error: str | None,
-                  checked_at: str, insights: dict) -> list:
-    """오늘 항목을 추가·교체합니다. 오늘 이미 성공 기록이 있으면 실패로 덮어쓰지 않습니다."""
+                  checked_at: str, insights: dict, replace: bool = False) -> list:
+    """오늘 항목을 추가·교체합니다. 오늘 이미 성공 기록이 있으면 실패로 덮어쓰지 않습니다.
+    replace=True(조건이 바뀐 노선)면 예전 조건의 결과가 남지 않도록 실패로도 덮어씁니다."""
     existing = next((h for h in history if h["date"] == today), None)
-    if existing and existing.get("price") is not None and result is None:
+    if existing and existing.get("price") is not None and result is None and not replace:
         return history
     entry = {"date": today, "checked_at": checked_at, "price": None, "error": error}
     if result:
@@ -858,6 +892,9 @@ def run(dry_run: bool = False) -> int:
     only = changed_route_ids(routes_raw) if os.environ.get("ONLY_CHANGED") == "1" else None
     if only is not None:
         print(f"바뀐 노선만 조회: {sorted(only) or '없음'}")
+    if os.environ.get("ONLY_ROUTE"):  # 수동 실행에서 노선 하나만 지정
+        only = {os.environ["ONLY_ROUTE"].strip()}
+        print(f"지정한 노선만 조회: {sorted(only)}")
     now = now_kst()
     today = now.date().isoformat()
     prev_index = load_json(DATA_DIR / "index.json", {})
@@ -892,7 +929,8 @@ def run(dry_run: bool = False) -> int:
                 failures += 1
             prev_ok = [h for h in history if h.get("price") is not None]
             prev_price = prev_ok[-1]["price"] if prev_ok else None  # 직전 조회(오늘 이른 시각 포함)
-            history = record_result(history, today, result, error, now.isoformat(timespec="seconds"), insights)
+            history = record_result(history, today, result, error, now.isoformat(timespec="seconds"), insights,
+                                    replace=only is not None and os.environ.get("ONLY_CHANGED") == "1")
             doc["google_flights_url"] = url or doc.get("google_flights_url")
             print(f"  가격: {won(result['price']) if result else '없음'}" + (f" (오류: {error})" if error else ""))
 

@@ -494,5 +494,41 @@ class TestFlexDates(unittest.TestCase):
         self.assertEqual(cp.flex_label(flex), "12/11(금) · 12/12(토) 중 가장 싼 날 · 2박 왕복")
 
 
+class TestFlexDirectFallback(unittest.TestCase):
+    def test_empty_calendar_searches_each_date(self):
+        import check_prices as cp
+        route = cp.normalize_route({"id": "x", "name": "x", "from": "KR", "to": "JP", "adults": 1, "max_stops": None,
+                                    "depart_after": "19:00", "flex": {"dates": ["2027-02-12", "2027-02-19"], "trip_days": 1}})
+        outs = {"2027-02-12": [mflight(300000, "2027-02-12", "20:00", "ICN", "NRT", "A", "t12")],
+                "2027-02-19": [mflight(250000, "2027-02-19", "21:00", "ICN", "KIX", "B", "t19")]}
+        rets = {"t12": [mflight(310000, "2027-02-13", "10:00", "NRT", "ICN", "A2")],
+                "t19": [mflight(260000, "2027-02-20", "11:00", "KIX", "ICN", "B2")]}
+        calls = []
+
+        def fake(params, retries=3):
+            calls.append(params)
+            if params["engine"] == "google_flights_calendar":
+                return {"prices": []}
+            if params.get("departure_token"):
+                return {"other_flights": rets[params["departure_token"]]}
+            return {"other_flights": outs[params["outbound_date"]]}
+        orig = cp.fetch_serpapi
+        cp.fetch_serpapi = fake
+        try:
+            out, _, _ = cp.check_route(route, "k")
+        finally:
+            cp.fetch_serpapi = orig
+        self.assertEqual((out["flex_date"], out["flex_return_date"], out["price"]), ("2027-02-19", "2027-02-20", 260000))
+        self.assertEqual([t["date"] for t in out["flex_top"]], ["2027-02-19", "2027-02-12"])
+        self.assertEqual(len(calls), 5)  # 달력 1 + 날짜별 왕복 2×2
+
+    def test_changed_route_failure_replaces_old_success(self):
+        h = [{"date": "2026-11-27", "price": 100, "error": None}]
+        kept = record_result(h, "2026-11-27", None, "boom", "t", {})
+        self.assertEqual(kept[-1]["price"], 100)
+        replaced = record_result(h, "2026-11-27", None, "boom", "t", {}, replace=True)
+        self.assertEqual((replaced[-1]["price"], replaced[-1]["error"]), (None, "boom"))
+
+
 if __name__ == "__main__":
     unittest.main()
