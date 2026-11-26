@@ -465,11 +465,12 @@ function timeRange(a, b) {
   return `${esc(a)} ~ ${esc(b)}`;
 }
 
-// 항공사 로고(작은 동그라미). 로고 주소가 없거나 못 불러오면 항공사 이름 첫 글자
+// 항공사 로고(작은 동그라미). 로고 주소가 없거나 못 불러오면 편명 앞 항공사 코드(예: RS 701 → RS)
 function logoHTML(o) {
-  const ch = esc((o.airline || "?").trim().charAt(0));
+  const code = ((o.flight_number || "").trim().match(/^([A-Z0-9]{2})\s*\d/i) || [])[1];
+  const ch = esc(code ? code.toUpperCase() : (o.airline || "?").trim().charAt(0));
   const safe = /^https:\/\/[\w.-]+\.(gstatic|googleusercontent|google)\.com\//.test(o.airline_logo || "");
-  return `<span class="o-logo" aria-hidden="true">${safe
+  return `<span class="o-logo" title="${esc(o.airline || "")}" aria-label="${esc(o.airline || "")}">${safe
     ? `<img src="${esc(o.airline_logo)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.replaceWith(document.createTextNode('${ch}'))">`
     : ch}</span>`;
 }
@@ -487,7 +488,7 @@ function optionsHTML(e, r) {
       <li>
         ${logoHTML(o)}
         <div class="o-main num">${esc(o.depart_time)} → ${esc(o.arrive_time)}</div>
-        <div class="o-sub muted small">${o.dep_airport && o.arr_airport ? `${esc(o.dep_airport)}→${esc(o.arr_airport)} · ` : ""}${o.stops === 0 ? "직항" : `경유 ${o.stops}회`} · ${esc(o.airline)}</div>
+        <div class="o-sub muted small">${[o.dep_airport && o.arr_airport ? `${esc(o.dep_airport)}→${esc(o.arr_airport)}` : "", o.stops > 0 ? `경유 ${o.stops}회` : ""].filter(Boolean).join(" · ")}</div>
         <div class="o-price num">${i === 0 ? "" : `<span class="o-rank muted">${i + 1}</span>`}${won(o.price)}${i === 0 ? `<span class="o-best">최저</span>` : ""}</div>
       </li>`).join("")}
     </ol>
