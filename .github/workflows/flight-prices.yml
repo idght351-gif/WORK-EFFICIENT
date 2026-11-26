@@ -15,6 +15,10 @@ on:
         description: "이 노선만 조회 (노선 id, 비우면 전체)"
         required: false
         default: ""
+      returns_for:
+        description: "앱 요청: 가는 편 하나의 오는 편 목록 (노선id|가는날|편명|출발시각)"
+        required: false
+        default: ""
   push:
     branches: [main]
     paths:
@@ -61,11 +65,15 @@ jobs:
           SEND_REPORT: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
           RUN_EVENT: ${{ github.event_name }}
           ONLY_ROUTE: ${{ github.event.inputs.route }}
+          RETURNS_FOR: ${{ github.event.inputs.returns_for }}
           RUNS_PER_DAY: "1"
           SCHEDULE_KST: "06:30"   # 위 cron 을 한국시간으로 적은 것 (페이지·메일의 '다음 조회' 표시용)
         # 코드 push 때 노선(routes.json)이 그대로면 검색 없이 페이지 데이터만 다시 만듭니다 (검색 횟수 절약)
         run: |
-          if [ "$GITHUB_EVENT_NAME" = "push" ] && ! git diff --name-only HEAD^ HEAD | grep -qx "flight-tracker/routes.json"; then
+          if [ -n "$RETURNS_FOR" ]; then
+            echo "앱 요청: 오는 편 목록만 조회"
+            python check_prices.py
+          elif [ "$GITHUB_EVENT_NAME" = "push" ] && ! git diff --name-only HEAD^ HEAD | grep -qx "flight-tracker/routes.json"; then
             echo "노선 변경 없음 → 검색 없이 데이터만 갱신"
             python check_prices.py --dry-run
           elif [ "$GITHUB_EVENT_NAME" = "push" ]; then
