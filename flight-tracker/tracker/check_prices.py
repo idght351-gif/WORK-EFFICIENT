@@ -472,11 +472,15 @@ def check_route(route: dict, api_key: str) -> tuple[dict | None, dict, str | Non
     if route.get("return_date") and out.get("departure_token"):
         try:
             data2 = fetch_serpapi({**params, "departure_token": out["departure_token"]})
-            ret = pick_cheapest(data2, route, "return")
+            ret_opts = matching_options(data2, route, "return")
+            ret = dict(ret_opts[0]) if ret_opts else None
             if ret:
                 out["price"] = ret["price"]  # 오는 편 검색 결과의 가격 = 왕복 총액
-                for k in ("airline", "flight_number", "depart_time", "arrive_time", "stops"):
-                    out[f"return_{k}"] = ret[k]
+                # 최저가 가는 편과 묶었을 때의 오는 편 후보들 (가격 = 왕복 총액, 추가 검색 없음)
+                out["return_options"] = option_list(ret_opts, route["return_date"])
+                for k in ("airline", "flight_number", "depart_time", "arrive_time", "stops", "dep_airport", "arr_airport",
+                          "airline_logo"):
+                    out[f"return_{k}"] = ret.get(k)
                 url = (data2.get("search_metadata") or {}).get("google_flights_url") or url
             else:
                 raise NoMatch(f"오는 편 {route['return_date']} 조건에 맞는 편 없음 ("
@@ -512,7 +516,8 @@ def record_result(history: list, today: str, result: dict | None, error: str | N
     if insights.get("typical_price_range"):
         entry["typical_range"] = insights["typical_price_range"]
     # 항공편 목록은 가장 최근 조회분만 남겨 기록 파일이 커지지 않게 함
-    history = [{k: v for k, v in h.items() if k != "options"} for h in history if h["date"] != today] + [entry]
+    history = [{k: v for k, v in h.items() if k not in ("options", "return_options")}
+               for h in history if h["date"] != today] + [entry]
     history.sort(key=lambda h: h["date"])
     return history
 

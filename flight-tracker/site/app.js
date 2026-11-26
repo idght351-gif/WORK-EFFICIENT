@@ -476,22 +476,62 @@ function logoHTML(o) {
 }
 
 // 마지막 조회에서 조건에 맞았던 항공편들 (가격순, 최대 30개) — 상자 안에서 스크롤
-function optionsHTML(e, r) {
-  const opts = (e && e.options) || [];
-  if (opts.length < 2) return "";
-  const round = !!(e.return_airline || r.return_date || (r.flex && r.flex.trip_days));
-  const when = e.flex_date ? `${dayLabel(e.flex_date)} 출발 · ` : "";
-  return `<section class="card">
-    <h3 class="section-title">조건에 맞는 항공편 ${opts.length}개</h3>
-    <p class="muted small" style="margin:-6px 0 6px">${when}${round ? "가는 편 기준 · 가격은 왕복 최저가" : "가격순"} · ${md(e.date)} 조회${opts.length > 5 ? " · 상자 안을 스크롤하면 더 보여요" : ""}</p>
-    <ol class="opts${opts.length > 5 ? " scroll" : ""}" tabindex="0" aria-label="조건에 맞는 항공편 목록">${opts.map((o, i) => `
+function optListHTML(opts, label) {
+  return `<ol class="opts${opts.length > 5 ? " scroll" : ""}" tabindex="0" aria-label="${label}">${opts.map((o, i) => `
       <li>
         ${logoHTML(o)}
         <div class="o-main num">${esc(o.depart_time)} → ${esc(o.arrive_time)}</div>
         <div class="o-sub muted small">${[o.dep_airport && o.arr_airport ? `${esc(o.dep_airport)}→${esc(o.arr_airport)}` : "", o.stops > 0 ? `경유 ${o.stops}회` : ""].filter(Boolean).join(" · ")}</div>
         <div class="o-price num">${won(o.price)}${i === 0 ? `<span class="o-best">최저</span>` : ""}</div>
       </li>`).join("")}
-    </ol>
+    </ol>`;
+}
+
+// 최저가 조합 한 줄 (가는 편 / 오는 편)
+function comboRowHTML(tag, day, o) {
+  return `<div class="combo-row">
+      ${logoHTML(o)}
+      <div class="o-main num"><span class="combo-tag">${tag}</span>${esc(o.depart_time)} → ${esc(o.arrive_time)}</div>
+      <div class="o-sub muted small">${day ? `${dayLabel(day)} · ` : ""}${o.dep_airport && o.arr_airport ? `${esc(o.dep_airport)}→${esc(o.arr_airport)}` : ""}${o.stops > 0 ? ` · 경유 ${o.stops}회` : ""}</div>
+    </div>`;
+}
+
+function optionsHTML(e, r) {
+  const outs = (e && e.options) || [];
+  const rets = (e && e.return_options) || [];
+  if (outs.length < 2 && rets.length < 2) return "";
+  const round = !!(e.return_airline || r.return_date || (r.flex && r.flex.trip_days));
+  const outDay = e.flex_date || r.date, retDay = e.flex_return_date || r.return_date;
+  const hint = (n) => (n > 5 ? " · 상자 안을 스크롤하면 더 보여요" : "");
+  if (!round || !rets.length) {
+    return `<section class="card">
+    <h3 class="section-title">조건에 맞는 항공편 ${outs.length}개</h3>
+    <p class="muted small" style="margin:-6px 0 6px">${e.flex_date ? `${dayLabel(e.flex_date)} 출발 · ` : ""}${round ? "가는 편 기준 · 가격은 왕복 최저가" : "가격순"} · ${md(e.date)} 조회${hint(outs.length)}</p>
+    ${optListHTML(outs, "조건에 맞는 항공편 목록")}
+  </section>`;
+  }
+  const back = { depart_time: e.return_depart_time, arrive_time: e.return_arrive_time, stops: e.return_stops,
+    dep_airport: e.return_dep_airport, arr_airport: e.return_arr_airport, airline: e.return_airline,
+    flight_number: e.return_flight_number, airline_logo: e.return_airline_logo };
+  return `<section class="card opt-card" data-tab="out">
+    <h3 class="section-title">조건에 맞는 항공편</h3>
+    <div class="combo">
+      <div class="combo-head"><span class="muted small">최저가 왕복 조합</span><b class="num">${won(e.price)}</b></div>
+      ${comboRowHTML("가는 편", outDay, e)}
+      ${comboRowHTML("오는 편", retDay, back)}
+    </div>
+    <div class="seg seg2 opt-tabs" role="tablist">
+      <button type="button" role="tab" class="tab-out" onclick="this.closest('.opt-card').dataset.tab='out'">가는 편 ${outs.length}개</button>
+      <button type="button" role="tab" class="tab-ret" onclick="this.closest('.opt-card').dataset.tab='ret'">오는 편 ${rets.length}개</button>
+    </div>
+    <div class="opt-pane pane-out">
+      <p class="muted small" style="margin:0 0 6px">${outDay ? `${dayLabel(outDay)} · ` : ""}가격은 이 가는 편을 골랐을 때의 왕복 최저가${hint(outs.length)}</p>
+      ${optListHTML(outs, "가는 편 목록")}
+    </div>
+    <div class="opt-pane pane-ret">
+      <p class="muted small" style="margin:0 0 6px">${retDay ? `${dayLabel(retDay)} · ` : ""}가격은 최저가 가는 편과 묶었을 때의 왕복 총액${hint(rets.length)}</p>
+      ${optListHTML(rets, "오는 편 목록")}
+    </div>
   </section>`;
 }
 

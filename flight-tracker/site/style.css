@@ -287,3 +287,21 @@ pre.snippet { background: var(--bg); border-radius: 12px; padding: 12px; font-si
   :root:not([data-theme="light"]) .o-logo.has-img { background: #fff; }
   :root:not([data-theme="light"]) .o-logo.has-img img { padding: 2px; box-sizing: border-box; }
 }
+
+/* ---------- 왕복: 최저가 조합 + 가는 편/오는 편 탭 ---------- */
+.combo { background: var(--bg); border-radius: 12px; padding: 10px 12px; margin-bottom: 12px; }
+.combo-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin-bottom: 4px; }
+.combo-head span { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.combo-head b { font-size: 16px; white-space: nowrap; flex: none; }
+.combo-row { display: grid; grid-template-columns: 30px minmax(0, 1fr); gap: 1px 10px; align-items: center; padding: 6px 0; }
+.combo-row .o-main { grid-column: 2; font-size: 15px; font-weight: 700; white-space: nowrap; }
+.combo-row .o-sub { grid-column: 2; }
+.combo-tag { display: inline-block; font-size: 11px; font-weight: 700; color: var(--text-2); background: var(--chip); border-radius: 6px; padding: 1px 6px; margin-right: 6px; vertical-align: 2px; }
+.opt-tabs { margin: 0 0 10px; }
+.opt-tabs button { font: inherit; border: 0; background: none; cursor: pointer; padding: 8px 0; border-radius: 9px; font-size: 14px; font-weight: 700; color: var(--text-2); }
+.opt-card[data-tab="out"] .tab-out, .opt-card[data-tab="ret"] .tab-ret { background: var(--card); color: var(--text); box-shadow: 0 1px 2px rgba(0,0,0,.08); }
+.opt-card[data-tab="out"] .pane-ret, .opt-card[data-tab="ret"] .pane-out { display: none; }
+@media (max-width: 360px) {
+  .combo-row { grid-template-columns: 24px minmax(0, 1fr); gap: 1px 7px; }
+  .combo-row .o-main { font-size: 13px; }
+}

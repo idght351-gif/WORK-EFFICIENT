@@ -557,5 +557,25 @@ class TestOptionsOnlyLatest(unittest.TestCase):
         self.assertEqual(out[-1]["options"], [{"price": 90}])
 
 
+class TestReturnOptions(unittest.TestCase):
+    def test_round_trip_keeps_return_list(self):
+        import check_prices as cp
+        route = {"from": "ICN", "to": "CTS", "date": "2027-06-29", "return_date": "2027-07-05", "adults": 1,
+                 "travel_class": "economy", "max_stops": None, "depart_after": "00:00", "return_after": "12:00"}
+        out_page = {"other_flights": [mflight(500000, "2027-06-29", "10:10", "ICN", "CTS", "A1", "tok")]}
+        ret_page = {"other_flights": [mflight(520000, "2027-07-05", "14:30", "CTS", "ICN", "R1"),
+                                      mflight(510000, "2027-07-05", "09:00", "CTS", "ICN", "EARLY"),
+                                      mflight(560000, "2027-07-05", "18:00", "CTS", "ICN", "R2")]}
+        orig = cp.fetch_serpapi
+        cp.fetch_serpapi = lambda params, retries=3: ret_page if params.get("departure_token") else out_page
+        try:
+            out, _, _ = cp.check_route(route, "k")
+        finally:
+            cp.fetch_serpapi = orig
+        self.assertEqual((out["price"], out["return_flight_number"], out["return_depart_time"]), (520000, "R1", "14:30"))
+        self.assertEqual([o["flight_number"] for o in out["return_options"]], ["R1", "R2"])
+        self.assertEqual(out["return_options"][0]["date"], "2027-07-05")
+
+
 if __name__ == "__main__":
     unittest.main()
