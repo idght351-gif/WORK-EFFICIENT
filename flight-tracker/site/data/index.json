@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-11-27T18:40:22+09:00",
+  "updated_at": "2026-11-27T18:45:19+09:00",
   "routes": [
     {
       "id": "icn-cts-20270629",
@@ -141,39 +141,41 @@
     },
     {
       "id": "kr-jp-202612",
-      "name": "부산 → 일본",
+      "name": "부산 → 일본 · SEL",
       "from": "PUS",
-      "to": "JP",
+      "to": "SEL",
       "date": "2027-02-09",
-      "return_date": "2027-02-10",
-      "legs": null,
-      "flex": {
-        "dates": [
-          "2027-02-09"
-        ],
-        "trip_days": 1
-      },
+      "return_date": null,
+      "legs": [
+        {
+          "from": "PUS",
+          "to": "JP",
+          "date": "2027-02-09",
+          "depart_after": "01:00"
+        },
+        {
+          "from": "JP",
+          "to": "SEL",
+          "date": "2027-02-10",
+          "depart_after": "12:44"
+        }
+      ],
+      "flex": null,
       "alert_below": null,
       "status": "active",
-      "cost": 5,
-      "last_checked_at": "2026-11-27T18:39:27+09:00",
+      "cost": 2,
+      "last_checked_at": "2026-11-27T18:45:19+09:00",
       "summary": {
-        "current": 366300,
-        "current_date": "2026-11-27",
-        "prev": null,
-        "min": 366300,
-        "max": 366300,
-        "avg": 366300,
-        "days": 1
+        "current": null,
+        "min": null,
+        "max": null,
+        "avg": null,
+        "prev": null
       },
       "next_check": null,
       "last_check": null,
-      "spark": [
-        366300
-      ],
-      "spark_dates": [
-        "2026-11-27"
-      ]
+      "spark": [],
+      "spark_dates": []
     }
   ],
   "quota": {
@@ -186,7 +188,7 @@
     "plan_renewal_date": "2026-12-23",
     "account_rate_limit_per_hour": 250,
     "daily_usage": 0,
-    "checked_at": "2026-11-27T18:40:22+09:00"
+    "checked_at": "2026-11-27T18:45:19+09:00"
   },
   "schedule_kst": [],
   "last_scheduled_date": "2026-11-26"
