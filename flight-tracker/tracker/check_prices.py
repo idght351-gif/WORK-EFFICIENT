@@ -68,7 +68,9 @@ def is_multi(route: dict) -> bool:
 # 나라 전체를 뜻하는 코드. 공항 코드와 쉼표로 섞어 써도 됨 ("KR" , "ICN,GMP", "JP")
 # 한국 전체(kgmid /m/06qd3)로 출발하면 Google 이 결과를 주지 않아서, KR 은 인천·김포·청주로 검색함.
 # 일본 전체는 Google 위치 ID(kgmid)로 검색.
-REGIONS = {"KR": "ICN,GMP,CJJ", "JP": "/m/03_3d"}
+REGIONS = {"KR": "ICN,GMP,CJJ", "JP": "/m/03_3d",
+           # 도시 코드 → 공항들 (SerpApi 는 도시 코드를 받지 않음)
+           "SEL": "ICN,GMP", "TYO": "HND,NRT", "OSA": "KIX,ITM,UKB", "SPK": "CTS"}
 WEEKDAY_KO = "월화수목금토일"
 
 
@@ -157,7 +159,7 @@ def build_multi_params(route: dict, api_key: str) -> dict:
         "engine": "google_flights",
         "type": 3,
         "multi_city_json": json.dumps([
-            {"departure_id": l["from"].upper(), "arrival_id": l["to"].upper(), "date": l["date"]}
+            {"departure_id": resolve_place(l["from"]), "arrival_id": resolve_place(l["to"]), "date": l["date"]}
             for l in route["legs"]
         ], separators=(",", ":")),
         "currency": "KRW",
@@ -287,6 +289,13 @@ def fetch_serpapi(params: dict, retries: int = 3) -> dict:
             if data.get("error") and "hasn't returned any results" not in data["error"]:
                 raise RuntimeError(data["error"])
             return data
+        except urllib.error.HTTPError as e:  # 400 등: SerpApi 가 본문에 이유를 적어 줌
+            try:
+                last_err = RuntimeError(f"HTTP {e.code}: {json.load(e).get('error') or e.reason}")
+            except Exception:  # noqa: BLE001
+                last_err = e
+            if e.code == 400:
+                break  # 요청 자체가 잘못됨 → 다시 시도해도 같음
         except (urllib.error.URLError, RuntimeError, TimeoutError) as e:
             last_err = e
             if attempt < retries - 1:
