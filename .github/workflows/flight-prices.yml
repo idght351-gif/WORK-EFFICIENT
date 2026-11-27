@@ -36,6 +36,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          ref: ${{ github.ref_name }}   # 실행을 기다리는 동안 생긴 기록 commit 까지 받은 최신 상태에서 시작
           fetch-depth: 2   # push 때 노선(routes.json)이 바뀌었는지 비교하려고 직전 커밋까지 받음
 
       - uses: actions/setup-python@v5
@@ -93,7 +94,14 @@ jobs:
             echo "변경 없음"
           else
             git commit -m "가격 기록 $(TZ=Asia/Seoul date +%Y-%m-%d)"
-            for i in 1 2 3; do git pull --rebase && git push && break; sleep 5; done
+            # 다른 실행과 겹쳐 같은 데이터 파일이 바뀌었으면 이번 실행 결과를 남김 (실패하면 단계도 실패로)
+            ok=0
+            for i in 1 2 3; do
+              if git pull --rebase -X theirs && git push; then ok=1; break; fi
+              git rebase --abort 2>/dev/null || true
+              sleep 5
+            done
+            [ "$ok" = 1 ]
           fi
 
       - name: 배포 버전 표시 (휴대폰에 남은 옛 파일 대신 새 파일을 받게 함)

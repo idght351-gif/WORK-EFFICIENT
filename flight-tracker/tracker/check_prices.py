@@ -187,10 +187,24 @@ def describe_options(data: dict, route: dict, window: tuple[str | None, str | No
     return f"검색 결과 {len(items)}개 · 경유 조건 통과 {len(stops_ok)}개 · 시간대까지 통과 {sum(map(dep_ok, stops_ok))}개"
 
 
+CITY_OF = {a: city for airports, city, _ in [
+    ({"ICN", "GMP"}, "SEL", 0), ({"KIX", "ITM", "UKB"}, "OSA", 0), ({"HND", "NRT"}, "TYO", 0),
+    ({"PVG", "SHA"}, "SHA", 0), ({"PEK", "PKX"}, "BJS", 0), ({"TPE", "TSA"}, "TPE", 0)] for a in airports}
+
+
+def is_wide_place(code: str) -> bool:
+    """나라 전체(JP · KR), 도시 코드(SEL 등), 위치 ID, 공항 여러 개처럼 '정해진 공항 하나'가 아닌 곳."""
+    code = (code or "").strip().upper()
+    return code in REGIONS or code.startswith("/") or "," in code
+
+
 def check_separate(route: dict, api_key: str) -> tuple[dict | None, dict, str | None]:
     """다구간을 구간별 편도 항공권으로 따로 검색해 합산합니다 (저가항공 조합처럼 한 장으로 묶어 팔지 않는 경우).
-    구간마다 검색 1회. 같은 날 이어지는 구간은 앞 편 도착 + 환승 시간 이후 편만 고릅니다."""
-    insights, url, picked = {}, None, []
+    구간마다 검색 1회. 같은 날 이어지는 구간은 앞 편 도착 + 환승 시간 이후 편만 고르고,
+    앞 구간 도착지와 이번 구간 출발지가 같은 '넓은 곳'(예: JP → JP)이면 같은 도시(공항)에서 이어지는 편끼리만 묶어
+    전체 합계가 가장 싼 조합을 고릅니다."""
+    insights, url, per_leg = {}, None, []
+    min_conn = route.get("min_connection_min", MIN_CONNECTION_MIN)
     for i, leg in enumerate(route["legs"]):
         one = {**route, "from": leg["from"], "to": leg["to"], "date": leg["date"], "return_date": None, "legs": None}
         params = build_params(one, api_key)
@@ -199,22 +213,43 @@ def check_separate(route: dict, api_key: str) -> tuple[dict | None, dict, str | 
         if i == 0:
             insights = data.get("price_insights") or {}
             url = (data.get("search_metadata") or {}).get("google_flights_url")
-        after = leg.get("depart_after")
-        if i:
-            after = connection_after(picked[-1], leg, after, route.get("min_connection_min", MIN_CONNECTION_MIN))
-            if after is NO_CONNECTION:
-                raise RuntimeError(f"{i + 1}구간 {leg['from']}→{leg['to']} 같은 날 환승 시간이 모자람")
-        best = pick_cheapest(data, route, window=(after, leg.get("depart_before")))
-        if not best:
+        opts = matching_options(data, route, window=(leg.get("depart_after"), leg.get("depart_before")))
+        if not opts:
             raise RuntimeError(f"{i + 1}구간 {leg['from']}→{leg['to']} 조건에 맞는 편 없음 "
-                               f"({describe_options(data, route, (after, leg.get('depart_before')))})")
-        best.update({"from": leg["from"].upper(), "to": leg["to"].upper(), "date": leg["date"]})
-        picked.append(best)
+                               f"({describe_options(data, route, (leg.get('depart_after'), leg.get('depart_before')))})")
+        per_leg.append([{**o, "date": leg["date"]} for o in opts])
+
+    def links(prev: dict, cur: dict, i: int) -> bool:
+        leg, pleg = route["legs"][i], route["legs"][i - 1]
+        if (pleg["to"] or "").strip().upper() == (leg["from"] or "").strip().upper() and is_wide_place(leg["from"]):
+            pa, ca = prev.get("arr_airport"), cur.get("dep_airport")
+            if pa and ca and CITY_OF.get(pa, pa) != CITY_OF.get(ca, ca):
+                return False
+        if prev["date"] == cur["date"] and prev.get("arrive_time"):
+            if parse_hm(prev["arrive_time"]) + min_conn > parse_hm(cur["depart_time"]):
+                return False
+        return True
+
+    # 구간 순서대로: 각 편에서 끝나는 가장 싼 조합 (합계, 고른 편들)
+    best = [(o["price"], [o]) for o in per_leg[0]]
+    for i in range(1, len(per_leg)):
+        nxt = []
+        for cur in per_leg[i]:
+            cands = [(t + cur["price"], path + [cur]) for t, path in best if links(path[-1], cur, i)]
+            if cands:
+                nxt.append(min(cands, key=lambda c: c[0]))
+        if not nxt:
+            leg = route["legs"][i]
+            raise RuntimeError(f"{i + 1}구간 {leg['from']}→{leg['to']} 앞 편과 이어지는 편 없음 (같은 도시 · 환승 시간 조건)")
+        best = nxt
+    total, picked = min(best, key=lambda c: c[0])
+    for p, leg in zip(picked, route["legs"]):
+        p.update({"from": (p.get("dep_airport") or leg["from"]).upper(), "to": (p.get("arr_airport") or leg["to"]).upper()})
     first = picked[0]
-    out = {k: first[k] for k in ("airline", "flight_number", "depart_time", "arrive_time", "stops", "duration_min")}
-    out["price"] = sum(p["price"] for p in picked)
-    out["legs"] = [{k: p[k] for k in ("from", "to", "date", "airline", "flight_number",
-                                      "depart_time", "arrive_time", "stops", "price")} for p in picked]
+    out = {k: first.get(k) for k in ("airline", "flight_number", "depart_time", "arrive_time", "stops", "duration_min")}
+    out["price"] = total
+    out["legs"] = [{k: p.get(k) for k in ("from", "to", "date", "airline", "flight_number",
+                                          "depart_time", "arrive_time", "stops", "price")} for p in picked]
     out["separate_tickets"] = True
     return out, insights, url
 
@@ -471,7 +506,9 @@ def check_route(route: dict, api_key: str) -> tuple[dict | None, dict, str | Non
     if is_flex(route):
         return check_flex(route, api_key)
     if is_multi(route):
-        return check_separate(route, api_key) if route.get("separate_tickets") else check_multi(route, api_key)
+        # 나라 전체 · 여러 공항이 낀 다구간은 Google 이 한 장짜리 조합을 거의 못 찾아서 구간별 편도로 검색
+        wide = any(is_wide_place(l["from"]) or is_wide_place(l["to"]) for l in route["legs"])
+        return check_separate(route, api_key) if route.get("separate_tickets") or wide else check_multi(route, api_key)
     params = build_params(route, api_key)
     data = fetch_serpapi(params)
     insights = data.get("price_insights") or {}
