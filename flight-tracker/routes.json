@@ -78,12 +78,13 @@
       "to": "JP",
       "flex": {
         "dates": [
-          "2026-12-11",
-          "2026-12-18"
+          "2027-02-09",
+          "2027-02-27",
+          "2027-02-28"
         ],
         "trip_days": 1
       },
-      "depart_after": "19:00",
+      "depart_after": "01:00",
       "depart_before": "24:00",
       "return_after": "10:00",
       "return_before": "24:00",
