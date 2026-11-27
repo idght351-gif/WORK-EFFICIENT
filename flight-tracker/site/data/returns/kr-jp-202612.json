@@ -1,6 +1,152 @@
 {
-  "updated_at": "2026-11-27T16:34:46+09:00",
+  "updated_at": "2026-11-27T18:39:27+09:00",
   "items": {
+    "2027-02-09|LJ 513|15:00": {
+      "checked_at": "2026-11-27T18:39:27+09:00",
+      "prefetched": true,
+      "return_date": "2027-02-10",
+      "returns": [
+        {
+          "price": 382800,
+          "airline": "진에어",
+          "flight_number": "LJ 504",
+          "depart_time": "12:00",
+          "arrive_time": "12:50",
+          "stops": 0,
+          "dep_airport": "FUK",
+          "arr_airport": "PUS",
+          "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/LJ.png",
+          "date": "2027-02-10"
+        },
+        {
+          "price": 390100,
+          "airline": "진에어",
+          "flight_number": "LJ 514",
+          "depart_time": "17:05",
+          "arrive_time": "18:05",
+          "stops": 0,
+          "dep_airport": "FUK",
+          "arr_airport": "PUS",
+          "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/LJ.png",
+          "date": "2027-02-10"
+        }
+      ]
+    },
+    "2027-02-09|BX 607|08:30": {
+      "checked_at": "2026-11-27T18:39:27+09:00",
+      "prefetched": true,
+      "return_date": "2027-02-10",
+      "returns": [
+        {
+          "price": 391546,
+          "airline": "제주항공",
+          "flight_number": "7C 1352",
+          "depart_time": "10:40",
+          "arrive_time": "12:10",
+          "stops": 0,
+          "dep_airport": "KIX",
+          "arr_airport": "PUS",
+          "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/7C.png",
+          "date": "2027-02-10"
+        },
+        {
+          "price": 400700,
+          "airline": "에어부산",
+          "flight_number": "BX 608",
+          "depart_time": "11:00",
+          "arrive_time": "13:00",
+          "stops": 0,
+          "dep_airport": "KIX",
+          "arr_airport": "PUS",
+          "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/BX.png",
+          "date": "2027-02-10"
+        },
+        {
+          "price": 402915,
+          "airline": "에어부산",
+          "flight_number": "BX 610",
+          "depart_time": "14:00",
+          "arrive_time": "15:40",
+          "stops": 0,
+          "dep_airport": "KIX",
+          "arr_airport": "PUS",
+          "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/BX.png",
+          "date": "2027-02-10"
+        },
+        {
+          "price": 430700,
+          "airline": "에어부산",
+          "flight_number": "BX 618",
+          "depart_time": "18:50",
+          "arrive_time": "20:40",
+          "stops": 0,
+          "dep_airport": "KIX",
+          "arr_airport": "PUS",
+          "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/BX.png",
+          "date": "2027-02-10"
+        },
+        {
+          "price": 436353,
+          "airline": "Trinity Airways",
+          "flight_number": "TW 322",
+          "depart_time": "16:35",
+          "arrive_time": "18:10",
+          "stops": 0,
+          "dep_airport": "KIX",
+          "arr_airport": "PUS",
+          "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/TW.png",
+          "date": "2027-02-10"
+        },
+        {
+          "price": 436353,
+          "airline": "Trinity Airways",
+          "flight_number": "TW 320",
+          "depart_time": "18:40",
+          "arrive_time": "20:15",
+          "stops": 0,
+          "dep_airport": "KIX",
+          "arr_airport": "PUS",
+          "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/TW.png",
+          "date": "2027-02-10"
+        },
+        {
+          "price": 464775,
+          "airline": "진에어",
+          "flight_number": "LJ 612",
+          "depart_time": "11:00",
+          "arrive_time": "12:30",
+          "stops": 0,
+          "dep_airport": "KIX",
+          "arr_airport": "PUS",
+          "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/LJ.png",
+          "date": "2027-02-10"
+        },
+        {
+          "price": 464775,
+          "airline": "진에어",
+          "flight_number": "LJ 616",
+          "depart_time": "16:25",
+          "arrive_time": "18:05",
+          "stops": 0,
+          "dep_airport": "KIX",
+          "arr_airport": "PUS",
+          "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/LJ.png",
+          "date": "2027-02-10"
+        },
+        {
+          "price": 482664,
+          "airline": "제주항공",
+          "flight_number": "7C 1354",
+          "depart_time": "19:15",
+          "arrive_time": "20:40",
+          "stops": 0,
+          "dep_airport": "KIX",
+          "arr_airport": "PUS",
+          "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/7C.png",
+          "date": "2027-02-10"
+        }
+      ]
+    },
     "2027-02-09|MM 710|21:00": {
       "checked_at": "2026-11-27T16:34:46+09:00",
       "prefetched": true,
