@@ -617,6 +617,7 @@ async function renderDetail(id) {
   bindSwitcher();
   bindRefresh(r.id);
   bindHide();
+  if (lastEntry && document.getElementById("lp-card")) mountLegPicker(lastEntry, r);
   if (lastEntry && document.getElementById("rt-card")) mountRoundTrip(lastEntry, { ...r, return_date: r.return_date });
   fitOneLine($app);
   window.onresize = () => { draw(+document.querySelector('.chip[aria-pressed="true"]').dataset.range); fitOneLine($app); };
@@ -666,6 +667,10 @@ function comboRowHTML(tag, day, o) {
 }
 
 function optionsHTML(e, r) {
+  if (e && legPickerData(e, r)) return `<section class="card rt-card" id="lp-card">
+    <h3 class="section-title">${e.leg_options ? "구간별 항공편 고르기" : "항공편 고르기"}</h3>
+    <div id="lp-body"></div>
+  </section>`;
   const outs = (e && e.options) || [];
   const rets = (e && e.return_options) || [];
   if (outs.length < 2 && rets.length < 2) return "";
@@ -683,6 +688,110 @@ function optionsHTML(e, r) {
     <h3 class="section-title">왕복 조합 고르기</h3>
     <div id="rt-body"></div>
   </section>`;
+}
+
+// ---------- 구간 고르기 (편도 · 구간별 편도 합산 다구간): 구간마다 편을 고르면 총액 = 고른 편 가격의 합
+const hm = (t) => { const [h, m] = String(t || "0:0").split(":"); return +h * 60 + +m; };
+const WIDE = new Set(["KR", "JP", "SEL", "TYO", "OSA", "SPK"]);
+const METRO_CITY = { ICN: "SEL", GMP: "SEL", KIX: "OSA", ITM: "OSA", UKB: "OSA", HND: "TYO", NRT: "TYO", PVG: "SHA", SHA: "SHA", PEK: "BJS", PKX: "BJS", TPE: "TPE", TSA: "TPE" };
+const isWide = (c) => { c = String(c || "").trim().toUpperCase(); return WIDE.has(c) || c.startsWith("/") || c.includes(","); };
+function legPickerData(e, r) {
+  if (e.leg_options && r.legs && e.leg_options.length === r.legs.length && e.leg_options.every((x) => x && x.length)) {
+    return { legs: r.legs, opts: e.leg_options };
+  }
+  const round = !!(e.return_airline || r.return_date || (r.flex && r.flex.trip_days));
+  if (!round && !r.legs && e.options && e.options.length > 1) {
+    return { legs: [{ from: r.from, to: r.to, date: e.flex_date || r.date }], opts: [e.options] };
+  }
+  return null;
+}
+function mountLegPicker(e, r) {
+  const host = document.getElementById("lp-body");
+  const data = host && legPickerData(e, r);
+  if (!data) return;
+  const { legs, opts } = data, n = legs.length;
+  const minConn = r.min_connection_min || 120;
+  // 앞 구간 편 a 와 다음 구간 편 b 가 이어지는지 (같은 넓은 곳이면 같은 도시, 같은 날이면 환승 시간)
+  const fits = (i, a, b) => {
+    const p = legs[i], q = legs[i + 1];
+    if (String(p.to).trim().toUpperCase() === String(q.from).trim().toUpperCase() && isWide(q.from)
+        && a.arr_airport && b.dep_airport && (METRO_CITY[a.arr_airport] || a.arr_airport) !== (METRO_CITY[b.dep_airport] || b.dep_airport)) return false;
+    const da = a.date || p.date, db = b.date || q.date;
+    if (da === db && a.arrive_time && hm(a.arrive_time) + minConn > hm(b.depart_time)) return false;
+    return true;
+  };
+  const st = { rev: false, sel: [] };
+  const order = () => (st.rev ? [...Array(n).keys()].reverse() : [...Array(n).keys()]);
+  // rest[s][j]: 순서상 s 번째 구간에서 j 편을 골랐을 때 남은 구간까지 포함한 최저 합계
+  const restTable = (ord) => {
+    const rest = Array(n);
+    for (let s = n - 1; s >= 0; s--) {
+      const li = ord[s];
+      rest[s] = opts[li].map((o) => {
+        if (s === n - 1) return o.price;
+        const lj = ord[s + 1];
+        let best = Infinity;
+        opts[lj].forEach((x, k) => {
+          const ok = li < lj ? fits(li, o, x) : fits(lj, x, o);
+          if (ok && rest[s + 1][k] < best) best = rest[s + 1][k];
+        });
+        return o.price + best;
+      });
+    }
+    return rest;
+  };
+  const draw = () => {
+    const ord = order(), rest = restTable(ord);
+    const base = Math.min(...rest[0]);
+    // 고르지 않은 단계는 앞 선택에 이어지는 가장 싼 편으로 채움
+    const pick = [];
+    let prefix = 0;
+    const steps = ord.map((li, s) => {
+      const prev = s ? { li: ord[s - 1], o: opts[ord[s - 1]][pick[s - 1]] } : null;
+      const ok = (o) => !prev || (prev.li < li ? fits(prev.li, prev.o, o) : fits(li, o, prev.o));
+      const cand = opts[li].map((o, j) => ({ o, j, total: prefix + rest[s][j] })).filter((c) => isFinite(c.total) && ok(c.o)).sort((x, y) => x.total - y.total);
+      let j = st.sel[s];
+      if (j == null || !cand.some((c) => c.j === j)) j = cand.length ? cand.reduce((a, c) => (c.total < a.total ? c : a)).j : null;
+      pick[s] = j;
+      const html = { li, cand, j };
+      if (j != null) prefix += opts[li][j].price;
+      return html;
+    });
+    const done = pick.every((j) => j != null);
+    const total = done ? ord.reduce((t, li, s) => t + opts[li][pick[s]].price, 0) : null;
+    const chosen = Array(n);
+    ord.forEach((li, s) => (chosen[li] = pick[s] != null ? opts[li][pick[s]] : null));
+    const legName = (l) => `${String(l.from).toUpperCase()}→${String(l.to).toUpperCase()}`;
+    const diff = total == null ? 0 : Math.abs(total - base) < 500 ? 0 : total - base;
+    host.innerHTML = `
+      ${n > 1 ? `<div class="seg rt-mode" role="tablist">
+        <button type="button" data-rev="0" class="${st.rev ? "" : "on"}" aria-selected="${!st.rev}">${n === 2 ? "1구간 먼저" : "앞 구간부터"}</button>
+        <button type="button" data-rev="1" class="${st.rev ? "on" : ""}" aria-selected="${st.rev}">${n === 2 ? "2구간 먼저" : "뒤 구간부터"}</button>
+      </div>` : ""}
+      ${done ? `<div class="combo">
+        <div class="combo-head"><span class="muted small">${n > 1 ? "선택한 일정" : "선택한 항공편"}</span><b class="num">${won(total)}</b></div>
+        ${chosen.map((o, i) => comboRowHTML(n > 1 ? `${i + 1}구간` : "가는 편", o.date || legs[i].date, o)).join("")}
+        ${diff ? `<div class="combo-diff muted small">최저가보다 <b class="${diff > 0 ? "up" : "down"}">${diff > 0 ? "+" : "−"}${won(Math.abs(diff))}</b></div>`
+          : `<div class="combo-diff small"><span class="o-best" style="display:inline">최저가 ${n > 1 ? "조합" : ""}</span></div>`}
+        ${n > 1 ? `<div class="combo-diff muted small">구간마다 따로 예약하는 편도 항공권 합계예요</div>` : ""}
+      </div>` : ""}
+      ${steps.map((st2, s) => {
+        const l = legs[st2.li];
+        return `${n > 1 ? `<div class="rt-step"><span class="rt-no">${s + 1}</span>${st2.li + 1}구간 고르기 <span class="muted small">· ${l.date ? dayLabel(l.date) : ""} · ${esc(legName(l))}${s ? " · 앞에서 고른 편과 이어지는 편" : ""}</span></div>`
+          : `<p class="muted small" style="margin:10px 0 6px">${l.date ? `${dayLabel(l.date)} · ` : ""}가격순 · ${md(e.date)} 조회</p>`}
+        ${st2.cand.length ? `<ol class="opts rt-list${st2.cand.length > 5 ? " scroll" : ""}">${st2.cand.map((c) =>
+            rtRowHTML({ ...c.o, price: c.total }, c.j, "leg" + s, c.j === st2.j, base, mixedDays(opts[st2.li]))).join("")}</ol>`
+          : `<p class="rt-wait muted small">앞에서 고른 편과 이어지는 편이 없어요.</p>`}`;
+      }).join("")}`;
+    host.querySelectorAll(".rt-row").forEach((b) => b.onclick = () => {
+      const s = +b.dataset.kind.slice(3);
+      st.sel[s] = +b.dataset.i;
+      st.sel.length = s + 1;  // 뒤 단계는 다시 가장 싼 편으로
+      draw();
+    });
+    host.querySelectorAll(".rt-mode button").forEach((b) => b.onclick = () => { st.rev = b.dataset.rev === "1"; st.sel = []; draw(); });
+  };
+  draw();
 }
 
 // ---------- 왕복: 1단계 가는 편 → 2단계 오는 편 (가는 편마다 오는 편은 앱에서 요청해 조회)

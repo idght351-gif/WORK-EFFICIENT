@@ -688,6 +688,8 @@ class TestWideOpenJaw(unittest.TestCase):
         self.assertEqual([(l["from"], l["to"]) for l in out["legs"]], [("PUS", "KIX"), ("UKB", "ICN")])
         self.assertEqual(calls[1]["arrival_id"], "ICN,GMP")
         self.assertEqual(len(calls), 2)
+        self.assertEqual([len(x) for x in out["leg_options"]], [2, 4])  # 2구간: 12시 전 출발 편은 빠짐
+        self.assertEqual(out["leg_options"][1][0]["dep_airport"], "NRT")  # 목록은 그대로 가격순 (이어지는지는 앱에서 거름)
 
 
 if __name__ == "__main__":
