@@ -201,7 +201,7 @@ async function renderList() {
 
   $app.innerHTML = `
     <div class="quota-head" style="margin-top:8px"><h2 class="section-title">추적 중인 항공권</h2><span class="muted small">${scheduleText(index.schedule_kst)}</span></div>
-    ${routes.length ? routes.map(cardHTML).join("") :
+    ${routes.length ? routes.filter((r) => r.status === "active").map(cardHTML).join("") + hiddenHTML(routes.filter((r) => r.status !== "active")) :
       `<div class="card empty"><p>아직 추적 중인 노선이 없어요.</p><p class="muted small">routes.json 에 노선을 추가하면 다음 실행부터 기록돼요.</p></div>`}
     ${refreshHTML(null, routes.filter((r) => r.status === "active").reduce((n, r) => n + (r.cost || 2), 0))}
     <a href="#add" class="btn secondary" style="margin-top:10px">+ 노선 추가하기</a>
@@ -209,6 +209,7 @@ async function renderList() {
     <a class="settings-link muted small" href="#settings">⚙︎ 앱 설정 · ${ghToken() ? "GitHub 연결됨" : "휴대폰에서 바로 저장하도록 연결하기"}</a>`;
   routes.forEach((r) => { const el = document.getElementById("spark-" + r.id); if (el) sparkline(el, r.spark, r.alert_below); });
   bindRefresh(null);
+  bindHide();
   fitOneLine($app);
   window.onresize = () => fitOneLine($app);
   routes.forEach((r) => {
@@ -289,6 +290,44 @@ function quotaHTML(q) {
     ${q.extra_credits ? `<div class="quota-row"><span class="muted">추가 크레딧</span><span class="num">${q.extra_credits}회</span></div>` : ""}
     ${q.error ? `<p class="muted small" style="margin:8px 0 0">최근 확인 실패: ${esc(q.error)} · 마지막 성공 값을 보여주고 있어요.</p>` : ""}
   </section>`;
+}
+
+// ------------------------------------------------------------ 숨기기 (= 조회 멈춤)
+function hiddenHTML(list) {
+  if (!list.length) return "";
+  return `<details class="card hidden-box">
+    <summary><span>숨긴 항공권 ${list.length}개</span><span class="muted small">조회 안 함</span></summary>
+    ${list.map((r) => `<div class="hidden-row">
+      <a href="#${esc(r.id)}"><span class="fit-line">${routePath(r)}</span>
+        <span class="muted small">${r.status === "ended" ? "출발일 지남" : dday(r.date)}${r.summary && r.summary.current != null ? ` · 마지막 ${won(r.summary.current)}` : ""}</span></a>
+      ${r.status === "paused" ? `<button type="button" class="btn secondary" data-show="${esc(r.id)}">다시 보이기</button>` : ""}
+    </div>`).join("")}
+  </details>`;
+}
+function bindHide() {
+  document.querySelectorAll(".hidden-box").forEach((d) => d.ontoggle = () => d.open && fitOneLine(d));
+  document.querySelectorAll("[data-hide],[data-show]").forEach((b) => b.onclick = async () => {
+    const show = !!b.dataset.show, id = b.dataset.show || b.dataset.hide;
+    if (!ghToken()) { location.hash = "#settings"; return; }
+    if (!show && !confirm("이 항공권을 숨길까요? 숨기면 조회도 멈춰요. 목록 아래 '숨긴 항공권'에서 언제든 다시 보이게 할 수 있어요.")) return;
+    const label = b.textContent;
+    b.disabled = true; b.textContent = "저장하는 중…";
+    try {
+      await saveRoutes((routes) => routes.map((x) => (x.id === id ? { ...x, active: show } : x)), `앱에서 노선 ${show ? "다시 보이기" : "숨기기"}: ${id}`);
+      // 사이트 데이터가 다시 만들어지기(1~2분) 전에도 바로 반영
+      try {
+        const index = await getJSON("data/index.json");
+        index.routes = index.routes.map((x) => (x.id === id ? { ...x, status: show ? "active" : "paused" } : x));
+        FRESH["data/index.json"] = { data: index, until: Date.now() + 3 * 60000 };
+        const p = `data/routes/${encodeURIComponent(id)}.json`, doc = await getJSON(p);
+        FRESH[p] = { data: { ...doc, status: show ? "active" : "paused" }, until: Date.now() + 3 * 60000 };
+      } catch {}
+      if (!show) location.hash = "#"; else route();
+    } catch (err) {
+      b.disabled = false; b.textContent = label;
+      alert(err.status === 401 ? "GitHub 연결이 끊겼어요. 앱 설정에서 다시 연결해 주세요." : `저장하지 못했어요 (${err.message})`);
+    }
+  });
 }
 
 function cardHTML(r) {
@@ -509,6 +548,8 @@ async function renderDetail(id) {
       <div class="info-row"><span>좌석</span><span>${{ economy: "일반석", premium_economy: "프리미엄 일반석", business: "비즈니스", first: "일등석" }[r.travel_class] || "일반석"}</span></div>
       <div class="info-row"><span>경유</span><span>${r.max_stops == null ? "상관없음" : r.max_stops === 0 ? "직항만" : `${r.max_stops}회 이하`}</span></div>
       <a class="btn secondary" href="#edit/${esc(encodeURIComponent(r.id))}" style="margin-top:14px">조건 바꾸기 (직항 · 시간 · 인원 등)</a>
+      ${doc.status === "active" ? `<button type="button" class="btn secondary hide-btn" data-hide="${esc(r.id)}">목록에서 숨기기 (조회 멈춤)</button>`
+        : doc.status === "paused" ? `<button type="button" class="btn secondary hide-btn" data-show="${esc(r.id)}">다시 보이기 (조회 다시 시작)</button>` : ""}
     </section>`;
 
   const draw = (days) => drawChart(days ? hist.slice(-days) : hist, r.alert_below);
@@ -519,6 +560,7 @@ async function renderDetail(id) {
   draw(0);
   bindSwitcher();
   bindRefresh(r.id);
+  bindHide();
   if (lastEntry && document.getElementById("rt-card")) mountRoundTrip(lastEntry, { ...r, return_date: r.return_date });
   fitOneLine($app);
   window.onresize = () => { draw(+document.querySelector('.chip[aria-pressed="true"]').dataset.range); fitOneLine($app); };
