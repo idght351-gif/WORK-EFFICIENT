@@ -85,7 +85,7 @@
       },
       "depart_after": "19:00",
       "depart_before": "24:00",
-      "return_after": "00:00",
+      "return_after": "10:00",
       "return_before": "24:00",
       "adults": 1,
       "travel_class": "economy",
