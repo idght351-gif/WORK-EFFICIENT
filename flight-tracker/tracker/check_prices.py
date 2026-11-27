@@ -251,6 +251,8 @@ def check_separate(route: dict, api_key: str) -> tuple[dict | None, dict, str | 
     out["legs"] = [{k: p.get(k) for k in ("from", "to", "date", "airline", "flight_number",
                                           "depart_time", "arrive_time", "stops", "price")} for p in picked]
     out["separate_tickets"] = True
+    # 앱의 구간별 고르기 화면용: 구간마다 조건에 맞는 편 목록 (가격 = 그 구간 편도, 추가 검색 없음)
+    out["leg_options"] = [option_list(opts, leg["date"]) for opts, leg in zip(per_leg, route["legs"])]
     return out, insights, url
 
 
@@ -566,7 +568,7 @@ def record_result(history: list, today: str, result: dict | None, error: str | N
     if insights.get("typical_price_range"):
         entry["typical_range"] = insights["typical_price_range"]
     # 항공편 목록은 가장 최근 조회분만 남겨 기록 파일이 커지지 않게 함
-    history = [{k: v for k, v in h.items() if k not in ("options", "return_options")}
+    history = [{k: v for k, v in h.items() if k not in ("options", "return_options", "leg_options")}
                for h in history if h["date"] != today] + [entry]
     history.sort(key=lambda h: h["date"])
     return history
