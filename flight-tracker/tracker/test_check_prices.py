@@ -197,8 +197,8 @@ class TestReport(unittest.TestCase):
 
 def mflight(price, date, dep, frm, to, fn, token=None, stops=0):
     legs = [{"airline": "Air", "flight_number": f"{fn}-{n}" if stops else fn,
-             "departure_airport": {"time": f"{date} {dep}"},
-             "arrival_airport": {"time": f"{date} 23:00"}} for n in range(stops + 1)]
+             "departure_airport": {"time": f"{date} {dep}", "id": frm},
+             "arrival_airport": {"time": f"{date} 23:00", "id": to}} for n in range(stops + 1)]
     return {"price": price, "total_duration": 100, "flights": legs, "departure_token": token}
 
 
@@ -657,6 +657,37 @@ class TestPrefetchReturns(unittest.TestCase):
     def test_one_way_skipped(self):
         import check_prices as cp
         self.assertEqual(cp.prefetch_returns({"date": "2027-01-01"}, {"options": [{}, {}]}, "k", None), {})
+
+
+class TestWideOpenJaw(unittest.TestCase):
+    def test_links_same_city_and_picks_cheapest_total(self):
+        import check_prices as cp
+        route = cp.normalize_route({"id": "x", "name": "x", "adults": 1, "max_stops": None, "legs": [
+            {"from": "PUS", "to": "JP", "date": "2027-02-09", "depart_after": "01:00"},
+            {"from": "JP", "to": "SEL", "date": "2027-02-10", "depart_after": "12:00"}]})
+        pages = {"PUS": [mflight(100000, "2027-02-09", "08:00", "PUS", "FUK", "BX1"),
+                         mflight(120000, "2027-02-09", "09:00", "PUS", "KIX", "BX2")],
+                 "/m/03_3d": [mflight(50000, "2027-02-10", "13:00", "NRT", "ICN", "ZE1"),   # 도쿄: 앞 편과 안 이어짐
+                              mflight(70000, "2027-02-10", "14:00", "KIX", "GMP", "7C1"),
+                              mflight(60000, "2027-02-10", "15:00", "UKB", "ICN", "7C2"),   # 고베 = 오사카권
+                              mflight(95000, "2027-02-10", "16:00", "FUK", "ICN", "LJ1"),
+                              mflight(40000, "2027-02-10", "10:00", "KIX", "ICN", "TW1")]}  # 12시 전 출발
+        calls = []
+
+        def fake(params, retries=3):
+            calls.append(params)
+            self.assertNotIn("multi_city_json", params)
+            return {"other_flights": pages[params["departure_id"]]}
+        orig = cp.fetch_serpapi
+        cp.fetch_serpapi = fake
+        try:
+            out, _, _ = cp.check_route(route, "k")
+        finally:
+            cp.fetch_serpapi = orig
+        self.assertEqual(out["price"], 180000)  # KIX 120,000 + UKB→ICN 60,000
+        self.assertEqual([(l["from"], l["to"]) for l in out["legs"]], [("PUS", "KIX"), ("UKB", "ICN")])
+        self.assertEqual(calls[1]["arrival_id"], "ICN,GMP")
+        self.assertEqual(len(calls), 2)
 
 
 if __name__ == "__main__":
