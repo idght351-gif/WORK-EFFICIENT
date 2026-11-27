@@ -201,7 +201,8 @@ async function renderList() {
 
   $app.innerHTML = `
     <div class="quota-head" style="margin-top:8px"><h2 class="section-title">추적 중인 항공권</h2><span class="muted small">${scheduleText(index.schedule_kst)}</span></div>
-    ${routes.length ? routes.filter((r) => r.status === "active").map(cardHTML).join("") + hiddenHTML(routes.filter((r) => r.status !== "active")) :
+    ${routes.length ? routes.filter((r) => r.status === "active").map((r) => `<div class="swipe" data-id="${esc(r.id)}">
+      <button type="button" class="swipe-act" data-hide="${esc(r.id)}" data-instant="1" tabindex="-1">숨기기</button>${cardHTML(r)}</div>`).join("") + hiddenHTML(routes.filter((r) => r.status !== "active")) :
       `<div class="card empty"><p>아직 추적 중인 노선이 없어요.</p><p class="muted small">routes.json 에 노선을 추가하면 다음 실행부터 기록돼요.</p></div>`}
     ${refreshHTML(null, routes.filter((r) => r.status === "active").reduce((n, r) => n + (r.cost || 2), 0))}
     <a href="#add" class="btn secondary" style="margin-top:10px">+ 노선 추가하기</a>
@@ -210,6 +211,7 @@ async function renderList() {
   routes.forEach((r) => { const el = document.getElementById("spark-" + r.id); if (el) sparkline(el, r.spark, r.alert_below); });
   bindRefresh(null);
   bindHide();
+  bindSwipe();
   fitOneLine($app);
   window.onresize = () => fitOneLine($app);
   routes.forEach((r) => {
@@ -304,30 +306,84 @@ function hiddenHTML(list) {
     </div>`).join("")}
   </details>`;
 }
+// 숨김 상태를 화면에 먼저 반영 (저장소 반영 · 사이트 재생성 1~2분을 기다리지 않음)
+async function markStatus(id, status) {
+  const until = Date.now() + 3 * 60000;
+  try {
+    const index = await getJSON("data/index.json");
+    FRESH["data/index.json"] = { data: { ...index, routes: index.routes.map((x) => (x.id === id ? { ...x, status } : x)) }, until };
+  } catch {}
+  try {
+    const p = `data/routes/${encodeURIComponent(id)}.json`;
+    FRESH[p] = { data: { ...(await getJSON(p)), status }, until };
+  } catch {}
+}
+async function setHidden(id, hide) {
+  if (!ghToken()) { location.hash = "#settings"; return; }
+  await markStatus(id, hide ? "paused" : "active");
+  if (hide && decodeURIComponent(location.hash.slice(1)) === id) location.hash = "#"; else route();
+  if (hide) toast("숨겼어요 · 조회 멈춤", "되돌리기", () => setHidden(id, false));
+  try {
+    await saveRoutes((routes) => routes.map((x) => (x.id === id ? { ...x, active: !hide } : x)), `앱에서 노선 ${hide ? "숨기기" : "다시 보이기"}: ${id}`);
+  } catch (err) {
+    await markStatus(id, hide ? "active" : "paused");
+    route();
+    alert(err.status === 401 ? "GitHub 연결이 끊겼어요. 앱 설정에서 다시 연결해 주세요." : `저장하지 못했어요 (${err.message})`);
+  }
+}
+function toast(text, actLabel, act) {
+  document.querySelectorAll(".toast").forEach((t) => t.remove());
+  const t = document.createElement("div");
+  t.className = "toast";
+  t.innerHTML = `<span>${esc(text)}</span>${actLabel ? `<button type="button">${esc(actLabel)}</button>` : ""}`;
+  document.body.appendChild(t);
+  const close = () => t.remove();
+  if (actLabel) t.querySelector("button").onclick = () => { close(); act(); };
+  setTimeout(close, 5000);
+}
 function bindHide() {
   document.querySelectorAll(".hidden-box").forEach((d) => d.ontoggle = () => d.open && fitOneLine(d));
-  document.querySelectorAll("[data-hide],[data-show]").forEach((b) => b.onclick = async () => {
+  document.querySelectorAll("[data-hide],[data-show]").forEach((b) => b.onclick = (ev) => {
+    ev.preventDefault(); ev.stopPropagation();
     const show = !!b.dataset.show, id = b.dataset.show || b.dataset.hide;
-    if (!ghToken()) { location.hash = "#settings"; return; }
-    if (!show && !confirm("이 항공권을 숨길까요? 숨기면 조회도 멈춰요. 목록 아래 '숨긴 항공권'에서 언제든 다시 보이게 할 수 있어요.")) return;
-    const label = b.textContent;
-    b.disabled = true; b.textContent = "저장하는 중…";
-    try {
-      await saveRoutes((routes) => routes.map((x) => (x.id === id ? { ...x, active: show } : x)), `앱에서 노선 ${show ? "다시 보이기" : "숨기기"}: ${id}`);
-      // 사이트 데이터가 다시 만들어지기(1~2분) 전에도 바로 반영
-      try {
-        const index = await getJSON("data/index.json");
-        index.routes = index.routes.map((x) => (x.id === id ? { ...x, status: show ? "active" : "paused" } : x));
-        FRESH["data/index.json"] = { data: index, until: Date.now() + 3 * 60000 };
-        const p = `data/routes/${encodeURIComponent(id)}.json`, doc = await getJSON(p);
-        FRESH[p] = { data: { ...doc, status: show ? "active" : "paused" }, until: Date.now() + 3 * 60000 };
-      } catch {}
-      if (!show) location.hash = "#"; else route();
-    } catch (err) {
-      b.disabled = false; b.textContent = label;
-      alert(err.status === 401 ? "GitHub 연결이 끊겼어요. 앱 설정에서 다시 연결해 주세요." : `저장하지 못했어요 (${err.message})`);
-    }
+    if (!show && !b.dataset.instant && !confirm("이 항공권을 숨길까요? 숨기면 조회도 멈춰요. 목록 아래 '숨긴 항공권'에서 언제든 다시 보이게 할 수 있어요.")) return;
+    setHidden(id, !show);
   });
+}
+
+// 메인 목록 카드: 왼쪽으로 밀면 [숨기기] 버튼
+function bindSwipe() {
+  const OPEN = 96;
+  let opened = null;
+  const set = (card, x, anim) => { card.style.transition = anim ? "transform .2s ease" : "none"; card.style.transform = x ? `translateX(${x}px)` : ""; };
+  const closeOpen = () => { if (opened) { set(opened, 0, true); opened.parentElement.classList.remove("open"); opened = null; } };
+  document.querySelectorAll(".swipe").forEach((box) => {
+    const card = box.querySelector(".route-card");
+    let x0 = 0, y0 = 0, dx = 0, base = 0, mode = null, moved = false;
+    card.addEventListener("touchstart", (e) => {
+      const t = e.touches[0]; x0 = t.clientX; y0 = t.clientY; dx = 0; mode = null; moved = false;
+      base = opened === card ? -OPEN : 0;
+      if (opened && opened !== card) closeOpen();
+    }, { passive: true });
+    card.addEventListener("touchmove", (e) => {
+      const t = e.touches[0], mx = t.clientX - x0, my = t.clientY - y0;
+      if (!mode && Math.abs(mx) + Math.abs(my) > 8) mode = Math.abs(mx) > Math.abs(my) ? "x" : "y";
+      if (mode !== "x") return;
+      e.preventDefault(); moved = true;
+      dx = Math.max(-OPEN - 30, Math.min(0, base + mx));
+      box.classList.add("open");
+      set(card, dx, false);
+    }, { passive: false });
+    card.addEventListener("touchend", () => {
+      if (mode !== "x") return;
+      if (dx < -OPEN / 2) { set(card, -OPEN, true); opened = card; box.classList.add("open"); }
+      else { set(card, 0, true); box.classList.remove("open"); if (opened === card) opened = null; }
+    });
+    card.addEventListener("click", (e) => {
+      if (moved || opened === card) { e.preventDefault(); if (!moved) closeOpen(); moved = false; }
+    });
+  });
+  document.onclick = (e) => { if (opened && !e.target.closest(".swipe")) closeOpen(); };
 }
 
 function cardHTML(r) {
