@@ -590,7 +590,7 @@ function optionsHTML(e, r) {
 // ---------- 왕복: 1단계 가는 편 → 2단계 오는 편 (가는 편마다 오는 편은 앱에서 요청해 조회)
 function rtRowHTML(o, idx, kind, selected, base, showDate) {
   const d = Math.abs(o.price - base) < 500 ? 0 : o.price - base;  // 조회 간 몇백 원 차이는 같은 값으로
-  const delta = d === 0 ? `<span class="o-best">최저</span>` : `<span class="o-delta ${d > 0 ? "up" : "down"}">${d > 0 ? "+" : "−"}${won(Math.abs(d))}</span>`;
+  const delta = kind === "rfetch" ? `<span class="o-delta fetch">조합 조회 ›</span>` : d === 0 ? `<span class="o-best">최저</span>` : `<span class="o-delta ${d > 0 ? "up" : "down"}">${d > 0 ? "+" : "−"}${won(Math.abs(d))}</span>`;
   return `<li><button type="button" class="rt-row${selected ? " sel" : ""}" data-kind="${kind}" data-i="${idx}" aria-pressed="${selected}">
       ${logoHTML(o)}
       <span class="o-main num">${esc(o.depart_time)} → ${esc(o.arrive_time)}</span>
@@ -618,7 +618,7 @@ async function mountRoundTrip(e, r) {
   const cheapestBack = { price: e.price, depart_time: e.return_depart_time, arrive_time: e.return_arrive_time, stops: e.return_stops,
     dep_airport: e.return_dep_airport, arr_airport: e.return_arr_airport, airline: e.return_airline,
     flight_number: e.return_flight_number, airline_logo: e.return_airline_logo };
-  const st = { out: 0, ret: 0, items: {}, loading: {} };
+  const st = { mode: "out", out: 0, ret: 0, rkey: null, rout: 0, items: {}, loading: {} };
   // 저장돼 있는 '가는 편별 오는 편' 결과 불러오기
   try { st.items = (await getJSON(`data/returns/${encodeURIComponent(r.id)}.json`)).items || {}; } catch {}
   const returnsFor = (i) => {
@@ -627,26 +627,88 @@ async function mountRoundTrip(e, r) {
     return it && it.returns;
   };
 
+  const diffHTML = (total) => {
+    const diff = Math.abs(total - base) < 500 ? 0 : total - base;
+    return diff ? `<div class="combo-diff muted small">최저가 조합보다 <b class="${diff > 0 ? "up" : "down"}">${diff > 0 ? "+" : "−"}${won(Math.abs(diff))}</b></div>`
+      : `<div class="combo-diff small"><span class="o-best" style="display:inline">최저가 조합</span></div>`;
+  };
+  const modeHTML = () => `<div class="seg rt-mode" role="tablist">
+      <button type="button" role="tab" data-mode="out" class="${st.mode === "out" ? "on" : ""}" aria-selected="${st.mode === "out"}">가는 편 먼저</button>
+      <button type="button" role="tab" data-mode="ret" class="${st.mode === "ret" ? "on" : ""}" aria-selected="${st.mode === "ret"}">오는 편 먼저</button>
+    </div>`;
+  const loadingHTML = (o) => `<p class="rt-wait muted small">가는 편 ${esc(o.depart_time)}${mixed ? ` (${md(dayOf(o))})` : ""}의 오는 편을 조회하는 중이에요… 1~2분쯤 걸려요. 화면을 닫아도 결과는 저장돼요.</p>`;
+
+  // 오는 편 먼저: 지금까지 조회한 조합(가는 편별 오는 편 목록)을 오는 편 기준으로 다시 묶음
+  const retGroups = () => {
+    const g = new Map();
+    outs.forEach((o, i) => (returnsFor(i) || []).forEach((x) => {
+      const k = `${x.date || retDayOf(i)}|${x.flight_number}|${x.depart_time}`;
+      if (!g.has(k)) g.set(k, { k, r: { ...x, date: x.date || retDayOf(i) }, pairs: [] });
+      g.get(k).pairs.push({ i, price: x.price });
+    }));
+    const list = [...g.values()];
+    list.forEach((x) => { x.pairs.sort((p, q) => p.price - q.price); x.r = { ...x.r, price: x.pairs[0].price }; });
+    return list.sort((p, q) => p.r.price - q.r.price);
+  };
+
+  const drawRetFirst = () => {
+    const groups = retGroups();
+    const known = new Set(outs.map((o, i) => (returnsFor(i) ? i : -1)).filter((i) => i >= 0));
+    const grp = groups.find((x) => x.k === st.rkey) || groups[0];
+    if (grp) st.rkey = grp.k;
+    const pair = grp && (grp.pairs.find((p) => p.i === st.rout) || grp.pairs[0]);
+    if (pair) st.rout = pair.i;
+    const unknown = outs.map((o, i) => i).filter((i) => !known.has(i));
+    const loadingIdx = unknown.filter((i) => st.loading[keyOf(outs[i])]);
+    const multiRet = new Set(groups.map((x) => x.r.date)).size > 1;
+    host.innerHTML = `${modeHTML()}
+      ${pair ? `<div class="combo">
+        <div class="combo-head"><span class="muted small">선택한 왕복</span><b class="num">${won(pair.price)}</b></div>
+        ${comboRowHTML("가는 편", dayOf(outs[pair.i]), outs[pair.i])}
+        ${comboRowHTML("오는 편", grp.r.date, grp.r)}
+        ${diffHTML(pair.price)}
+      </div>` : ""}
+      <div class="rt-step"><span class="rt-no">1</span>오는 편 고르기 <span class="muted small">· ${multiRet ? "날짜 모두" : grp ? dayLabel(grp.r.date) : ""} · 가격은 가능한 왕복 최저가</span></div>
+      <ol class="opts rt-list${groups.length > 5 ? " scroll" : ""}">${groups.map((x, j) => rtRowHTML(x.r, j, "rgrp", x === grp, base, multiRet)).join("")}</ol>
+      <div class="rt-step"><span class="rt-no">2</span>가는 편 고르기 <span class="muted small">· 이 오는 편과 묶었을 때 왕복 총액</span></div>
+      ${grp ? `<ol class="opts rt-list${grp.pairs.length > 5 ? " scroll" : ""}">${grp.pairs.map((p) => rtRowHTML({ ...outs[p.i], price: p.price }, p.i, "rpair", p.i === st.rout, base, mixed)).join("")}</ol>` : ""}
+      ${unknown.length ? `<p class="rt-note muted small">오는 편 목록을 아직 조회하지 않은 가는 편 ${unknown.length}개는 위에 없어요. 아래에서 누르면 그 가는 편의 조합을 조회해요 (검색 1~2회 · 약 1분).</p>
+        ${loadingIdx.map((i) => loadingHTML(outs[i])).join("")}
+        ${ghToken() ? `<ol class="opts rt-list rt-unknown${unknown.length > 4 ? " scroll" : ""}">${unknown.filter((i) => !st.loading[keyOf(outs[i])]).map((i) => rtRowHTML(outs[i], i, "rfetch", false, base, mixed)).join("")}</ol>`
+          : `<p class="rt-wait muted small">조회하려면 <a href="#settings">앱 설정</a>에서 GitHub 연결이 필요해요.</p>`}` : ""}`;
+    host.querySelectorAll(".rt-row").forEach((b) => b.onclick = () => {
+      const i = +b.dataset.i;
+      if (b.dataset.kind === "rgrp") { st.rkey = groups[i].k; st.rout = groups[i].pairs[0].i; }
+      else if (b.dataset.kind === "rpair") st.rout = i;
+      else if (b.dataset.kind === "rfetch") { requestReturns(outs[i]); return; }
+      draw();
+    });
+  };
+
   const draw = () => {
+    if (st.mode === "ret") drawRetFirst(); else drawOutFirst();
+    host.querySelectorAll(".rt-mode button").forEach((b) => b.onclick = () => { st.mode = b.dataset.mode; draw(); });
+  };
+
+  const drawOutFirst = () => {
     const o = outs[st.out] || e;
     const rets = returnsFor(st.out);
     const rr = rets && rets[Math.min(st.ret, rets.length - 1)];
     const it = st.items[keyOf(o)];
     const total = rr ? rr.price : o.price;
-    const diff = Math.abs(total - base) < 500 ? 0 : total - base;
-    host.innerHTML = `
+    host.innerHTML = `${modeHTML()}
       <div class="combo">
         <div class="combo-head"><span class="muted small">${rr ? "선택한 왕복" : "선택한 가는 편 (오는 편 미정)"}</span>
           <b class="num">${rr ? "" : "약 "}${won(total)}</b></div>
         ${comboRowHTML("가는 편", dayOf(o), o)}
         ${rr ? comboRowHTML("오는 편", retDayOf(st.out), rr) : ""}
-        ${diff ? `<div class="combo-diff muted small">최저가 조합보다 <b class="${diff > 0 ? "up" : "down"}">${diff > 0 ? "+" : "−"}${won(Math.abs(diff))}</b></div>` : `<div class="combo-diff small"><span class="o-best" style="display:inline">최저가 조합</span></div>`}
+        ${diffHTML(total)}
       </div>
       <div class="rt-step"><span class="rt-no">1</span>가는 편 고르기 <span class="muted small">· ${mixed ? "후보 날짜 모두" : outDay ? dayLabel(outDay) : ""} · 가격은 왕복 최저가</span></div>
       <ol class="opts rt-list${outs.length > 5 ? " scroll" : ""}">${outs.map((x, i) => rtRowHTML(x, i, "out", i === st.out, base, mixed)).join("")}</ol>
       <div class="rt-step"><span class="rt-no">2</span>오는 편 고르기 <span class="muted small">· ${retDayOf(st.out) ? dayLabel(retDayOf(st.out)) : ""} · 가격은 왕복 총액</span></div>
       ${rets ? `<ol class="opts rt-list${rets.length > 5 ? " scroll" : ""}">${rets.map((x, i) => rtRowHTML(x, i, "ret", i === st.ret, base)).join("")}</ol>`
-        : st.loading[keyOf(o)] ? `<p class="rt-wait muted small">이 가는 편의 오는 편을 조회하는 중이에요… 1~2분쯤 걸려요. 화면을 닫아도 결과는 저장돼요.</p>`
+        : st.loading[keyOf(o)] ? loadingHTML(o)
         : `${it && it.error ? `<p class="rt-wait small" style="color:var(--up)">조회하지 못했어요: ${esc(it.error)}</p>` : ""}
            ${ghToken() ? `<button type="button" class="btn secondary" id="rt-fetch">이 가는 편의 오는 편 조회 (검색 1~2회 · 약 1분)</button>`
              : `<p class="rt-wait muted small">다른 가는 편의 오는 편을 보려면 <a href="#settings">앱 설정</a>에서 GitHub 연결이 필요해요.</p>`}`}`;
