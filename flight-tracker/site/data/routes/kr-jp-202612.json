@@ -2,13 +2,44 @@
   "history": [
     {
       "date": "2026-11-27",
-      "checked_at": "2026-11-27T18:47:01+09:00",
-      "price": null,
-      "error": "SerpApi 조회 실패: HTTP Error 400: Bad Request"
+      "checked_at": "2026-11-27T19:00:30+09:00",
+      "price": 330522,
+      "error": null,
+      "airline": "에어부산",
+      "flight_number": "BX 607",
+      "depart_time": "08:30",
+      "arrive_time": "10:05",
+      "stops": 0,
+      "duration_min": 95,
+      "legs": [
+        {
+          "from": "PUS",
+          "to": "KIX",
+          "date": "2027-02-09",
+          "airline": "에어부산",
+          "flight_number": "BX 607",
+          "depart_time": "08:30",
+          "arrive_time": "10:05",
+          "stops": 0,
+          "price": 126800
+        },
+        {
+          "from": "KIX",
+          "to": "ICN",
+          "date": "2027-02-10",
+          "airline": "제주항공",
+          "flight_number": "7C 1372",
+          "depart_time": "18:20",
+          "arrive_time": "20:10",
+          "stops": 0,
+          "price": 203722
+        }
+      ],
+      "separate_tickets": true
     }
   ],
   "alert_state": {},
-  "google_flights_url": "https://www.google.com/travel/flights?hl=ko&gl=kr&curr=KRW&tfs=CBwQAhpIEgoyMDI3LTAyLTA5Ih8KA1BVUxIKMjAyNy0wMi0wORoDRlVLKgJCWDIDNTE1QAFIF2oHCAESA1BVU3IMCAMSCC9tLzAzXzNkGicSCjIwMjctMDItMTBACkgXagwIAxIIL20vMDNfM2RyBwgBEgNQVVNAAUgBcAGYAQE&tfu=EgIIAQ",
+  "google_flights_url": "https://www.google.com/travel/flights?hl=ko&gl=kr&curr=KRW&tfs=CBwQAhojEgoyMDI3LTAyLTA5agcIARIDUFVTcgwIAxIIL20vMDNfM2RAAUgBcAGYAQI&tfu=EgIIAQ",
   "route": {
     "id": "kr-jp-202612",
     "name": "부산 → 일본 · SEL",
@@ -39,13 +70,15 @@
   },
   "status": "active",
   "summary": {
-    "current": null,
-    "min": null,
-    "max": null,
-    "avg": null,
-    "prev": null
+    "current": 330522,
+    "current_date": "2026-11-27",
+    "prev": null,
+    "min": 330522,
+    "max": 330522,
+    "avg": 330522,
+    "days": 1
   },
-  "updated_at": "2026-11-27T18:59:50+09:00",
+  "updated_at": "2026-11-27T19:00:30+09:00",
   "next_check": null,
   "last_check": null,
   "schedule_kst": []
