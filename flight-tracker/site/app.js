@@ -468,6 +468,34 @@ function compareHTML(r) {
     <p class="muted small compare-note" id="cmp-note">같은 날짜·인원·좌석으로 열려요. 출발 시간대 조건은 각 사이트에서 직접 설정해 주세요.</p>`;
 }
 
+// ---------- Google 항공권 링크: 고른 편을 미리 선택한 검색 주소 (tfs = Google 이 쓰는 protobuf 를 base64 로)
+function pbVarint(n) { const out = []; while (n > 127) { out.push((n & 127) | 128); n = Math.floor(n / 128); } out.push(n); return out; }
+function pbField(no, v) {
+  if (typeof v === "number") return [...pbVarint(no * 8), ...pbVarint(v)];
+  const bytes = typeof v === "string" ? [...new TextEncoder().encode(v)] : v;
+  return [...pbVarint(no * 8 + 2), ...pbVarint(bytes.length), ...bytes];
+}
+// 편명 "BX 607" → ["BX", "607"] (경유 편처럼 여러 편이면 미리 선택하지 않음)
+const splitFlightNo = (fn) => { const m = /^([A-Z0-9]{2})\s*(\d{1,4})$/.exec(String(fn || "").trim()); return m ? [m[1], m[2]] : null; };
+function googleFlightsUrl(flights, r, { select = true } = {}) {
+  const trip = flights.length === 1 ? 2
+    : flights.length === 2 && flights[0].dep_airport === flights[1].arr_airport && flights[0].arr_airport === flights[1].dep_airport ? 1 : 3;
+  const seat = { economy: 1, premium_economy: 2, business: 3, first: 4 }[r.travel_class || "economy"] || 1;
+  let bytes = [...pbField(1, 28), ...pbField(2, 2)];
+  for (const f of flights) {
+    let leg = [...pbField(2, f.date)];
+    const fn = select && !(f.stops > 0) && splitFlightNo(f.flight_number);
+    if (fn) leg = leg.concat(pbField(4, [...pbField(1, f.dep_airport), ...pbField(2, f.date), ...pbField(3, f.arr_airport), ...pbField(5, fn[0]), ...pbField(6, fn[1])]));
+    if (r.max_stops === 0) leg = leg.concat(pbField(5, 1));  // 직항만
+    leg = leg.concat(pbField(13, [...pbField(1, 1), ...pbField(2, f.dep_airport)]), pbField(14, [...pbField(1, 1), ...pbField(2, f.arr_airport)]));
+    bytes = bytes.concat(pbField(3, leg));
+  }
+  for (let i = 0; i < (+r.adults || 1); i++) bytes = bytes.concat(pbField(8, 1));
+  bytes = bytes.concat(pbField(9, seat), pbField(14, 1), pbField(19, trip));
+  const b64 = btoa(String.fromCharCode(...bytes)).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+  return `https://www.google.com/travel/flights/search?tfs=${b64}&hl=ko&gl=kr&curr=KRW`;
+}
+
 // 고르기 화면에서 고른 편들의 실제 공항 · 날짜로 비교 링크를 바꿈 (나라 전체 · 여러 공항 대신 정확한 공항)
 // flights: [{ dep_airport, arr_airport, date, depart_time }...] 여정 순서
 function updateCompare(r, flights) {
@@ -481,6 +509,8 @@ function updateCompare(r, flights) {
     : { ...base, legs: flights.map((f) => ({ from: f.dep_airport, to: f.arr_airport, date: f.date })) };
   const l = compareLinks(rr);
   k.href = l.kayak; sk.href = l.skyscanner;
+  const g = document.getElementById("gf-btn");
+  if (g) { g.href = googleFlightsUrl(flights, r); g.textContent = "Google 항공권에서 고른 일정 보기"; }
   const note = document.getElementById("cmp-note");
   if (note) note.textContent = `고른 항공편 기준(${flights.map((f) => `${md(f.date)} ${f.dep_airport}→${f.arr_airport}${f.depart_time ? ` ${f.depart_time}` : ""}`).join(" · ")})으로 열려요. 시간은 각 사이트에서 골라 주세요.`;
 }
@@ -587,7 +617,7 @@ async function renderDetail(id) {
       <div class="legend"><span><i></i>그날의 최저가</span>${r.alert_below ? `<span><i class="target"></i>목표가 ${won(r.alert_below)}</span>` : ""}</div>
     </section>
 
-    ${doc.google_flights_url ? `<a class="btn" href="${esc(doc.google_flights_url)}" target="_blank" rel="noopener">Google 항공권에서 예약하기</a>` : ""}
+    ${doc.google_flights_url ? `<a class="btn" id="gf-btn" href="${esc(doc.google_flights_url)}" target="_blank" rel="noopener">Google 항공권에서 예약하기</a>` : ""}
     ${compareHTML(lastEntry && lastEntry.flex_date ? { ...r, date: lastEntry.flex_date, return_date: lastEntry.flex_return_date || r.return_date }
       // 다구간: 최근 조회에서 고른 실제 공항으로 (JP · SEL 같은 넓은 곳은 비교 사이트가 못 알아들음)
       : r.legs && lastEntry && lastEntry.legs && lastEntry.legs.every((l) => /^[A-Z]{3}$/.test(l.from) && /^[A-Z]{3}$/.test(l.to))
@@ -678,11 +708,12 @@ function optListHTML(opts, label) {
 }
 
 // 최저가 조합 한 줄 (가는 편 / 오는 편)
-function comboRowHTML(tag, day, o) {
+function comboRowHTML(tag, day, o, legPrice) {
   return `<div class="combo-row">
       ${logoHTML(o)}
       <div class="o-main num"><span class="combo-tag">${tag}</span>${esc(o.depart_time)} → ${esc(o.arrive_time)}</div>
       <div class="o-sub muted small">${day ? `${dayLabel(day)} · ` : ""}${o.dep_airport && o.arr_airport ? `${esc(o.dep_airport)}→${esc(o.arr_airport)}` : ""}${o.stops > 0 ? ` · 경유 ${o.stops}회` : ""}</div>
+      ${o.airline || o.flight_number || legPrice != null ? `<div class="o-sub muted small">${esc([o.airline, o.flight_number].filter(Boolean).join(" · "))}${legPrice != null ? ` · <b class="num" style="color:var(--text)">${won(legPrice)}</b>` : ""}</div>` : ""}
     </div>`;
 }
 
@@ -791,10 +822,12 @@ function mountLegPicker(e, r) {
       </div>` : ""}
       ${done ? `<div class="combo">
         <div class="combo-head"><span class="muted small">${n > 1 ? "선택한 일정" : "선택한 항공편"}</span><b class="num">${won(total)}</b></div>
-        ${chosen.map((o, i) => comboRowHTML(n > 1 ? `${i + 1}구간` : "가는 편", o.date || legs[i].date, o)).join("")}
+        ${chosen.map((o, i) => comboRowHTML(n > 1 ? `${i + 1}구간` : "가는 편", o.date || legs[i].date, o, n > 1 ? o.price : null)).join("")}
         ${diff ? `<div class="combo-diff muted small">최저가보다 <b class="${diff > 0 ? "up" : "down"}">${diff > 0 ? "+" : "−"}${won(Math.abs(diff))}</b></div>`
           : `<div class="combo-diff small"><span class="o-best" style="display:inline">최저가 ${n > 1 ? "조합" : ""}</span></div>`}
-        ${n > 1 ? `<div class="combo-diff muted small">구간마다 따로 예약하는 편도 항공권 합계예요</div>` : ""}
+        ${n > 1 ? `<div class="combo-diff muted small">구간마다 따로 예약하는 편도 항공권 합계예요</div>
+        <div class="combo-links">${chosen.map((o, i) => `<a class="btn secondary" target="_blank" rel="noopener"
+          href="${esc(googleFlightsUrl([{ ...o, date: o.date || legs[i].date }], r))}">${i + 1}구간 Google에서 예약</a>`).join("")}</div>` : ""}
       </div>` : ""}
       ${steps.map((st2, s) => {
         const l = legs[st2.li];
