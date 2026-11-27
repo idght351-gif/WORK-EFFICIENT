@@ -2,8 +2,8 @@
   "history": [
     {
       "date": "2026-11-27",
-      "checked_at": "2026-11-27T10:42:38+09:00",
-      "price": 396099,
+      "checked_at": "2026-11-27T16:04:02+09:00",
+      "price": 392579,
       "error": null,
       "airline": "피치항공",
       "flight_number": "MM 710",
@@ -16,19 +16,7 @@
       "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/MM.png",
       "return_options": [
         {
-          "price": 396099,
-          "airline": "피치항공",
-          "flight_number": "MM 709",
-          "depart_time": "18:10",
-          "arrive_time": "20:15",
-          "stops": 0,
-          "dep_airport": "KIX",
-          "arr_airport": "ICN",
-          "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/MM.png",
-          "date": "2026-12-19"
-        },
-        {
-          "price": 412954,
+          "price": 392579,
           "airline": "피치항공",
           "flight_number": "MM 705",
           "depart_time": "11:45",
@@ -37,10 +25,10 @@
           "dep_airport": "KIX",
           "arr_airport": "ICN",
           "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/MM.png",
-          "date": "2026-12-19"
+          "date": "2026-12-12"
         },
         {
-          "price": 436551,
+          "price": 403514,
           "airline": "Trinity Airways",
           "flight_number": "TW 302",
           "depart_time": "11:15",
@@ -49,46 +37,10 @@
           "dep_airport": "KIX",
           "arr_airport": "ICN",
           "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/TW.png",
-          "date": "2026-12-19"
+          "date": "2026-12-12"
         },
         {
-          "price": 454248,
-          "airline": "에어부산",
-          "flight_number": "BX 332",
-          "depart_time": "15:40",
-          "arrive_time": "18:05",
-          "stops": 0,
-          "dep_airport": "KIX",
-          "arr_airport": "ICN",
-          "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/BX.png",
-          "date": "2026-12-19"
-        },
-        {
-          "price": 454248,
-          "airline": "에어부산",
-          "flight_number": "BX 328",
-          "depart_time": "12:00",
-          "arrive_time": "14:10",
-          "stops": 0,
-          "dep_airport": "KIX",
-          "arr_airport": "ICN",
-          "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/BX.png",
-          "date": "2026-12-19"
-        },
-        {
-          "price": 461833,
-          "airline": "피치항공",
-          "flight_number": "MM 711",
-          "depart_time": "19:50",
-          "arrive_time": "21:50",
-          "stops": 0,
-          "dep_airport": "KIX",
-          "arr_airport": "ICN",
-          "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/MM.png",
-          "date": "2026-12-19"
-        },
-        {
-          "price": 463013,
+          "price": 408056,
           "airline": "제주항공",
           "flight_number": "7C 1304",
           "depart_time": "12:00",
@@ -97,22 +49,22 @@
           "dep_airport": "KIX",
           "arr_airport": "ICN",
           "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/7C.png",
-          "date": "2026-12-19"
+          "date": "2026-12-12"
         },
         {
-          "price": 463013,
+          "price": 408056,
           "airline": "제주항공",
-          "flight_number": "7C 1316",
-          "depart_time": "13:05",
-          "arrive_time": "15:15",
+          "flight_number": "7C 1392",
+          "depart_time": "10:50",
+          "arrive_time": "12:55",
           "stops": 0,
           "dep_airport": "KIX",
           "arr_airport": "ICN",
           "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/7C.png",
-          "date": "2026-12-19"
+          "date": "2026-12-12"
         },
         {
-          "price": 469417,
+          "price": 418655,
           "airline": "진에어",
           "flight_number": "LJ 314",
           "depart_time": "10:50",
@@ -121,34 +73,10 @@
           "dep_airport": "KIX",
           "arr_airport": "ICN",
           "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/LJ.png",
-          "date": "2026-12-19"
+          "date": "2026-12-12"
         },
         {
-          "price": 469417,
-          "airline": "진에어",
-          "flight_number": "LJ 330",
-          "depart_time": "14:50",
-          "arrive_time": "16:50",
-          "stops": 0,
-          "dep_airport": "KIX",
-          "arr_airport": "ICN",
-          "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/LJ.png",
-          "date": "2026-12-19"
-        },
-        {
-          "price": 471103,
-          "airline": "에어부산",
-          "flight_number": "BX 374",
-          "depart_time": "18:00",
-          "arrive_time": "20:15",
-          "stops": 0,
-          "dep_airport": "KIX",
-          "arr_airport": "ICN",
-          "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/BX.png",
-          "date": "2026-12-19"
-        },
-        {
-          "price": 478688,
+          "price": 420338,
           "airline": "에어서울",
           "flight_number": "RS 302",
           "depart_time": "10:00",
@@ -157,46 +85,46 @@
           "dep_airport": "KIX",
           "arr_airport": "ICN",
           "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/RS.png",
-          "date": "2026-12-19"
+          "date": "2026-12-12"
         },
         {
-          "price": 478688,
-          "airline": "에어서울",
-          "flight_number": "RS 354",
-          "depart_time": "16:00",
-          "arrive_time": "17:55",
-          "stops": 0,
-          "dep_airport": "KIX",
-          "arr_airport": "ICN",
-          "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/RS.png",
-          "date": "2026-12-19"
-        },
-        {
-          "price": 478688,
-          "airline": "에어서울",
-          "flight_number": "RS 382",
-          "depart_time": "18:00",
-          "arrive_time": "20:05",
-          "stops": 0,
-          "dep_airport": "KIX",
-          "arr_airport": "ICN",
-          "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/RS.png",
-          "date": "2026-12-19"
-        },
-        {
-          "price": 480710,
+          "price": 425721,
           "airline": "제주항공",
-          "flight_number": "7C 1306",
-          "depart_time": "19:40",
-          "arrive_time": "21:45",
+          "flight_number": "7C 1316",
+          "depart_time": "13:05",
+          "arrive_time": "15:15",
           "stops": 0,
           "dep_airport": "KIX",
           "arr_airport": "ICN",
           "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/7C.png",
-          "date": "2026-12-19"
+          "date": "2026-12-12"
         },
         {
-          "price": 487115,
+          "price": 433797,
+          "airline": "에어부산",
+          "flight_number": "BX 332",
+          "depart_time": "15:40",
+          "arrive_time": "18:05",
+          "stops": 0,
+          "dep_airport": "KIX",
+          "arr_airport": "ICN",
+          "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/BX.png",
+          "date": "2026-12-12"
+        },
+        {
+          "price": 448938,
+          "airline": "진에어",
+          "flight_number": "LJ 330",
+          "depart_time": "14:50",
+          "arrive_time": "16:50",
+          "stops": 0,
+          "dep_airport": "KIX",
+          "arr_airport": "ICN",
+          "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/LJ.png",
+          "date": "2026-12-12"
+        },
+        {
+          "price": 449779,
           "airline": "Trinity Airways",
           "flight_number": "TW 304",
           "depart_time": "15:40",
@@ -205,22 +133,34 @@
           "dep_airport": "KIX",
           "arr_airport": "ICN",
           "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/TW.png",
-          "date": "2026-12-19"
+          "date": "2026-12-12"
         },
         {
-          "price": 487115,
-          "airline": "Trinity Airways",
-          "flight_number": "TW 306",
-          "depart_time": "19:10",
-          "arrive_time": "21:05",
+          "price": 450621,
+          "airline": "에어부산",
+          "flight_number": "BX 374",
+          "depart_time": "18:00",
+          "arrive_time": "20:15",
           "stops": 0,
           "dep_airport": "KIX",
           "arr_airport": "ICN",
-          "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/TW.png",
-          "date": "2026-12-19"
+          "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/BX.png",
+          "date": "2026-12-12"
         },
         {
-          "price": 498408,
+          "price": 458191,
+          "airline": "에어서울",
+          "flight_number": "RS 354",
+          "depart_time": "16:00",
+          "arrive_time": "17:55",
+          "stops": 0,
+          "dep_airport": "KIX",
+          "arr_airport": "ICN",
+          "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/RS.png",
+          "date": "2026-12-12"
+        },
+        {
+          "price": 460210,
           "airline": "제주항공",
           "flight_number": "7C 1394",
           "depart_time": "17:00",
@@ -229,22 +169,22 @@
           "dep_airport": "KIX",
           "arr_airport": "ICN",
           "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/7C.png",
-          "date": "2026-12-19"
+          "date": "2026-12-12"
         },
         {
-          "price": 501020,
-          "airline": "아시아나항공",
-          "flight_number": "OZ 111",
-          "depart_time": "10:30",
-          "arrive_time": "12:35",
+          "price": 460210,
+          "airline": "제주항공",
+          "flight_number": "7C 1306",
+          "depart_time": "19:40",
+          "arrive_time": "21:45",
           "stops": 0,
           "dep_airport": "KIX",
           "arr_airport": "ICN",
-          "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/OZ.png",
-          "date": "2026-12-19"
+          "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/7C.png",
+          "date": "2026-12-12"
         },
         {
-          "price": 519982,
+          "price": 464080,
           "airline": "진에어",
           "flight_number": "LJ 356",
           "depart_time": "17:35",
@@ -253,22 +193,10 @@
           "dep_airport": "KIX",
           "arr_airport": "ICN",
           "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/LJ.png",
-          "date": "2026-12-19"
+          "date": "2026-12-12"
         },
         {
-          "price": 519982,
-          "airline": "진에어",
-          "flight_number": "LJ 384",
-          "depart_time": "23:25",
-          "arrive_time": "01:40",
-          "stops": 0,
-          "dep_airport": "KIX",
-          "arr_airport": "ICN",
-          "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/LJ.png",
-          "date": "2026-12-19"
-        },
-        {
-          "price": 540208,
+          "price": 464080,
           "airline": "진에어",
           "flight_number": "LJ 368",
           "depart_time": "17:50",
@@ -277,10 +205,58 @@
           "dep_airport": "KIX",
           "arr_airport": "ICN",
           "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/LJ.png",
-          "date": "2026-12-19"
+          "date": "2026-12-12"
         },
         {
-          "price": 541472,
+          "price": 464080,
+          "airline": "피치항공",
+          "flight_number": "MM 709",
+          "depart_time": "18:10",
+          "arrive_time": "20:15",
+          "stops": 0,
+          "dep_airport": "KIX",
+          "arr_airport": "ICN",
+          "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/MM.png",
+          "date": "2026-12-12"
+        },
+        {
+          "price": 464080,
+          "airline": "피치항공",
+          "flight_number": "MM 711",
+          "depart_time": "19:50",
+          "arrive_time": "21:50",
+          "stops": 0,
+          "dep_airport": "KIX",
+          "arr_airport": "ICN",
+          "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/MM.png",
+          "date": "2026-12-12"
+        },
+        {
+          "price": 466603,
+          "airline": "Trinity Airways",
+          "flight_number": "TW 306",
+          "depart_time": "19:10",
+          "arrive_time": "21:05",
+          "stops": 0,
+          "dep_airport": "KIX",
+          "arr_airport": "ICN",
+          "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/TW.png",
+          "date": "2026-12-12"
+        },
+        {
+          "price": 475015,
+          "airline": "에어서울",
+          "flight_number": "RS 382",
+          "depart_time": "18:00",
+          "arrive_time": "20:05",
+          "stops": 0,
+          "dep_airport": "KIX",
+          "arr_airport": "ICN",
+          "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/RS.png",
+          "date": "2026-12-12"
+        },
+        {
+          "price": 520860,
           "airline": "대한항공",
           "flight_number": "KE 724",
           "depart_time": "11:55",
@@ -289,22 +265,22 @@
           "dep_airport": "KIX",
           "arr_airport": "ICN",
           "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/KE.png",
-          "date": "2026-12-19"
+          "date": "2026-12-12"
         },
         {
-          "price": 557484,
-          "airline": "대한항공",
-          "flight_number": "KE 728",
-          "depart_time": "14:00",
-          "arrive_time": "16:15",
+          "price": 577219,
+          "airline": "아시아나항공",
+          "flight_number": "OZ 111",
+          "depart_time": "10:30",
+          "arrive_time": "12:35",
           "stops": 0,
           "dep_airport": "KIX",
           "arr_airport": "ICN",
-          "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/KE.png",
-          "date": "2026-12-19"
+          "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/OZ.png",
+          "date": "2026-12-12"
         },
         {
-          "price": 661984,
+          "price": 577219,
           "airline": "대한항공",
           "flight_number": "KE 726",
           "depart_time": "18:10",
@@ -313,10 +289,34 @@
           "dep_airport": "KIX",
           "arr_airport": "ICN",
           "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/KE.png",
-          "date": "2026-12-19"
+          "date": "2026-12-12"
         },
         {
-          "price": 677996,
+          "price": 593622,
+          "airline": "에어부산",
+          "flight_number": "BX 328",
+          "depart_time": "12:00",
+          "arrive_time": "14:10",
+          "stops": 0,
+          "dep_airport": "KIX",
+          "arr_airport": "ICN",
+          "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/BX.png",
+          "date": "2026-12-12"
+        },
+        {
+          "price": 609184,
+          "airline": "대한항공",
+          "flight_number": "KE 728",
+          "depart_time": "14:00",
+          "arrive_time": "16:15",
+          "stops": 0,
+          "dep_airport": "KIX",
+          "arr_airport": "ICN",
+          "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/KE.png",
+          "date": "2026-12-12"
+        },
+        {
+          "price": 641150,
           "airline": "아시아나항공",
           "flight_number": "OZ 113",
           "depart_time": "19:45",
@@ -325,32 +325,20 @@
           "dep_airport": "KIX",
           "arr_airport": "ICN",
           "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/OZ.png",
-          "date": "2026-12-19"
+          "date": "2026-12-12"
         }
       ],
       "return_airline": "피치항공",
-      "return_flight_number": "MM 709",
-      "return_depart_time": "18:10",
-      "return_arrive_time": "20:15",
+      "return_flight_number": "MM 705",
+      "return_depart_time": "11:45",
+      "return_arrive_time": "13:50",
       "return_stops": 0,
       "return_dep_airport": "KIX",
       "return_arr_airport": "ICN",
       "return_airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/MM.png",
       "options": [
         {
-          "price": 396099,
-          "airline": "피치항공",
-          "flight_number": "MM 710",
-          "depart_time": "21:00",
-          "arrive_time": "22:45",
-          "stops": 0,
-          "dep_airport": "ICN",
-          "arr_airport": "KIX",
-          "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/MM.png",
-          "date": "2026-12-18"
-        },
-        {
-          "price": 414700,
+          "price": 392579,
           "airline": "피치항공",
           "flight_number": "MM 710",
           "depart_time": "21:00",
@@ -362,7 +350,19 @@
           "date": "2026-12-11"
         },
         {
-          "price": 416949,
+          "price": 395755,
+          "airline": "피치항공",
+          "flight_number": "MM 710",
+          "depart_time": "21:00",
+          "arrive_time": "22:45",
+          "stops": 0,
+          "dep_airport": "ICN",
+          "arr_airport": "KIX",
+          "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/MM.png",
+          "date": "2026-12-18"
+        },
+        {
+          "price": 436586,
           "airline": "Trinity Airways",
           "flight_number": "TW 247",
           "depart_time": "19:45",
@@ -374,7 +374,19 @@
           "date": "2026-12-11"
         },
         {
-          "price": 442099,
+          "price": 438579,
+          "airline": "제주항공",
+          "flight_number": "7C 1395",
+          "depart_time": "19:10",
+          "arrive_time": "21:00",
+          "stops": 0,
+          "dep_airport": "ICN",
+          "arr_airport": "KIX",
+          "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/7C.png",
+          "date": "2026-12-11"
+        },
+        {
+          "price": 441755,
           "airline": "제주항공",
           "flight_number": "7C 1395",
           "depart_time": "19:10",
@@ -386,7 +398,7 @@
           "date": "2026-12-18"
         },
         {
-          "price": 449699,
+          "price": 449355,
           "airline": "아시아나항공",
           "flight_number": "OZ 118",
           "depart_time": "21:00",
@@ -410,19 +422,19 @@
           "date": "2026-12-18"
         },
         {
-          "price": 465800,
-          "airline": "제주항공",
-          "flight_number": "7C 1395",
-          "depart_time": "19:10",
-          "arrive_time": "21:00",
+          "price": 464979,
+          "airline": "대한항공",
+          "flight_number": "KE 737",
+          "depart_time": "20:55",
+          "arrive_time": "22:40",
           "stops": 0,
           "dep_airport": "ICN",
           "arr_airport": "KIX",
-          "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/7C.png",
+          "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/KE.png",
           "date": "2026-12-11"
         },
         {
-          "price": 496499,
+          "price": 496155,
           "airline": "대한항공",
           "flight_number": "KE 737",
           "depart_time": "20:55",
@@ -446,19 +458,7 @@
           "date": "2026-12-18"
         },
         {
-          "price": 532200,
-          "airline": "대한항공",
-          "flight_number": "KE 737",
-          "depart_time": "20:55",
-          "arrive_time": "22:40",
-          "stops": 0,
-          "dep_airport": "ICN",
-          "arr_airport": "KIX",
-          "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/KE.png",
-          "date": "2026-12-11"
-        },
-        {
-          "price": 626100,
+          "price": 577179,
           "airline": "아시아나항공",
           "flight_number": "OZ 118",
           "depart_time": "21:00",
@@ -470,7 +470,43 @@
           "date": "2026-12-11"
         },
         {
-          "price": 702300,
+          "price": 688000,
+          "airline": "아시아나항공 + 일본항공",
+          "flight_number": "OZ 178, JL 305",
+          "depart_time": "21:30",
+          "arrive_time": "09:00",
+          "stops": 1,
+          "dep_airport": "ICN",
+          "arr_airport": "FUK",
+          "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/OZ.png",
+          "date": "2026-12-18"
+        },
+        {
+          "price": 696600,
+          "airline": "아시아나항공 + 일본항공",
+          "flight_number": "OZ 178, JL 201",
+          "depart_time": "21:30",
+          "arrive_time": "09:05",
+          "stops": 1,
+          "dep_airport": "ICN",
+          "arr_airport": "NGO",
+          "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/OZ.png",
+          "date": "2026-12-11"
+        },
+        {
+          "price": 698100,
+          "airline": "아시아나항공",
+          "flight_number": "OZ 178",
+          "depart_time": "21:30",
+          "arrive_time": "23:25",
+          "stops": 0,
+          "dep_airport": "ICN",
+          "arr_airport": "HND",
+          "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/OZ.png",
+          "date": "2026-12-18"
+        },
+        {
+          "price": 705800,
           "airline": "아시아나항공",
           "flight_number": "OZ 1065",
           "depart_time": "19:35",
@@ -480,18 +516,6 @@
           "arr_airport": "HND",
           "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/OZ.png",
           "date": "2026-12-18"
-        },
-        {
-          "price": 715000,
-          "airline": "아시아나항공 + 일본항공",
-          "flight_number": "OZ 118, JL 2201",
-          "depart_time": "21:00",
-          "arrive_time": "08:25",
-          "stops": 1,
-          "dep_airport": "ICN",
-          "arr_airport": "SDJ",
-          "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/OZ.png",
-          "date": "2026-12-11"
         },
         {
           "price": 717300,
@@ -506,16 +530,16 @@
           "date": "2026-12-11"
         },
         {
-          "price": 726300,
-          "airline": "일본항공",
-          "flight_number": "JL 94",
-          "depart_time": "19:40",
-          "arrive_time": "21:45",
+          "price": 727600,
+          "airline": "아시아나항공",
+          "flight_number": "OZ 178",
+          "depart_time": "21:30",
+          "arrive_time": "23:25",
           "stops": 0,
-          "dep_airport": "GMP",
+          "dep_airport": "ICN",
           "arr_airport": "HND",
-          "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/JL.png",
-          "date": "2026-12-18"
+          "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/OZ.png",
+          "date": "2026-12-11"
         },
         {
           "price": 728200,
@@ -530,27 +554,15 @@
           "date": "2026-12-11"
         },
         {
-          "price": 735900,
-          "airline": "대한항공",
-          "flight_number": "KE 751",
-          "depart_time": "20:40",
-          "arrive_time": "22:50",
-          "stops": 0,
-          "dep_airport": "ICN",
-          "arr_airport": "HND",
-          "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/KE.png",
-          "date": "2026-12-18"
-        },
-        {
-          "price": 768400,
-          "airline": "대한항공",
-          "flight_number": "KE 2105",
-          "depart_time": "19:30",
-          "arrive_time": "21:35",
+          "price": 728200,
+          "airline": "일본항공",
+          "flight_number": "JL 94",
+          "depart_time": "19:40",
+          "arrive_time": "21:45",
           "stops": 0,
           "dep_airport": "GMP",
           "arr_airport": "HND",
-          "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/KE.png",
+          "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/JL.png",
           "date": "2026-12-18"
         },
         {
@@ -566,27 +578,27 @@
           "date": "2026-12-11"
         },
         {
-          "price": 798100,
-          "airline": "아시아나항공",
-          "flight_number": "OZ 178",
-          "depart_time": "21:30",
-          "arrive_time": "23:25",
+          "price": 783400,
+          "airline": "대한항공",
+          "flight_number": "KE 2105",
+          "depart_time": "19:30",
+          "arrive_time": "21:35",
           "stops": 0,
-          "dep_airport": "ICN",
+          "dep_airport": "GMP",
           "arr_airport": "HND",
-          "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/OZ.png",
-          "date": "2026-12-11"
+          "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/KE.png",
+          "date": "2026-12-18"
         },
         {
-          "price": 801600,
-          "airline": "아시아나항공",
-          "flight_number": "OZ 178",
-          "depart_time": "21:30",
-          "arrive_time": "23:25",
+          "price": 791900,
+          "airline": "대한항공",
+          "flight_number": "KE 751",
+          "depart_time": "20:40",
+          "arrive_time": "22:50",
           "stops": 0,
           "dep_airport": "ICN",
           "arr_airport": "HND",
-          "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/OZ.png",
+          "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/KE.png",
           "date": "2026-12-18"
         },
         {
@@ -638,22 +650,22 @@
           "date": "2026-12-18"
         }
       ],
-      "flex_date": "2026-12-18",
-      "flex_return_date": "2026-12-19",
+      "flex_date": "2026-12-11",
+      "flex_return_date": "2026-12-12",
       "flex_top": [
         {
-          "date": "2026-12-18",
-          "price": 396099
+          "date": "2026-12-11",
+          "price": 392579
         },
         {
-          "date": "2026-12-11",
-          "price": 414700
+          "date": "2026-12-18",
+          "price": 395755
         }
       ]
     }
   ],
   "alert_state": {},
-  "google_flights_url": "https://www.google.com/travel/flights?hl=ko&gl=kr&curr=KRW&tfs=CBwQAhpaEgoyMDI2LTEyLTE4Ih8KA0lDThIKMjAyNi0xMi0xOBoDS0lYKgJNTTIDNzEwQBNIF2oHCAESA0lDTmoHCAESA0dNUGoHCAESA0NKSnIMCAMSCC9tLzAzXzNkGjkSCjIwMjYtMTItMTlACkgXagwIAxIIL20vMDNfM2RyBwgBEgNJQ05yBwgBEgNHTVByBwgBEgNDSkpAAUgBcAGYAQE&tfu=EgIIAQ",
+  "google_flights_url": "https://www.google.com/travel/flights?hl=ko&gl=kr&curr=KRW&tfs=CBwQAhpaEgoyMDI2LTEyLTExIh8KA0lDThIKMjAyNi0xMi0xMRoDS0lYKgJNTTIDNzEwQBNIF2oHCAESA0lDTmoHCAESA0dNUGoHCAESA0NKSnIMCAMSCC9tLzAzXzNkGjkSCjIwMjYtMTItMTJACkgXagwIAxIIL20vMDNfM2RyBwgBEgNJQ05yBwgBEgNHTVByBwgBEgNDSkpAAUgBcAGYAQE&tfu=EgIIAQ",
   "route": {
     "id": "kr-jp-202612",
     "name": "인천 · 김포 · 청주 → 일본",
@@ -681,15 +693,15 @@
   },
   "status": "active",
   "summary": {
-    "current": 396099,
+    "current": 392579,
     "current_date": "2026-11-27",
     "prev": null,
-    "min": 396099,
-    "max": 396099,
-    "avg": 396099,
+    "min": 392579,
+    "max": 392579,
+    "avg": 392579,
     "days": 1
   },
-  "updated_at": "2026-11-27T15:42:15+09:00",
+  "updated_at": "2026-11-27T16:04:02+09:00",
   "next_check": null,
   "last_check": null,
   "schedule_kst": []

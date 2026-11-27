@@ -1,8 +1,8 @@
 {
-  "updated_at": "2026-11-27T08:38:23+09:00",
+  "updated_at": "2026-11-27T16:04:02+09:00",
   "items": {
     "2027-06-29|KE 761|10:15": {
-      "checked_at": "2026-11-27T08:38:23+09:00",
+      "checked_at": "2026-11-27T16:04:02+09:00",
       "prefetched": true,
       "return_date": "2027-07-05",
       "returns": [
@@ -31,7 +31,7 @@
           "date": "2027-07-05"
         },
         {
-          "price": 688270,
+          "price": 687437,
           "airline": "Trinity Airways",
           "flight_number": "TW 264",
           "depart_time": "14:30",
@@ -57,7 +57,7 @@
       ]
     },
     "2027-06-29|KE 765|10:35": {
-      "checked_at": "2026-11-27T08:38:23+09:00",
+      "checked_at": "2026-11-27T16:04:02+09:00",
       "prefetched": true,
       "return_date": "2027-07-05",
       "returns": [
@@ -86,7 +86,7 @@
           "date": "2027-07-05"
         },
         {
-          "price": 688270,
+          "price": 687437,
           "airline": "Trinity Airways",
           "flight_number": "TW 264",
           "depart_time": "14:30",
