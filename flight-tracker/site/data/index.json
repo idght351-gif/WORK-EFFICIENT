@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-11-27T16:04:02+09:00",
+  "updated_at": "2026-11-27T16:34:46+09:00",
   "routes": [
     {
       "id": "icn-cts-20270629",
@@ -144,33 +144,34 @@
       "name": "인천 · 김포 · 청주 → 일본",
       "from": "ICN,GMP,CJJ",
       "to": "JP",
-      "date": "2026-12-11",
-      "return_date": "2026-12-12",
+      "date": "2027-02-09",
+      "return_date": "2027-02-10",
       "legs": null,
       "flex": {
         "dates": [
-          "2026-12-11",
-          "2026-12-18"
+          "2027-02-09",
+          "2027-02-27",
+          "2027-02-28"
         ],
         "trip_days": 1
       },
       "alert_below": null,
       "status": "active",
       "cost": 5,
-      "last_checked_at": "2026-11-27T16:04:02+09:00",
+      "last_checked_at": "2026-11-27T16:34:46+09:00",
       "summary": {
-        "current": 392579,
+        "current": 339851,
         "current_date": "2026-11-27",
         "prev": null,
-        "min": 392579,
-        "max": 392579,
-        "avg": 392579,
+        "min": 339851,
+        "max": 339851,
+        "avg": 339851,
         "days": 1
       },
       "next_check": null,
       "last_check": null,
       "spark": [
-        392579
+        339851
       ],
       "spark_dates": [
         "2026-11-27"
@@ -180,14 +181,14 @@
   "quota": {
     "plan_name": "Free Plan",
     "searches_per_month": 250,
-    "plan_searches_left": 138,
+    "plan_searches_left": 131,
     "extra_credits": 0,
-    "total_searches_left": 138,
-    "this_month_usage": 112,
+    "total_searches_left": 131,
+    "this_month_usage": 119,
     "plan_renewal_date": "2026-12-23",
     "account_rate_limit_per_hour": 250,
     "daily_usage": 0,
-    "checked_at": "2026-11-27T16:04:02+09:00"
+    "checked_at": "2026-11-27T16:34:46+09:00"
   },
   "schedule_kst": [],
   "last_scheduled_date": "2026-11-26"
