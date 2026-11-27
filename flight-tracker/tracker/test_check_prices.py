@@ -160,7 +160,7 @@ class TestCompareLinks(unittest.TestCase):
              "travel_class": "business", "max_stops": 0}
         links = compare_links(r)
         self.assertEqual(links["kayak"],
-                         "https://www.kayak.co.kr/flights/ICN-NRT/2026-12-20/business?sort=price_a&fs=stops%3D0")
+                         "https://www.kayak.co.kr/flights/ICN-NRT/2026-12-20/business?sort=price_a&fs=stops=0")
         self.assertIn("/icn/nrt/261220/?", links["skyscanner"])
         self.assertIn("cabinclass=business&rtn=0&preferdirects=true", links["skyscanner"])
 
@@ -254,7 +254,7 @@ class TestMultiCity(unittest.TestCase):
         route = self.cp.normalize_route(self.ROUTE)
         links = compare_links(route)
         self.assertEqual(links["kayak"], "https://www.kayak.co.kr/flights/ICN-CTS/2027-06-29/"
-                                         "CTS-NRT/2027-07-02/NRT-ICN/2027-07-05?sort=price_a&fs=stops%3D0")
+                                         "CTS-NRT/2027-07-02/NRT-ICN/2027-07-05?sort=price_a&fs=stops=0")
         self.assertTrue(links["skyscanner"].startswith(
             "https://www.skyscanner.co.kr/transport/d/icn/2027-06-29/cts/cts/2027-07-02/nrt/nrt/2027-07-05/icn/?"))
         out, _, _ = self.cp.check_route(route, "k")
@@ -411,7 +411,7 @@ class TestMultiAirport(unittest.TestCase):
         p = cp.build_params(r, "k")
         self.assertEqual((p["departure_id"], p["arrival_id"], p["type"]), ("ICN,GMP", "KIX,UKB", 2))
         links = compare_links(r)
-        self.assertEqual(links["kayak"], "https://www.kayak.co.kr/flights/SEL-OSA/2027-02-27?sort=price_a&fs=stops%3D0")
+        self.assertEqual(links["kayak"], "https://www.kayak.co.kr/flights/SEL-OSA/2027-02-27?sort=price_a&fs=stops=0")
         self.assertIn("/transport/flights/sela/osaa/270227/", links["skyscanner"])
         self.assertEqual(cp.site_codes("ICN"), ("ICN", "icn"))
         self.assertEqual(cp.site_codes("ICN,CJU"), ("ICN", "icn"))

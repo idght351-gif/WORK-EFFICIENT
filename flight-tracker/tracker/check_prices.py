@@ -889,7 +889,7 @@ def compare_links(route: dict) -> dict:
         "rtn": 1 if route.get("return_date") else 0, "preferdirects": "true" if direct else "false",
     })
     k_tail = KAYAK_CABIN.get(cabin, "") + (f"/{adults}adults" if adults > 1 else "") + \
-        "?sort=price_a" + ("&fs=stops%3D0" if direct else "")
+        "?sort=price_a" + ("&fs=stops=0" if direct else "")
     if is_multi(route):
         legs = route["legs"]
         kayak = "https://www.kayak.co.kr/flights/" + "/".join(
