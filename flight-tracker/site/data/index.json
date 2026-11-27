@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-11-27T08:38:23+09:00",
+  "updated_at": "2026-11-27T10:42:38+09:00",
   "routes": [
     {
       "id": "icn-cts-20270629",
@@ -157,20 +157,20 @@
       "alert_below": null,
       "status": "active",
       "cost": 5,
-      "last_checked_at": "2026-11-27T08:38:23+09:00",
+      "last_checked_at": "2026-11-27T10:42:38+09:00",
       "summary": {
-        "current": 414700,
+        "current": 396099,
         "current_date": "2026-11-27",
         "prev": null,
-        "min": 414700,
-        "max": 414700,
-        "avg": 414700,
+        "min": 396099,
+        "max": 396099,
+        "avg": 396099,
         "days": 1
       },
       "next_check": null,
       "last_check": null,
       "spark": [
-        414700
+        396099
       ],
       "spark_dates": [
         "2026-11-27"
@@ -180,14 +180,14 @@
   "quota": {
     "plan_name": "Free Plan",
     "searches_per_month": 250,
-    "plan_searches_left": 159,
+    "plan_searches_left": 153,
     "extra_credits": 0,
-    "total_searches_left": 159,
-    "this_month_usage": 91,
+    "total_searches_left": 153,
+    "this_month_usage": 97,
     "plan_renewal_date": "2026-12-23",
     "account_rate_limit_per_hour": 250,
     "daily_usage": 0,
-    "checked_at": "2026-11-27T08:38:23+09:00"
+    "checked_at": "2026-11-27T10:42:38+09:00"
   },
   "schedule_kst": [],
   "last_scheduled_date": "2026-11-26"
