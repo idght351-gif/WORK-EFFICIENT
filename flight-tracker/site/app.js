@@ -444,7 +444,7 @@ function compareLinks(r) {
   const adults = +(r.adults || 1), ret = r.return_date, direct = r.max_stops === 0;
   const kc = { economy: "", premium_economy: "/premium", business: "/business", first: "/first" }[r.travel_class || "economy"] || "";
   const sc = { economy: "economy", premium_economy: "premiumeconomy", business: "business", first: "first" }[r.travel_class || "economy"] || "economy";
-  const kTail = kc + (adults > 1 ? `/${adults}adults` : "") + "?sort=price_a" + (direct ? "&fs=stops%3D0" : "");
+  const kTail = kc + (adults > 1 ? `/${adults}adults` : "") + "?sort=price_a" + (direct ? "&fs=stops=0" : "");
   if (r.legs && r.legs.length) {
     const q = new URLSearchParams({ adultsv2: adults, cabinclass: sc, rtn: 2, preferdirects: direct ? "true" : "false" });
     return {
@@ -462,10 +462,27 @@ function compareLinks(r) {
 function compareHTML(r) {
   const l = compareLinks(r);
   return `<div class="compare">
-      <a class="btn secondary" href="${esc(l.kayak)}" target="_blank" rel="noopener">Kayak 비교</a>
-      <a class="btn secondary" href="${esc(l.skyscanner)}" target="_blank" rel="noopener">Skyscanner 비교</a>
+      <a class="btn secondary" id="cmp-kayak" href="${esc(l.kayak)}" target="_blank" rel="noopener">Kayak 비교</a>
+      <a class="btn secondary" id="cmp-sky" href="${esc(l.skyscanner)}" target="_blank" rel="noopener">Skyscanner 비교</a>
     </div>
-    <p class="muted small compare-note">같은 날짜·인원·좌석으로 열려요. 출발 시간대 조건은 각 사이트에서 직접 설정해 주세요.</p>`;
+    <p class="muted small compare-note" id="cmp-note">같은 날짜·인원·좌석으로 열려요. 출발 시간대 조건은 각 사이트에서 직접 설정해 주세요.</p>`;
+}
+
+// 고르기 화면에서 고른 편들의 실제 공항 · 날짜로 비교 링크를 바꿈 (나라 전체 · 여러 공항 대신 정확한 공항)
+// flights: [{ dep_airport, arr_airport, date, depart_time }...] 여정 순서
+function updateCompare(r, flights) {
+  const k = document.getElementById("cmp-kayak"), sk = document.getElementById("cmp-sky");
+  if (!k || !sk || !flights.length || flights.some((f) => !f || !f.dep_airport || !f.arr_airport || !f.date)) return;
+  const base = { adults: r.adults, travel_class: r.travel_class, max_stops: r.max_stops };
+  const [a, b] = flights;
+  const roundTrip = flights.length === 2 && a.dep_airport === b.arr_airport && a.arr_airport === b.dep_airport;
+  const rr = flights.length === 1 ? { ...base, from: a.dep_airport, to: a.arr_airport, date: a.date }
+    : roundTrip ? { ...base, from: a.dep_airport, to: a.arr_airport, date: a.date, return_date: b.date }
+    : { ...base, legs: flights.map((f) => ({ from: f.dep_airport, to: f.arr_airport, date: f.date })) };
+  const l = compareLinks(rr);
+  k.href = l.kayak; sk.href = l.skyscanner;
+  const note = document.getElementById("cmp-note");
+  if (note) note.textContent = `고른 항공편 기준(${flights.map((f) => `${md(f.date)} ${f.dep_airport}→${f.arr_airport}${f.depart_time ? ` ${f.depart_time}` : ""}`).join(" · ")})으로 열려요. 시간은 각 사이트에서 골라 주세요.`;
 }
 
 // ------------------------------------------------------------ 상세
@@ -571,7 +588,10 @@ async function renderDetail(id) {
     </section>
 
     ${doc.google_flights_url ? `<a class="btn" href="${esc(doc.google_flights_url)}" target="_blank" rel="noopener">Google 항공권에서 예약하기</a>` : ""}
-    ${compareHTML(lastEntry && lastEntry.flex_date ? { ...r, date: lastEntry.flex_date, return_date: lastEntry.flex_return_date || r.return_date } : r)}
+    ${compareHTML(lastEntry && lastEntry.flex_date ? { ...r, date: lastEntry.flex_date, return_date: lastEntry.flex_return_date || r.return_date }
+      // 다구간: 최근 조회에서 고른 실제 공항으로 (JP · SEL 같은 넓은 곳은 비교 사이트가 못 알아들음)
+      : r.legs && lastEntry && lastEntry.legs && lastEntry.legs.every((l) => /^[A-Z]{3}$/.test(l.from) && /^[A-Z]{3}$/.test(l.to))
+        ? { ...r, legs: lastEntry.legs.map((l) => ({ from: l.from, to: l.to, date: l.date })) } : r)}
     ${doc.status === "active" ? refreshHTML(r.id, ((index.routes || []).find((x) => x.id === r.id) || {}).cost || 2, (hist[hist.length - 1] || {}).checked_at) : ""}
 
     ${optionsHTML(lastEntry, r)}
@@ -761,6 +781,7 @@ function mountLegPicker(e, r) {
     const total = done ? ord.reduce((t, li, s) => t + opts[li][pick[s]].price, 0) : null;
     const chosen = Array(n);
     ord.forEach((li, s) => (chosen[li] = pick[s] != null ? opts[li][pick[s]] : null));
+    if (done) updateCompare(r, chosen.map((o, i) => ({ ...o, date: o.date || legs[i].date })));
     const legName = (l) => `${String(l.from).toUpperCase()}→${String(l.to).toUpperCase()}`;
     const diff = total == null ? 0 : Math.abs(total - base) < 500 ? 0 : total - base;
     host.innerHTML = `
@@ -865,6 +886,7 @@ async function mountRoundTrip(e, r) {
     if (grp) st.rkey = grp.k;
     const pair = grp && (grp.pairs.find((p) => p.i === st.rout) || grp.pairs[0]);
     if (pair) st.rout = pair.i;
+    if (pair) updateCompare(r, [{ ...outs[pair.i], date: dayOf(outs[pair.i]) }, { ...grp.r }]);
     const unknown = outs.map((o, i) => i).filter((i) => !known.has(i));
     const loadingIdx = unknown.filter((i) => st.loading[keyOf(outs[i])]);
     const multiRet = new Set(groups.map((x) => x.r.date)).size > 1;
@@ -903,6 +925,7 @@ async function mountRoundTrip(e, r) {
     const rr = rets && rets[Math.min(st.ret, rets.length - 1)];
     const it = st.items[keyOf(o)];
     const total = rr ? rr.price : o.price;
+    if (rr) updateCompare(r, [{ ...o, date: dayOf(o) }, { ...rr, date: rr.date || retDayOf(st.out) }]);
     host.innerHTML = `${modeHTML()}
       <div class="combo">
         <div class="combo-head"><span class="muted small">${rr ? "선택한 왕복" : "선택한 가는 편 (오는 편 미정)"}</span>
