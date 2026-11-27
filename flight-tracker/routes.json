@@ -69,7 +69,7 @@
       "travel_class": "economy",
       "max_stops": 0,
       "alert_below": null,
-      "active": true
+      "active": false
     },
     {
       "id": "kr-jp-202612",
