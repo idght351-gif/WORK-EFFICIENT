@@ -679,7 +679,7 @@ async function renderDetail(id) {
             <td class="hl-price">${won(h.price)}${prev ? `<div class="sub">${deltaHTML(h.price, prev.price).replace(/ \(.*?\)/, "")}</div>` : ""}</td>
           </tr>`; }).join("")}</tbody>
       </table>
-      ${hist.length > HISTORY_PAGE ? `<button type="button" class="btn secondary hist-more-btn" id="hist-more">더보기 (${Math.min(HISTORY_PAGE, hist.length - HISTORY_PAGE)}일 더)</button>` : ""}
+      ${hist.length > HISTORY_PAGE ? `<button type="button" class="btn secondary hist-more-btn" id="hist-more">더보기</button>` : ""}
     </section>
 
     <section class="card">
@@ -714,7 +714,7 @@ async function renderDetail(id) {
       document.querySelectorAll(`.hist-more[data-page="${shown}"]`).forEach((tr) => (tr.hidden = false));
       shown++;
       const left = document.querySelectorAll(".hist-more[hidden]").length;
-      if (!left) moreBtn.remove(); else moreBtn.textContent = `더보기 (${Math.min(HISTORY_PAGE, left)}일 더)`;
+      if (!left) moreBtn.remove();
     };
   }
   bindHide();
