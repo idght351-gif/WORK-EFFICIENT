@@ -406,3 +406,8 @@ pre.snippet { background: var(--bg); border-radius: 12px; padding: 12px; font-si
 .history td:nth-child(2) { width: 100%; }
 
 .hidden-btns { display: flex; gap: 6px; flex: none; }
+
+/* 다시 조회 버튼: 검색 횟수를 버튼 안에 */
+.refresh-btn { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.refresh-cost { font-size: 12px; font-weight: 500; color: var(--muted); }
+#refresh-msg:empty { display: none; }
