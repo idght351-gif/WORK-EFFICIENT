@@ -669,15 +669,17 @@ async function renderDetail(id) {
         <thead><tr><th>조회일</th><th>편명</th><th>시간</th><th>최저가</th></tr></thead>
         <tbody>${[...hist].reverse().map((h, i, arr) => {
           const prev = arr.slice(i + 1).find((x) => x.price != null);
-          if (h.price == null) return `<tr><td>${md(h.date)}</td><td colspan="3"><span class="muted">${esc(h.error || "기록 없음")}</span></td></tr>`;
+          const more = i >= HISTORY_PAGE ? ` class="hist-more" data-page="${Math.floor(i / HISTORY_PAGE)}" hidden` : "";
+          if (h.price == null) return `<tr${more}><td>${md(h.date)}</td><td colspan="3"><span class="muted">${esc(h.error || "기록 없음")}</span></td></tr>`;
           const legs = historyLegs(h);
-          return `<tr>
+          return `<tr${more}>
             <td>${md(h.date)}</td>
             <td>${legs.map((l) => `<div class="hl-line">${esc(l.fn)}</div>`).join("")}</td>
             <td>${legs.map((l) => `<div class="hl-line">${esc(l.dep)}→${esc(l.arr)}${l.stops > 0 ? ` <span class="hl-s">경유 ${l.stops}</span>` : ""}</div>`).join("")}</td>
             <td class="hl-price">${won(h.price)}${prev ? `<div class="sub">${deltaHTML(h.price, prev.price).replace(/ \(.*?\)/, "")}</div>` : ""}</td>
           </tr>`; }).join("")}</tbody>
       </table>
+      ${hist.length > HISTORY_PAGE ? `<button type="button" class="btn secondary hist-more-btn" id="hist-more">더보기 (${Math.min(HISTORY_PAGE, hist.length - HISTORY_PAGE)}일 더)</button>` : ""}
     </section>
 
     <section class="card">
@@ -704,6 +706,17 @@ async function renderDetail(id) {
   draw(0);
   bindSwitcher();
   bindRefresh(r.id);
+  // 날짜별 기록: 최근 7일만 보이고 [더보기] 마다 7일씩 더
+  const moreBtn = document.getElementById("hist-more");
+  if (moreBtn) {
+    let shown = 1;
+    moreBtn.onclick = () => {
+      document.querySelectorAll(`.hist-more[data-page="${shown}"]`).forEach((tr) => (tr.hidden = false));
+      shown++;
+      const left = document.querySelectorAll(".hist-more[hidden]").length;
+      if (!left) moreBtn.remove(); else moreBtn.textContent = `더보기 (${Math.min(HISTORY_PAGE, left)}일 더)`;
+    };
+  }
   bindHide();
   if (lastEntry && document.getElementById("lp-card")) mountLegPicker(lastEntry, r);
   if (lastEntry && document.getElementById("rt-card")) mountRoundTrip(lastEntry, { ...r, return_date: r.return_date });
@@ -1047,6 +1060,8 @@ async function mountRoundTrip(e, r) {
   };
   draw();
 }
+
+const HISTORY_PAGE = 7;  // 날짜별 기록: 처음에 보이는 날 수, [더보기] 한 번에 더 보이는 날 수
 
 // 날짜별 기록 한 줄에 들어갈 구간들 (다구간 · 왕복 · 편도)
 function historyLegs(h) {
