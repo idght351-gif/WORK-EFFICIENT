@@ -692,5 +692,21 @@ class TestWideOpenJaw(unittest.TestCase):
         self.assertEqual(out["leg_options"][1][0]["dep_airport"], "NRT")  # 목록은 그대로 가격순 (이어지는지는 앱에서 거름)
 
 
+class TestConditionChange(unittest.TestCase):
+    def test_reset_only_when_search_condition_changes(self):
+        import check_prices as cp
+        before = {"a": {"id": "a", "from": "ICN", "to": "KIX", "name": "x", "active": True},
+                  "b": {"id": "b", "from": "ICN", "to": "KIX", "name": "x", "active": True},
+                  "c": {"id": "c", "from": "ICN", "to": "KIX", "active": False},
+                  "d": {"id": "d", "from": "ICN", "to": "KIX", "active": True}}
+        now = [{"id": "a", "from": "PUS", "to": "KIX", "name": "x", "active": True},   # 조건 변경
+               {"id": "b", "from": "ICN", "to": "KIX", "name": "새 이름", "active": False},  # 이름 · 숨김만
+               {"id": "c", "from": "ICN", "to": "KIX", "active": True},               # 다시 보이기
+               {"id": "d", "from": "ICN", "to": "KIX", "active": True, "alert_below": 100000},
+               {"id": "e", "from": "ICN", "to": "CTS"}]                                # 새 노선
+        self.assertEqual(cp.condition_changed_ids(now, before), {"a"})
+        self.assertEqual(cp.changed_route_ids(now, before), {"a", "c", "e"})
+
+
 if __name__ == "__main__":
     unittest.main()

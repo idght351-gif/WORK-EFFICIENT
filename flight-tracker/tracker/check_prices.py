@@ -966,15 +966,44 @@ def save_json(path: Path, data) -> None:
     path.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
 
-def changed_route_ids(routes_raw: list[dict]) -> set[str] | None:
-    """직전 커밋의 routes.json 과 비교해 새로 생기거나 조건이 바뀐 노선 id. 비교할 수 없으면 None(전부 조회)."""
+def previous_routes() -> dict | None:
+    """직전 커밋의 routes.json 노선들 {id: 노선}. 비교할 수 없으면 None."""
     try:
         prev = subprocess.run(["git", "show", "HEAD^:flight-tracker/routes.json"], cwd=ROOT.parent,
                               capture_output=True, text=True, check=True).stdout
-        before = {r["id"]: r for r in json.loads(prev).get("routes", [])}
+        return {r["id"]: r for r in json.loads(prev).get("routes", [])}
     except (subprocess.CalledProcessError, FileNotFoundError, ValueError, KeyError):
         return None
-    return {r["id"] for r in routes_raw if before.get(r["id"]) != r}
+
+
+# 검색 결과와 상관없는 설정: 바뀌어도 다시 조회하거나 기록을 지우지 않음
+NON_SEARCH_KEYS = ("active", "name", "alert_below")
+
+
+def search_condition(r: dict) -> dict:
+    return {k: v for k, v in r.items() if k not in NON_SEARCH_KEYS}
+
+
+def condition_changed_ids(routes_raw: list[dict], before: dict | None) -> set[str]:
+    """예전부터 있던 노선 중 검색 조건(공항 · 날짜 · 시간 · 인원 · 경유 …)이 바뀐 노선 id → 예전 기록을 지움."""
+    if not before:
+        return set()
+    return {r["id"] for r in routes_raw if r["id"] in before and search_condition(before[r["id"]]) != search_condition(r)}
+
+
+def changed_route_ids(routes_raw: list[dict], before: dict | None = None) -> set[str] | None:
+    """조회할 노선: 새로 생긴 노선, 검색 조건이 바뀐 노선, 다시 켠(숨김 해제) 노선. 비교할 수 없으면 None(전부 조회).
+    이름 · 목표가만 바꾸거나 숨긴 노선은 검색하지 않음."""
+    if before is None:
+        before = previous_routes()
+    if before is None:
+        return None
+    out = set()
+    for r in routes_raw:
+        old = before.get(r["id"])
+        if old is None or search_condition(old) != search_condition(r) or (r.get("active", True) and not old.get("active", True)):
+            out.add(r["id"])
+    return out
 
 
 # ---------------------------------------------------------------- 가는 편 하나의 오는 편 목록 (앱에서 요청)
@@ -1087,9 +1116,13 @@ def run(dry_run: bool = False) -> int:
     routes_raw = load_json(ROUTES_FILE, {"routes": []})["routes"]
     routes = [normalize_route(r) for r in routes_raw]
     # 앱이나 GitHub 에서 노선을 바꿔 push 된 경우: 바뀐 노선만 조회 (검색 횟수 절약)
-    only = changed_route_ids(routes_raw) if os.environ.get("ONLY_CHANGED") == "1" else None
+    before = previous_routes() if os.environ.get("ONLY_CHANGED") == "1" else None
+    only = changed_route_ids(routes_raw, before) if os.environ.get("ONLY_CHANGED") == "1" else None
+    reset = condition_changed_ids(routes_raw, before)
     if only is not None:
         print(f"바뀐 노선만 조회: {sorted(only) or '없음'}")
+    if reset:
+        print(f"검색 조건이 바뀐 노선은 예전 기록을 지움: {sorted(reset)}")
     if os.environ.get("ONLY_ROUTE"):  # 수동 실행에서 노선 하나만 지정
         only = {os.environ["ONLY_ROUTE"].strip()}
         print(f"지정한 노선만 조회: {sorted(only)}")
@@ -1109,6 +1142,9 @@ def run(dry_run: bool = False) -> int:
         rid = route["id"]
         path = DATA_DIR / "routes" / f"{rid}.json"
         doc = load_json(path, {"history": [], "alert_state": {}})
+        if rid in reset:  # 조건이 바뀌면 예전 조건의 가격 기록 · 알림 상태 · 오는 편 목록은 의미가 없음
+            doc = {"history": [], "alert_state": {}}
+            (RETURNS_DIR / f"{rid}.json").unlink(missing_ok=True)
         history = doc.get("history", [])
         status = "active"
 
