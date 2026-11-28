@@ -8,7 +8,8 @@ const LEVEL = { low: ["good", "Google 기준 싼 편"], typical: ["", "Google �
 const DOW = ["일", "월", "화", "수", "목", "금", "토"];
 
 // 나라 전체 코드 (tracker/check_prices.py REGIONS 와 같음)
-const REGION_NAME = { KR: "한국", JP: "일본", SEL: "서울", TYO: "도쿄", OSA: "오사카", SPK: "삿포로" };
+const REGION_NAME = { KR: "한국", JP: "일본" };  // 화면의 경로 표시: 나라 전체만 이름, 나머지는 코드 그대로
+const CITY_CODE_NAME = { SEL: "서울", TYO: "도쿄", OSA: "오사카", SPK: "삿포로" };  // 노선 이름 자동 만들기용
 // 노선 추가 · 수정 화면의 빠른 입력 버튼 (누르면 고른 칸에 코드가 더해지고, 다시 누르면 빠짐)
 const QUICK_CODES = [
   ["한국", [["SEL", "서울"], ["ICN", "인천"], ["GMP", "김포"], ["PUS", "부산"], ["CJJ", "청주"], ["CJU", "제주"], ["TAE", "대구"]]],
@@ -1250,7 +1251,7 @@ const CITY = {
   SYD: "시드니", MEL: "멜버른", BNE: "브리즈번", AKL: "오클랜드", CDG: "파리", LHR: "런던", FRA: "프랑크푸르트", MUC: "뮌헨", FCO: "로마",
   MXP: "밀라노", BCN: "바르셀로나", MAD: "마드리드", AMS: "암스테르담", IST: "이스탄불", DXB: "두바이", PRG: "프라하", VIE: "빈", ZRH: "취리히",
 };
-const placeName1 = (c) => REGION_NAME[c] || KR_AIRPORTS[c] || CITY[c] || c;
+const placeName1 = (c) => REGION_NAME[c] || CITY_CODE_NAME[c] || KR_AIRPORTS[c] || CITY[c] || c;
 const placeName = (code) => [...new Set((code || "").toUpperCase().split(",").map((c) => c.trim()).filter(Boolean).map(placeName1))].join(" · ");
 
 // 왕복·편도: "인천 → 삿포로" / 다구간: "김포 → 도쿄 · 삿포로 · 아사히카와" (들르는 해외 도시, 중복 없이)
