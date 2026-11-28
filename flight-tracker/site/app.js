@@ -155,8 +155,8 @@ function refreshHTML(rid, cost, lastAt) {
   const key = rid || "*";
   const when = lastAt ? `마지막 조회 ${new Date(lastAt).toLocaleString("ko-KR", { month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" })} · ` : "";
   return `<div class="refresh">
-    <button type="button" class="btn secondary" id="refresh-btn" ${RUNNING[key] ? "disabled" : ""}>${RUNNING[key] ? "조회 중… 1~2분 걸려요" : rid ? "지금 다시 조회" : "전체 다시 조회"}</button>
-    <p class="muted small" id="refresh-msg">${RUNNING[key] ? "화면을 닫아도 조회는 계속돼요." : `${when}검색 약 ${cost}회 사용`}</p>
+    <button type="button" class="btn secondary refresh-btn" id="refresh-btn" ${RUNNING[key] ? "disabled" : ""}>${RUNNING[key] ? "조회 중… 1~2분 걸려요" : rid ? "지금 다시 조회" : "전체 다시 조회"}${RUNNING[key] ? "" : `<span class="refresh-cost">검색 약 ${cost}회 사용</span>`}</button>
+    <p class="muted small" id="refresh-msg">${RUNNING[key] ? "화면을 닫아도 조회는 계속돼요." : when.replace(/ · $/, "")}</p>
   </div>`;
 }
 function bindRefresh(rid) {
