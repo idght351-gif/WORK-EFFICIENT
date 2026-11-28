@@ -663,18 +663,19 @@ async function renderDetail(id) {
 
     ${optionsHTML(lastEntry, r)}
 
-    <section class="card">
+    <section class="card history-card">
       <h3 class="section-title">날짜별 기록</h3>
       <table class="history num">
-        <thead><tr><th>조회일</th><th>항공편</th><th class="r">최저가</th></tr></thead>
+        <thead><tr><th>조회일</th><th>편명</th><th>시간</th><th>최저가</th></tr></thead>
         <tbody>${[...hist].reverse().map((h, i, arr) => {
           const prev = arr.slice(i + 1).find((x) => x.price != null);
+          if (h.price == null) return `<tr><td>${md(h.date)}</td><td colspan="3"><span class="muted">${esc(h.error || "기록 없음")}</span></td></tr>`;
+          const legs = historyLegs(h);
           return `<tr>
             <td>${md(h.date)}</td>
-            <td>${h.price == null ? `<span class="muted">${esc(h.error || "기록 없음")}</span>`
-              : h.legs ? h.legs.map((l, j) => legHTML(l, "", `${j + 1}구간 `)).join("")
-              : legHTML(h, "", h.return_airline ? "가는 편 " : "") + (h.return_airline ? legHTML(h, "return_", "오는 편 ") : "")}</td>
-            <td class="r">${won(h.price)}${h.price != null && prev ? `<div class="sub">${deltaHTML(h.price, prev.price).replace(/ \(.*?\)/, "")}</div>` : ""}</td>
+            <td>${legs.map((l) => `<div class="hl-line">${esc(l.fn)}</div>`).join("")}</td>
+            <td>${legs.map((l) => `<div class="hl-line">${esc(l.dep)}→${esc(l.arr)}${l.stops > 0 ? ` <span class="hl-s">경유 ${l.stops}</span>` : ""}</div>`).join("")}</td>
+            <td class="hl-price">${won(h.price)}${prev ? `<div class="sub">${deltaHTML(h.price, prev.price).replace(/ \(.*?\)/, "")}</div>` : ""}</td>
           </tr>`; }).join("")}</tbody>
       </table>
     </section>
@@ -1047,13 +1048,13 @@ async function mountRoundTrip(e, r) {
   draw();
 }
 
-function legHTML(h, k, label) {
-  const stops = h[k + "stops"];
-  if (!k && h.dep_airport && h.arr_airport) label = `${label}${esc(h.dep_airport)}→${esc(h.arr_airport)} `;
-  if (!k && h.flex_date) label = `${dayLabel(h.flex_date)} ${label}`;
-  // 날짜별 기록: 구간마다 한 줄 (편명 · 시간 · 직항/경유)
-  return `<div class="hl num"><span class="hl-fn">${esc(h[k + "flight_number"])}</span><span class="hl-t">${esc(h[k + "depart_time"])}→${esc(h[k + "arrive_time"])}</span><span class="hl-s${stops === 0 ? " direct" : ""}">${stops === 0 ? "직항" : stops ? `경유 ${stops}회` : ""}</span></div>`;
+// 날짜별 기록 한 줄에 들어갈 구간들 (다구간 · 왕복 · 편도)
+function historyLegs(h) {
+  const one = (x, k = "") => ({ fn: x[k + "flight_number"] || "", dep: x[k + "depart_time"] || "", arr: x[k + "arrive_time"] || "", stops: x[k + "stops"] });
+  if (h.legs) return h.legs.map((l) => one(l));
+  return h.return_airline || h.return_flight_number ? [one(h), one(h, "return_")] : [one(h)];
 }
+
 
 function niceTicks(lo, hi, n = 4) {
   const raw = (hi - lo) / n || 1;
