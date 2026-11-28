@@ -850,7 +850,6 @@ function mountLegPicker(e, r) {
     const chosen = Array(n);
     ord.forEach((li, s) => (chosen[li] = pick[s] != null ? opts[li][pick[s]] : null));
     if (done) updateCompare(r, chosen.map((o, i) => ({ ...o, date: o.date || legs[i].date })));
-    const legName = (l) => `${String(l.from).toUpperCase()}→${String(l.to).toUpperCase()}`;
     const diff = total == null ? 0 : Math.abs(total - base) < 500 ? 0 : total - base;
     host.innerHTML = `
       ${n > 1 ? `<div class="seg rt-mode" role="tablist">
@@ -868,8 +867,8 @@ function mountLegPicker(e, r) {
       </div>` : ""}
       ${steps.map((st2, s) => {
         const l = legs[st2.li];
-        return `${n > 1 ? `<div class="rt-step"><span class="rt-no">${s + 1}</span>${st2.li + 1}구간 고르기 <span class="muted small">· ${l.date ? dayLabel(l.date) : ""} · ${esc(legName(l))}${s ? " · 앞에서 고른 편과 이어지는 편" : ""}</span></div>`
-          : `<p class="muted small" style="margin:10px 0 6px">${l.date ? `${dayLabel(l.date)} · ` : ""}가격순 · ${md(e.date)} 조회</p>`}
+        return `${n > 1 ? `<div class="rt-step"><span class="rt-no">${s + 1}</span>${st2.li + 1}구간 고르기 <span class="muted small">· ${l.date ? dayLabel(l.date) : ""}</span></div>`
+          : `<p class="muted small" style="margin:10px 0 6px">${l.date ? dayLabel(l.date) : ""}</p>`}
         ${st2.cand.length ? `<ol class="opts rt-list${st2.cand.length > 5 ? " scroll" : ""}">${st2.cand.map((c) =>
             rtRowHTML({ ...c.o, price: c.total }, c.j, "leg" + s, c.j === st2.j, base, mixedDays(opts[st2.li]))).join("")}</ol>`
           : `<p class="rt-wait muted small">앞에서 고른 편과 이어지는 편이 없어요.</p>`}`;
@@ -967,9 +966,9 @@ async function mountRoundTrip(e, r) {
         ${comboRowHTML("오는 편", grp.r.date, grp.r)}
         ${diffHTML(pair.price)}
       </div>` : ""}
-      <div class="rt-step"><span class="rt-no">1</span>오는 편 고르기 <span class="muted small">· ${multiRet ? "날짜 모두" : grp ? dayLabel(grp.r.date) : ""} · 가격은 가능한 왕복 최저가</span></div>
+      <div class="rt-step"><span class="rt-no">1</span>오는 편 고르기 <span class="muted small">· ${multiRet ? "날짜 모두" : grp ? dayLabel(grp.r.date) : ""}</span></div>
       <ol class="opts rt-list${groups.length > 5 ? " scroll" : ""}">${groups.map((x, j) => rtRowHTML(x.r, j, "rgrp", x === grp, base, multiRet)).join("")}</ol>
-      <div class="rt-step"><span class="rt-no">2</span>가는 편 고르기 <span class="muted small">· 이 오는 편과 묶었을 때 왕복 총액</span></div>
+      <div class="rt-step"><span class="rt-no">2</span>가는 편 고르기 <span class="muted small">· ${mixed ? "날짜 모두" : outDay ? dayLabel(outDay) : ""}</span></div>
       ${grp ? `<ol class="opts rt-list${grp.pairs.length > 5 ? " scroll" : ""}">${grp.pairs.map((p) => rtRowHTML({ ...outs[p.i], price: p.price }, p.i, "rpair", p.i === st.rout, base, mixed)).join("")}</ol>` : ""}
       ${unknown.length ? `<p class="rt-note muted small">오는 편 목록을 아직 조회하지 않은 가는 편 ${unknown.length}개는 위에 없어요. 아래에서 누르면 그 가는 편의 조합을 조회해요 (검색 1~2회 · 약 1분).</p>
         ${loadingIdx.map((i) => loadingHTML(outs[i])).join("")}
@@ -1004,9 +1003,9 @@ async function mountRoundTrip(e, r) {
         ${rr ? comboRowHTML("오는 편", retDayOf(st.out), rr) : ""}
         ${diffHTML(total)}
       </div>
-      <div class="rt-step"><span class="rt-no">1</span>가는 편 고르기 <span class="muted small">· ${mixed ? "후보 날짜 모두" : outDay ? dayLabel(outDay) : ""} · 가격은 왕복 최저가</span></div>
+      <div class="rt-step"><span class="rt-no">1</span>가는 편 고르기 <span class="muted small">· ${mixed ? "날짜 모두" : outDay ? dayLabel(outDay) : ""}</span></div>
       <ol class="opts rt-list${outs.length > 5 ? " scroll" : ""}">${outs.map((x, i) => rtRowHTML(x, i, "out", i === st.out, base, mixed)).join("")}</ol>
-      <div class="rt-step"><span class="rt-no">2</span>오는 편 고르기 <span class="muted small">· ${retDayOf(st.out) ? dayLabel(retDayOf(st.out)) : ""} · 가격은 왕복 총액</span></div>
+      <div class="rt-step"><span class="rt-no">2</span>오는 편 고르기 <span class="muted small">· ${retDayOf(st.out) ? dayLabel(retDayOf(st.out)) : ""}</span></div>
       ${rets ? `<ol class="opts rt-list${rets.length > 5 ? " scroll" : ""}">${rets.map((x, i) => rtRowHTML(x, i, "ret", i === st.ret, base)).join("")}</ol>`
         : st.loading[keyOf(o)] ? loadingHTML(o)
         : `${it && it.error ? `<p class="rt-wait small" style="color:var(--up)">조회하지 못했어요: ${esc(it.error)}</p>` : ""}
