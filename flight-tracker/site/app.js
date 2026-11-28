@@ -153,10 +153,10 @@ async function getJSON(url) {
 const RUNNING = {};  // 노선 id(전체는 "*") → 요청 시각
 function refreshHTML(rid, cost, lastAt) {
   const key = rid || "*";
-  const when = lastAt ? `마지막 조회 ${new Date(lastAt).toLocaleString("ko-KR", { month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" })} · ` : "";
+  const when = lastAt ? `마지막 조회 ${planLabel(new Date(lastAt))} · ` : "";  // 예: 11/28(토) 11:37
   return `<div class="refresh">
-    <button type="button" class="btn secondary refresh-btn" id="refresh-btn" ${RUNNING[key] ? "disabled" : ""}>${RUNNING[key] ? "조회 중… 1~2분 걸려요" : rid ? "지금 다시 조회" : "전체 다시 조회"}${RUNNING[key] ? "" : `<span class="refresh-cost">검색 약 ${cost}회 사용</span>`}</button>
-    <p class="muted small" id="refresh-msg">${RUNNING[key] ? "화면을 닫아도 조회는 계속돼요." : when.replace(/ · $/, "")}</p>
+    <button type="button" class="btn secondary refresh-btn" id="refresh-btn" ${RUNNING[key] ? "disabled" : ""}>${RUNNING[key] ? "조회 중… 1~2분 걸려요" : rid ? "지금 다시 조회" : "전체 다시 조회"}${RUNNING[key] ? "" : `<span class="refresh-cost">${when}검색 약 ${cost}회 사용</span>`}</button>
+    <p class="muted small" id="refresh-msg">${RUNNING[key] ? "화면을 닫아도 조회는 계속돼요." : ""}</p>
   </div>`;
 }
 function bindRefresh(rid) {
@@ -502,7 +502,7 @@ function compareHTML(r) {
       <a class="btn secondary" id="cmp-kayak" href="${esc(l.kayak)}" target="_blank" rel="noopener">Kayak 비교</a>
       <a class="btn secondary" id="cmp-sky" href="${esc(l.skyscanner)}" target="_blank" rel="noopener">Skyscanner 비교</a>
     </div>
-    <p class="muted small compare-note" id="cmp-note">같은 날짜·인원·좌석으로 열려요. 출발 시간대 조건은 각 사이트에서 직접 설정해 주세요.</p>`;
+`;
 }
 
 // ---------- Google 항공권 링크: 고른 편을 미리 선택한 검색 주소 (tfs = Google 이 쓰는 protobuf 를 base64 로)
