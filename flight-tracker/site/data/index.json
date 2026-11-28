@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-11-28T13:04:50+09:00",
+  "updated_at": "2026-11-28T13:13:38+09:00",
   "routes": [
     {
       "id": "icn-cts-20270629",
@@ -107,39 +107,6 @@
       ]
     },
     {
-      "id": "sel-osa-20270227",
-      "name": "인천 · 김포 → 오사카 · 고베",
-      "from": "ICN,GMP",
-      "to": "KIX,UKB",
-      "date": "2027-02-27",
-      "return_date": "2027-02-28",
-      "legs": null,
-      "flex": null,
-      "alert_below": null,
-      "status": "paused",
-      "cost": 4,
-      "last_checked_at": "2026-11-27T16:04:02+09:00",
-      "summary": {
-        "current": 484007,
-        "current_date": "2026-11-27",
-        "prev": 484991,
-        "min": 484007,
-        "max": 484991,
-        "avg": 484499,
-        "days": 2
-      },
-      "next_check": null,
-      "last_check": null,
-      "spark": [
-        484991,
-        484007
-      ],
-      "spark_dates": [
-        "2026-11-26",
-        "2026-11-27"
-      ]
-    },
-    {
       "id": "kr-jp-202612",
       "name": "오사카 → 서울",
       "from": "OSA",
@@ -181,7 +148,7 @@
     "plan_renewal_date": "2026-12-23",
     "account_rate_limit_per_hour": 250,
     "daily_usage": 0,
-    "checked_at": "2026-11-28T13:04:50+09:00"
+    "checked_at": "2026-11-28T13:13:38+09:00"
   },
   "schedule_kst": [],
   "last_scheduled_date": "2026-11-26"
