@@ -73,21 +73,13 @@
     },
     {
       "id": "kr-jp-202612",
-      "name": "부산 → 일본 · SEL",
-      "legs": [
-        {
-          "from": "PUS",
-          "to": "JP",
-          "date": "2027-02-09",
-          "depart_after": "01:00"
-        },
-        {
-          "from": "JP",
-          "to": "SEL",
-          "date": "2027-02-10",
-          "depart_after": "12:00"
-        }
-      ],
+      "name": "오사카 → 서울",
+      "from": "OSA",
+      "to": "SEL",
+      "date": "2027-02-10",
+      "return_date": null,
+      "depart_after": "16:00",
+      "depart_before": "24:00",
       "adults": 1,
       "travel_class": "economy",
       "max_stops": null,
