@@ -216,7 +216,7 @@ async function renderList() {
   $app.innerHTML = `
     <div class="quota-head" style="margin-top:8px"><h2 class="section-title">추적 중인 항공권</h2><span class="muted small">${scheduleText(index.schedule_kst)}</span></div>
     ${routes.length ? routes.filter((r) => r.status === "active").map((r) => `<div class="swipe" data-id="${esc(r.id)}">
-      <button type="button" class="swipe-act" data-hide="${esc(r.id)}" data-instant="1" tabindex="-1">숨기기</button>${cardHTML(r)}</div>`).join("") + hiddenHTML(routes.filter((r) => r.status !== "active")) :
+      <div class="swipe-acts"><button type="button" class="swipe-act" data-hide="${esc(r.id)}" data-instant="1" tabindex="-1">숨기기</button><button type="button" class="swipe-act del" data-del="${esc(r.id)}" data-name="${esc(r.name)}" tabindex="-1">삭제</button></div>${cardHTML(r)}</div>`).join("") + hiddenHTML(routes.filter((r) => r.status !== "active")) :
       `<div class="card empty"><p>아직 추적 중인 노선이 없어요.</p><p class="muted small">routes.json 에 노선을 추가하면 다음 실행부터 기록돼요.</p></div>`}
     ${refreshHTML(null, routes.filter((r) => r.status === "active").reduce((n, r) => n + (r.cost || 2), 0))}
     <a href="#add" class="btn secondary" style="margin-top:10px">+ 노선 추가하기</a>
@@ -355,7 +355,26 @@ function toast(text, actLabel, act) {
   if (actLabel) t.querySelector("button").onclick = () => { close(); act(); };
   setTimeout(close, 5000);
 }
+// 메인 목록에서 밀어서 [삭제]: 한 번 더 묻고 routes.json 에서 빼기 (가격 기록 파일은 남음)
+async function deleteRoute(id, name) {
+  if (!ghToken()) { location.hash = "#settings"; return; }
+  if (!confirm(`"${name}" 추적을 삭제할까요?\n목록에서 완전히 빠지고 다시 조회하지 않아요.`)) return;
+  const until = Date.now() + 3 * 60000;
+  let backup = null;
+  try { backup = await getJSON("data/index.json"); FRESH["data/index.json"] = { data: { ...backup, routes: backup.routes.filter((x) => x.id !== id) }, until }; } catch {}
+  route();
+  try {
+    await saveRoutes((routes) => routes.filter((x) => x.id !== id), `앱에서 노선 삭제: ${name}`);
+    toast("삭제했어요");
+  } catch (err) {
+    if (backup) FRESH["data/index.json"] = { data: backup, until };
+    route();
+    alert(err.status === 401 ? "GitHub 연결이 끊겼어요. 앱 설정에서 다시 연결해 주세요." : `삭제하지 못했어요 (${err.message})`);
+  }
+}
+
 function bindHide() {
+  document.querySelectorAll("[data-del]").forEach((b) => b.onclick = (ev) => { ev.preventDefault(); ev.stopPropagation(); deleteRoute(b.dataset.del, b.dataset.name); });
   document.querySelectorAll(".hidden-box").forEach((d) => d.ontoggle = () => d.open && fitOneLine(d));
   document.querySelectorAll("[data-hide],[data-show]").forEach((b) => b.onclick = (ev) => {
     ev.preventDefault(); ev.stopPropagation();
@@ -367,7 +386,7 @@ function bindHide() {
 
 // 메인 목록 카드: 왼쪽으로 밀면 [숨기기] 버튼
 function bindSwipe() {
-  const OPEN = 96;
+  const OPEN = 176;
   let opened = null;
   const set = (card, x, anim) => { card.style.transition = anim ? "transform .2s ease" : "none"; card.style.transform = x ? `translateX(${x}px)` : ""; };
   const closeOpen = () => { if (opened) { set(opened, 0, true); opened.parentElement.classList.remove("open"); opened = null; } };
