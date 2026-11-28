@@ -2,8 +2,8 @@
   "history": [
     {
       "date": "2026-11-28",
-      "checked_at": "2026-11-28T11:49:10+09:00",
-      "price": 203676,
+      "checked_at": "2026-11-28T20:05:02+09:00",
+      "price": 217043,
       "error": null,
       "airline": "제주항공",
       "flight_number": "7C 1372",
@@ -16,7 +16,7 @@
       "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/7C.png",
       "options": [
         {
-          "price": 203676,
+          "price": 217043,
           "airline": "제주항공",
           "flight_number": "7C 1372",
           "depart_time": "18:20",
@@ -28,7 +28,7 @@
           "date": "2027-02-10"
         },
         {
-          "price": 250144,
+          "price": 250138,
           "airline": "피치항공",
           "flight_number": "MM 743",
           "depart_time": "16:00",
@@ -40,7 +40,7 @@
           "date": "2027-02-10"
         },
         {
-          "price": 250144,
+          "price": 250138,
           "airline": "피치항공",
           "flight_number": "MM 709",
           "depart_time": "18:10",
@@ -52,7 +52,7 @@
           "date": "2027-02-10"
         },
         {
-          "price": 250144,
+          "price": 250138,
           "airline": "피치항공",
           "flight_number": "MM 711",
           "depart_time": "19:50",
@@ -64,7 +64,7 @@
           "date": "2027-02-10"
         },
         {
-          "price": 259337,
+          "price": 259331,
           "airline": "에어부산",
           "flight_number": "BX 374",
           "depart_time": "18:00",
@@ -76,7 +76,7 @@
           "date": "2027-02-10"
         },
         {
-          "price": 270902,
+          "price": 270405,
           "airline": "이스타항공",
           "flight_number": "ZE 614",
           "depart_time": "18:00",
@@ -88,7 +88,7 @@
           "date": "2027-02-10"
         },
         {
-          "price": 287753,
+          "price": 287746,
           "airline": "진에어",
           "flight_number": "LJ 384",
           "depart_time": "23:25",
@@ -100,7 +100,7 @@
           "date": "2027-02-10"
         },
         {
-          "price": 317004,
+          "price": 316997,
           "airline": "Trinity Airways",
           "flight_number": "TW 306",
           "depart_time": "19:10",
@@ -112,7 +112,7 @@
           "date": "2027-02-10"
         },
         {
-          "price": 367986,
+          "price": 367977,
           "airline": "진에어",
           "flight_number": "LJ 356",
           "depart_time": "17:35",
@@ -124,7 +124,7 @@
           "date": "2027-02-10"
         },
         {
-          "price": 381442,
+          "price": 381432,
           "airline": "Trinity Airways",
           "flight_number": "TW 336",
           "depart_time": "16:55",
@@ -136,7 +136,7 @@
           "date": "2027-02-10"
         },
         {
-          "price": 394229,
+          "price": 394220,
           "airline": "제주항공",
           "flight_number": "7C 1328",
           "depart_time": "16:25",
@@ -148,7 +148,7 @@
           "date": "2027-02-10"
         },
         {
-          "price": 394229,
+          "price": 394220,
           "airline": "제주항공",
           "flight_number": "7C 1394",
           "depart_time": "17:00",
@@ -160,7 +160,7 @@
           "date": "2027-02-10"
         },
         {
-          "price": 394229,
+          "price": 394220,
           "airline": "제주항공",
           "flight_number": "7C 1306",
           "depart_time": "19:40",
@@ -172,7 +172,7 @@
           "date": "2027-02-10"
         },
         {
-          "price": 404844,
+          "price": 404834,
           "airline": "제주항공",
           "flight_number": "7C 1622",
           "depart_time": "16:10",
@@ -184,7 +184,7 @@
           "date": "2027-02-10"
         },
         {
-          "price": 436518,
+          "price": 436508,
           "airline": "진에어",
           "flight_number": "LJ 368",
           "depart_time": "17:50",
@@ -196,7 +196,7 @@
           "date": "2027-02-10"
         },
         {
-          "price": 439444,
+          "price": 439433,
           "airline": "대한항공",
           "flight_number": "KE 2122",
           "depart_time": "20:20",
@@ -208,7 +208,7 @@
           "date": "2027-02-10"
         },
         {
-          "price": 481232,
+          "price": 481220,
           "airline": "대한항공",
           "flight_number": "KE 2120",
           "depart_time": "19:55",
@@ -220,7 +220,7 @@
           "date": "2027-02-10"
         },
         {
-          "price": 566563,
+          "price": 566549,
           "airline": "대한항공",
           "flight_number": "KE 2174",
           "depart_time": "18:40",
@@ -232,7 +232,7 @@
           "date": "2027-02-10"
         },
         {
-          "price": 656742,
+          "price": 656725,
           "airline": "대한항공",
           "flight_number": "KE 726",
           "depart_time": "18:10",
@@ -244,7 +244,7 @@
           "date": "2027-02-10"
         },
         {
-          "price": 656742,
+          "price": 656725,
           "airline": "대한항공",
           "flight_number": "KE 734",
           "depart_time": "19:45",
@@ -256,7 +256,7 @@
           "date": "2027-02-10"
         },
         {
-          "price": 1034255,
+          "price": 1034230,
           "airline": "전일본공수",
           "flight_number": "NH 36, NH 867",
           "depart_time": "17:50",
@@ -289,15 +289,15 @@
   },
   "status": "active",
   "summary": {
-    "current": 203676,
+    "current": 217043,
     "current_date": "2026-11-28",
     "prev": null,
-    "min": 203676,
-    "max": 203676,
-    "avg": 203676,
+    "min": 217043,
+    "max": 217043,
+    "avg": 217043,
     "days": 1
   },
-  "updated_at": "2026-11-28T20:04:05+09:00",
+  "updated_at": "2026-11-28T20:05:02+09:00",
   "next_check": null,
   "last_check": null,
   "schedule_kst": []

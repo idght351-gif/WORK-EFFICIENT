@@ -95,8 +95,8 @@
     },
     {
       "date": "2026-11-28",
-      "checked_at": "2026-11-28T11:37:43+09:00",
-      "price": 621351,
+      "checked_at": "2026-11-28T20:05:02+09:00",
+      "price": 621343,
       "error": null,
       "airline": "Trinity Airways",
       "flight_number": "TW 263",
@@ -109,7 +109,7 @@
       "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/TW.png",
       "return_options": [
         {
-          "price": 621351,
+          "price": 621343,
           "airline": "Trinity Airways",
           "flight_number": "TW 264",
           "depart_time": "14:30",
@@ -121,7 +121,7 @@
           "date": "2027-07-05"
         },
         {
-          "price": 689465,
+          "price": 689455,
           "airline": "대한항공",
           "flight_number": "KE 762",
           "depart_time": "14:30",
@@ -133,7 +133,7 @@
           "date": "2027-07-05"
         },
         {
-          "price": 689465,
+          "price": 689455,
           "airline": "대한항공",
           "flight_number": "KE 766",
           "depart_time": "15:05",
@@ -145,7 +145,7 @@
           "date": "2027-07-05"
         },
         {
-          "price": 739611,
+          "price": 739600,
           "airline": "대한항공",
           "flight_number": "KE 770",
           "depart_time": "16:20",
@@ -167,7 +167,7 @@
       "return_airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/TW.png",
       "options": [
         {
-          "price": 621350,
+          "price": 621343,
           "airline": "Trinity Airways",
           "flight_number": "TW 263",
           "depart_time": "10:10",
@@ -237,15 +237,15 @@
   },
   "status": "active",
   "summary": {
-    "current": 621351,
+    "current": 621343,
     "current_date": "2026-11-28",
     "prev": 623437,
-    "min": 621351,
+    "min": 621343,
     "max": 624681,
-    "avg": 623825,
+    "avg": 623824,
     "days": 6
   },
-  "updated_at": "2026-11-28T20:04:05+09:00",
+  "updated_at": "2026-11-28T20:05:02+09:00",
   "google_flights_url": "https://www.google.com/travel/flights?hl=ko&gl=kr&curr=KRW&tfs=CBwQAhpFEgoyMDI3LTA2LTI5Ih8KA0lDThIKMjAyNy0wNi0yORoDQ1RTKgJUVzIDMjYzKABACkgXagcIARIDSUNOcgcIARIDQ1RTGiQSCjIwMjctMDctMDUoAEAMSBdqBwgBEgNDVFNyBwgBEgNJQ05AAUgBcAGYAQE&tfu=EgIIAQ",
   "next_check": null,
   "last_check": null,

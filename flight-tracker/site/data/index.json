@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-11-28T20:04:05+09:00",
+  "updated_at": "2026-11-28T20:05:02+09:00",
   "routes": [
     {
       "id": "icn-cts-20270629",
@@ -13,14 +13,14 @@
       "alert_below": null,
       "status": "active",
       "cost": 4,
-      "last_checked_at": "2026-11-28T11:37:43+09:00",
+      "last_checked_at": "2026-11-28T20:05:02+09:00",
       "summary": {
-        "current": 621351,
+        "current": 621343,
         "current_date": "2026-11-28",
         "prev": 623437,
-        "min": 621351,
+        "min": 621343,
         "max": 624681,
-        "avg": 623825,
+        "avg": 623824,
         "days": 6
       },
       "next_check": null,
@@ -31,7 +31,7 @@
         624316,
         624511,
         623437,
-        621351
+        621343
       ],
       "spark_dates": [
         "2026-11-23",
@@ -118,20 +118,20 @@
       "alert_below": null,
       "status": "active",
       "cost": 1,
-      "last_checked_at": "2026-11-28T11:49:10+09:00",
+      "last_checked_at": "2026-11-28T20:05:02+09:00",
       "summary": {
-        "current": 203676,
+        "current": 217043,
         "current_date": "2026-11-28",
         "prev": null,
-        "min": 203676,
-        "max": 203676,
-        "avg": 203676,
+        "min": 217043,
+        "max": 217043,
+        "avg": 217043,
         "days": 1
       },
       "next_check": null,
       "last_check": null,
       "spark": [
-        203676
+        217043
       ],
       "spark_dates": [
         "2026-11-28"
@@ -141,14 +141,14 @@
   "quota": {
     "plan_name": "Free Plan",
     "searches_per_month": 250,
-    "plan_searches_left": 115,
+    "plan_searches_left": 113,
     "extra_credits": 0,
-    "total_searches_left": 115,
-    "this_month_usage": 135,
+    "total_searches_left": 113,
+    "this_month_usage": 137,
     "plan_renewal_date": "2026-12-23",
     "account_rate_limit_per_hour": 250,
     "daily_usage": 0,
-    "checked_at": "2026-11-28T20:04:05+09:00"
+    "checked_at": "2026-11-28T20:05:02+09:00"
   },
   "schedule_kst": [],
   "last_scheduled_date": "2026-11-26"
