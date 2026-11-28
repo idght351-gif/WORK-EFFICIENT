@@ -370,3 +370,6 @@ pre.snippet { background: var(--bg); border-radius: 12px; padding: 12px; font-si
 /* 고른 일정: 구간 가격 · 구간별 Google 예약 */
 .combo-links { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px; margin-top: 10px; }
 .combo-links .btn { padding: 10px 8px; font-size: 13px; background: var(--card); }
+
+/* 날짜별 기록: 날짜와 항공편 사이 간격 */
+.history td:first-child { padding-right: 10px; white-space: nowrap; }
