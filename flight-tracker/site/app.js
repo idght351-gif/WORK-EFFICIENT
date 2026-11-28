@@ -1030,7 +1030,7 @@ function legHTML(h, k, label) {
   if (!k && h.dep_airport && h.arr_airport) label = `${label}${esc(h.dep_airport)}→${esc(h.arr_airport)} `;
   if (!k && h.flex_date) label = `${dayLabel(h.flex_date)} ${label}`;
   // 날짜별 기록: 구간마다 한 줄 (편명 · 시간 · 직항/경유)
-  return `<div>${esc(h[k + "flight_number"])} · ${esc(h[k + "depart_time"])}→${esc(h[k + "arrive_time"])}${stops === 0 ? " · 직항" : stops ? ` · 경유 ${stops}회` : ""}</div>`;
+  return `<div class="hl num"><span class="hl-fn">${esc(h[k + "flight_number"])}</span><span class="hl-t">${esc(h[k + "depart_time"])}→${esc(h[k + "arrive_time"])}</span><span class="hl-s${stops === 0 ? " direct" : ""}">${stops === 0 ? "직항" : stops ? `경유 ${stops}회` : ""}</span></div>`;
 }
 
 function niceTicks(lo, hi, n = 4) {
