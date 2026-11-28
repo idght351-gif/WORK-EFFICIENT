@@ -359,9 +359,11 @@ pre.snippet { background: var(--bg); border-radius: 12px; padding: 12px; font-si
 /* ---------- 메인 목록: 밀어서 숨기기 ---------- */
 .swipe { position: relative; margin-bottom: 12px; border-radius: var(--radius); }
 .swipe .route-card { position: relative; z-index: 1; margin-bottom: 0; will-change: transform; }
-.swipe-act { position: absolute; top: 0; right: 0; bottom: 0; width: 120px; padding-left: 24px; border: 0; border-radius: var(--radius);
-  background: #8e8e93; color: #fff; font: inherit; font-size: 15px; font-weight: 700; cursor: pointer; visibility: hidden; }
-.swipe.open .swipe-act { visibility: visible; }
+.swipe-acts { position: absolute; top: 0; right: 0; bottom: 0; display: flex; visibility: hidden; border-radius: var(--radius); overflow: hidden; }
+.swipe.open .swipe-acts { visibility: visible; }
+.swipe-act { width: 88px; border: 0; background: #8e8e93; color: #fff; font: inherit; font-size: 15px; font-weight: 700; cursor: pointer; }
+.swipe-act:first-child { width: 112px; padding-left: 24px; }  /* 카드 둥근 모서리 뒤로 들어가는 만큼 */
+.swipe-act.del { background: #e5484d; }
 .toast { position: fixed; left: 50%; bottom: calc(20px + env(safe-area-inset-bottom)); transform: translateX(-50%); z-index: 50;
   display: flex; align-items: center; gap: 14px; background: #1c1c1e; color: #fff; padding: 12px 16px; border-radius: 12px;
   font-size: 14px; box-shadow: 0 6px 24px rgba(0,0,0,.25); max-width: calc(100% - 32px); white-space: nowrap; }
