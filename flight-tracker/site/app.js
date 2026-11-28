@@ -1517,7 +1517,10 @@ function renderAdd(edit) {
   f.addEventListener("focusin", (e) => {
     const k = e.target.name === "from" || e.target.name === "to" ? e.target.name : e.target.dataset && (e.target.dataset.k === "from" || e.target.dataset.k === "to") ? e.target.dataset.k : null;
     if (!k) return;
-    qKey = k; qLeg = e.target.closest(".leg"); drawQuick();
+    qKey = k; qLeg = e.target.closest(".leg");
+    // 공항 칸을 누르면 적혀 있던 값을 지우고 새로 넣기 (빠르게 넣기 버튼이나 직접 입력)
+    if (e.target.value) { e.target.value = ""; e.target.classList.remove("invalid"); update(); }
+    drawQuick();
   });
   f.addEventListener("input", (e) => { if (e.isTrusted) drawQuick(); });
   drawQuick();
