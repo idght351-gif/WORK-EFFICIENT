@@ -8,7 +8,21 @@ const LEVEL = { low: ["good", "Google 기준 싼 편"], typical: ["", "Google �
 const DOW = ["일", "월", "화", "수", "목", "금", "토"];
 
 // 나라 전체 코드 (tracker/check_prices.py REGIONS 와 같음)
-const REGION_NAME = { KR: "한국", JP: "일본" };  // KR 은 인천·김포·청주로 검색
+const REGION_NAME = { KR: "한국", JP: "일본", SEL: "서울", TYO: "도쿄", OSA: "오사카", SPK: "삿포로" };
+// 노선 추가 · 수정 화면의 빠른 입력 버튼 (누르면 고른 칸에 코드가 더해지고, 다시 누르면 빠짐)
+const QUICK_CODES = [
+  ["한국", [["SEL", "서울"], ["ICN", "인천"], ["GMP", "김포"], ["PUS", "부산"], ["CJJ", "청주"], ["CJU", "제주"], ["TAE", "대구"]]],
+  ["일본", [["JP", "일본 전체"], ["TYO", "도쿄"], ["OSA", "오사카"], ["SPK", "삿포로"], ["FUK", "후쿠오카"], ["OKA", "오키나와"], ["NGO", "나고야"]]],
+];
+const quickPanelHTML = () => `<div class="full qp">
+    <div class="qp-head"><span class="muted small">빠르게 넣기 →</span>
+      <div class="qp-target" role="radiogroup" aria-label="넣을 칸">
+        <button type="button" data-target="from" class="on" aria-pressed="true">출발</button>
+        <button type="button" data-target="to" aria-pressed="false">도착</button>
+      </div></div>
+    ${QUICK_CODES.map(([g, list]) => `<div class="quick"><span class="qp-group muted small">${g}</span>${list.map(([c, n]) =>
+      `<button type="button" class="chip" data-code="${c}"><b>${c}</b> ${n}</button>`).join("")}</div>`).join("")}
+  </div>`;  // KR 은 인천·김포·청주로 검색
 const WD = ["월", "화", "수", "목", "금", "토", "일"];  // flex.weekdays: 0=월 … 6=일
 // "2월 금·토", "2~3월 주말" 처럼 짧게
 // 달·요일로 정한 노선을 실제 날짜 목록으로 (tracker/check_prices.py flex_dates 와 같은 규칙)
@@ -429,7 +443,7 @@ function sparkline(svg, data, target) {
 // 공항 여러 개("ICN,GMP")는 비교 사이트에 도시 코드로 넘김 (tracker/check_prices.py site_codes 와 같은 규칙)
 const METRO = [[["ICN", "GMP"], "SEL", "sela"], [["KIX", "ITM", "UKB"], "OSA", "osaa"], [["HND", "NRT"], "TYO", "tyoa"],
   [["PVG", "SHA"], "SHA", "csha"], [["PEK", "PKX"], "BJS", "bjsa"], [["TPE", "TSA"], "TPE", "tpet"]];
-const REGION_SITES = { KR: ["SEL", "sela"], JP: ["TYO", "jp"] };
+const REGION_SITES = { KR: ["SEL", "sela"], JP: ["TYO", "jp"], SEL: ["SEL", "sela"], TYO: ["TYO", "tyoa"], OSA: ["OSA", "osaa"], SPK: ["SPK", "cts"] };
 function siteCodes(codes) {
   const items = (codes || "").toUpperCase().split(",").map((c) => c.trim()).filter(Boolean);
   const region = items.find((c) => REGION_SITES[c]);
@@ -1266,10 +1280,7 @@ function renderAdd(edit) {
         <div class="form" id="simple">
           <label>출발 공항 코드<input name="from" value="ICN" maxlength="23" placeholder="ICN 또는 ICN,GMP"></label>
           <label>도착 공항 코드<input name="to" value="KIX" maxlength="23" placeholder="KIX 또는 KIX,UKB"></label>
-          <div class="full quick">
-            <button type="button" class="chip" data-set="from" data-v="ICN,GMP,CJJ">출발 인천·김포·청주</button>
-            <button type="button" class="chip" data-set="to" data-v="JP">도착 일본 전체</button>
-          </div>
+          ${quickPanelHTML()}
           <div class="full seg seg2" role="radiogroup" aria-label="날짜 정하는 방식">
             <label><input type="radio" name="datemode" value="fixed" checked><span>정해진 날</span></label>
             <label><input type="radio" name="datemode" value="flex"><span>여러 날짜 중 찾기</span></label>
@@ -1288,6 +1299,7 @@ function renderAdd(edit) {
           <label data-round>오는 편 출발 (까지)<input name="return_before" type="time" value=""></label>
         </div>
         <div id="multi" hidden>
+          <div class="form" style="margin-bottom:8px">${quickPanelHTML()}</div>
           <div id="legs"></div>
           <button type="button" class="btn secondary" id="add-leg">+ 구간 추가</button>
           <p class="muted small" style="margin:8px 2px 0">구간은 2~6개까지 넣을 수 있어요. 조회할 때 구간마다 검색 1회를 써요.</p>
@@ -1475,7 +1487,40 @@ function renderAdd(edit) {
   };
 
   f.addEventListener("change", (e) => { if (e.target.name === "trip") setTrip(e.target.value); if (e.target.name === "datemode") applyVis(); update(); });
-  f.querySelectorAll(".quick [data-set]").forEach((b) => { b.onclick = () => { f.elements[b.dataset.set].value = b.dataset.v; update(); }; });
+  // 빠른 입력: [출발 | 도착] 으로 넣을 칸을 고르거나 공항 칸을 누르면 그 칸이 대상이 됨
+  let qLeg = null, qKey = "from";  // qLeg: 다구간에서 마지막으로 누른 구간 (없으면 첫 구간)
+  const qInput = () => {
+    if (!document.getElementById("multi").hidden) {
+      const leg = qLeg && qLeg.isConnected ? qLeg : $legs.querySelector(".leg");
+      return leg && leg.querySelector(`[data-k="${qKey}"]`);
+    }
+    return f.elements[qKey];
+  };
+  const codesOf = (el) => (el ? el.value.toUpperCase().split(",").map((x) => x.trim()).filter(Boolean) : []);
+  const drawQuick = () => {
+    const have = new Set(codesOf(qInput()));
+    f.querySelectorAll(".qp").forEach((p) => {
+      p.querySelectorAll("[data-target]").forEach((b) => { const on = b.dataset.target === qKey; b.classList.toggle("on", on); b.setAttribute("aria-pressed", on); });
+      p.querySelectorAll("[data-code]").forEach((b) => b.classList.toggle("on", have.has(b.dataset.code)));
+    });
+  };
+  f.querySelectorAll(".qp [data-target]").forEach((b) => b.onclick = () => { qKey = b.dataset.target; drawQuick(); });
+  f.querySelectorAll(".qp [data-code]").forEach((b) => b.onclick = () => {
+    const el = qInput();
+    if (!el) return;
+    const list = codesOf(el), c = b.dataset.code;
+    el.value = (list.includes(c) ? list.filter((x) => x !== c) : [...list, c]).join(",");
+    el.classList.remove("invalid");
+    el.dispatchEvent(new Event("input", { bubbles: true }));
+    update(); drawQuick();
+  });
+  f.addEventListener("focusin", (e) => {
+    const k = e.target.name === "from" || e.target.name === "to" ? e.target.name : e.target.dataset && (e.target.dataset.k === "from" || e.target.dataset.k === "to") ? e.target.dataset.k : null;
+    if (!k) return;
+    qKey = k; qLeg = e.target.closest(".leg"); drawQuick();
+  });
+  f.addEventListener("input", (e) => { if (e.isTrusted) drawQuick(); });
+  drawQuick();
   const addPick = () => {
     const d = f.elements.pick.value;
     if (!d) { f.elements.pick.focus(); return; }

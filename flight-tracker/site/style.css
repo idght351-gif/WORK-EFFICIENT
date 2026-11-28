@@ -373,3 +373,14 @@ pre.snippet { background: var(--bg); border-radius: 12px; padding: 12px; font-si
 
 /* 날짜별 기록: 날짜와 항공편 사이 간격 */
 .history td:first-child { padding-right: 10px; white-space: nowrap; }
+
+/* 노선 추가 · 수정: 빠르게 넣기 */
+.qp { display: flex; flex-direction: column; gap: 8px; margin-top: -2px; }
+.qp-head { display: flex; align-items: center; gap: 8px; }
+.qp-target { display: inline-flex; background: var(--bg); padding: 3px; border-radius: 10px; gap: 2px; }
+.qp-target button { font: inherit; font-size: 13px; font-weight: 700; border: 0; background: none; color: var(--text-2); padding: 5px 14px; border-radius: 8px; cursor: pointer; }
+.qp-target button.on { background: var(--card); color: var(--text); box-shadow: 0 1px 2px rgba(0,0,0,.08); }
+.qp .quick { align-items: center; }
+.qp-group { width: 30px; flex: none; }
+.quick .chip b { font-weight: 800; }
+.quick .chip.on { background: var(--accent); color: #fff; }
