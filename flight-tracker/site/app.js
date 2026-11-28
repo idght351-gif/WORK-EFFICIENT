@@ -316,7 +316,10 @@ function hiddenHTML(list) {
     ${list.map((r) => `<div class="hidden-row">
       <a href="#${esc(r.id)}"><span class="fit-line">${routePath(r)}</span>
         <span class="muted small">${r.status === "ended" ? "출발일 지남" : dday(r.date)}${r.summary && r.summary.current != null ? ` · 마지막 ${won(r.summary.current)}` : ""}</span></a>
-      ${r.status === "paused" ? `<button type="button" class="btn secondary" data-show="${esc(r.id)}">다시 보이기</button>` : ""}
+      <div class="hidden-btns">
+        ${r.status === "paused" ? `<button type="button" class="btn secondary" data-show="${esc(r.id)}">다시 보이기</button>` : ""}
+        <button type="button" class="btn secondary danger" data-del="${esc(r.id)}" data-name="${esc(r.name)}">삭제</button>
+      </div>
     </div>`).join("")}
   </details>`;
 }

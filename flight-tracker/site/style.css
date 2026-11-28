@@ -404,3 +404,5 @@ pre.snippet { background: var(--bg); border-radius: 12px; padding: 12px; font-si
 }
 .history td.r { white-space: nowrap; padding-left: 8px; }
 .history td:nth-child(2) { width: 100%; }
+
+.hidden-btns { display: flex; gap: 6px; flex: none; }
