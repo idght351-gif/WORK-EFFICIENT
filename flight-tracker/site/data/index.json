@@ -123,20 +123,18 @@
         "current": 484007,
         "current_date": "2026-11-27",
         "prev": 484991,
-        "min": 209600,
+        "min": 484007,
         "max": 484991,
-        "avg": 392866,
-        "days": 3
+        "avg": 484499,
+        "days": 2
       },
       "next_check": null,
       "last_check": null,
       "spark": [
-        209600,
         484991,
         484007
       ],
       "spark_dates": [
-        "2026-11-25",
         "2026-11-26",
         "2026-11-27"
       ]
@@ -157,20 +155,18 @@
       "summary": {
         "current": 203676,
         "current_date": "2026-11-28",
-        "prev": 330522,
+        "prev": null,
         "min": 203676,
-        "max": 330522,
-        "avg": 267099,
-        "days": 2
+        "max": 203676,
+        "avg": 203676,
+        "days": 1
       },
       "next_check": null,
       "last_check": null,
       "spark": [
-        330522,
         203676
       ],
       "spark_dates": [
-        "2026-11-27",
         "2026-11-28"
       ]
     }

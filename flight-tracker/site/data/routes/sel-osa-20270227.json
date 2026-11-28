@@ -1,20 +1,6 @@
 {
   "history": [
     {
-      "date": "2026-11-25",
-      "checked_at": "2026-11-25T18:34:26+09:00",
-      "price": 209600,
-      "error": null,
-      "airline": "피치항공",
-      "flight_number": "MM 710",
-      "depart_time": "21:00",
-      "arrive_time": "22:45",
-      "stops": 0,
-      "duration_min": 105,
-      "dep_airport": "ICN",
-      "arr_airport": "KIX"
-    },
-    {
       "date": "2026-11-26",
       "checked_at": "2026-11-26T12:39:58+09:00",
       "price": 484991,
@@ -805,10 +791,10 @@
     "current": 484007,
     "current_date": "2026-11-27",
     "prev": 484991,
-    "min": 209600,
+    "min": 484007,
     "max": 484991,
-    "avg": 392866,
-    "days": 3
+    "avg": 484499,
+    "days": 2
   },
   "updated_at": "2026-11-28T12:16:43+09:00",
   "next_check": null,
