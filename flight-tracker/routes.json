@@ -55,23 +55,6 @@
       "active": false
     },
     {
-      "id": "sel-osa-20270227",
-      "name": "인천 · 김포 → 오사카 · 고베",
-      "from": "ICN,GMP",
-      "to": "KIX,UKB",
-      "date": "2027-02-27",
-      "return_date": "2027-02-28",
-      "depart_after": "00:00",
-      "depart_before": "24:00",
-      "return_after": "00:00",
-      "return_before": "24:00",
-      "adults": 1,
-      "travel_class": "economy",
-      "max_stops": 0,
-      "alert_below": null,
-      "active": false
-    },
-    {
       "id": "kr-jp-202612",
       "name": "오사카 → 서울",
       "from": "OSA",
